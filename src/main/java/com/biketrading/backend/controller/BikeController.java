@@ -17,10 +17,7 @@ public class BikeController {
     @Autowired
     private BikeService bikeService;
 
-    @Autowired
-    private BikeRepository bikeRepository;
-
-    // API 1: Xem chi tiết xe
+    // SHOP-15 (BE2): Product Detail
     // GET http://localhost:8081/api/bikes/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Bike> getBikeDetail(@PathVariable Long id) {
@@ -28,12 +25,17 @@ public class BikeController {
         return ResponseEntity.ok(bike);
     }
 
+    // SHOP-12 (BE1): Product Listing
+    // GET http://localhost:8081/api/bikes
+    // GET http://localhost:8081/api/bikes?sellerId=
     // API 2: Xem danh sách tất cả xe
     // GET http://localhost:8081/api/bikes
     @GetMapping
-    public ResponseEntity<List<Bike>> getAllBikes() {
-        return ResponseEntity.ok(bikeRepository.findAll());
+    public ResponseEntity<List<Bike>> getAllBikes(@RequestParam(required = false) Long sellerId) {
+        return ResponseEntity.ok(bikeService.getAllBikes(sellerId));
     }
+}
+
 
     // API 3 (MỚI): Tìm kiếm xe theo tên (SHOP-12)
     // GET http://localhost:8081/api/bikes/search?keyword=Galaxy
@@ -42,3 +44,4 @@ public class BikeController {
         return ResponseEntity.ok(bikeRepository.findByNameContaining(keyword));
     }
 }
+
