@@ -11,24 +11,24 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/bikes")
 @CrossOrigin(origins = "*")
-
 public class BikeController {
 
     @Autowired
     private BikeService bikeService;
 
+    // SHOP-15 (BE2): Product Detail
+    // GET http://localhost:8081/api/bikes/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Bike> getBikeDetail(@PathVariable Long id) {
         Bike bike = bikeService.getBikeById(id);
         return ResponseEntity.ok(bike);
     }
-    @Autowired
-    private com.biketrading.backend.repository.BikeRepository bikeRepository; // Tạm gọi thẳng Repo cho nhanh
 
-    // API: Xem danh sách tất cả xe
-    // GET http://localhost:8080/api/bikes
+    // SHOP-12 (BE1): Product Listing
+    // GET http://localhost:8081/api/bikes
+    // GET http://localhost:8081/api/bikes?sellerId=1
     @GetMapping
-    public ResponseEntity<List<Bike>> getAllBikes() {
-        return ResponseEntity.ok(bikeRepository.findAll());
+    public ResponseEntity<List<Bike>> getAllBikes(@RequestParam(required = false) Long sellerId) {
+        return ResponseEntity.ok(bikeService.getAllBikes(sellerId));
     }
 }
