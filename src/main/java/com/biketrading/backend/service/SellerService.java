@@ -12,6 +12,7 @@ public class SellerService {
     @Autowired
     private SellerRepository sellerRepository;
 
+
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     // SHOP-11: Signup
@@ -74,5 +75,16 @@ public class SellerService {
                     seller.setShopName(newInfo.getShopName());
                     return sellerRepository.save(seller);
                 }).orElse(null);
+
+    // ĐÂY LÀ HÀM BỊ THIẾU (SHOP-11 Signup)
+    public Seller createSeller(Seller seller) {
+        // Có thể thêm logic kiểm tra trùng username ở đây nếu muốn
+        return sellerRepository.save(seller);
+    }
+
+    // Hàm lấy thông tin shop (SHOP-16)
+    public Seller getSellerById(Long id) {
+        return sellerRepository.findById(id).orElse(null);
+
     }
 }
