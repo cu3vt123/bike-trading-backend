@@ -1,0 +1,23 @@
+### Lệnh 1: Nhập hàng (Đăng tin bán xe)
+POST http://localhost:8081/api/bikes
+Content-Type: application/json
+
+{
+  "sellerId": 1,
+  "categoryId": 1,
+  "brandId": 1,
+  "name": "Xe dap dua Galaxy LP400",
+  "description": "Xe moi cung",
+  "price": 2500000,
+  "frameSize": "L",
+  "conditionPercentage": 100
+}
+### Test SHOP-17: Cập nhật thông tin Shop (Sửa số điện thoại)
+PUT http://localhost:8081/api/sellers/1
+Content-Type: application/json
+
+{
+  "shopName": "Shop Xe Dap Sai Gon (VIP)",
+  "phone": "0999999999",
+  "email": "hotro@saigonbike.com"
+}

@@ -13,7 +13,7 @@ public class Seller {
     private Long sellerId;
 
     private String username;
-    private String password; // Lưu ý: Thực tế sẽ ẩn cái này đi, nhưng tạm thời cứ để để test
+    private String password; //use for test API ( delete later )
     private String email;
     private String phone;
     private String shopName;
