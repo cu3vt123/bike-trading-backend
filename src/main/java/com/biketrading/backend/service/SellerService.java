@@ -11,21 +11,14 @@ public class SellerService {
     @Autowired
     private SellerRepository sellerRepository;
 
-    // Phục vụ SHOP-16: Xem hồ sơ (Profile)
-    public Seller getSellerById(Long id) {
-        return sellerRepository.findById(id).orElse(null);
+    // ĐÂY LÀ HÀM BỊ THIẾU (SHOP-11 Signup)
+    public Seller createSeller(Seller seller) {
+        // Có thể thêm logic kiểm tra trùng username ở đây nếu muốn
+        return sellerRepository.save(seller);
     }
 
-    // Phục vụ SHOP-17: Cập nhật thông tin (Dashboard)
-    public Seller updateSellerProfile(Long id, Seller newInfo) {
-        return sellerRepository.findById(id)
-                .map(seller -> {
-                    // Chỉ cho sửa những thông tin cơ bản
-                    seller.setPhone(newInfo.getPhone());
-                    seller.setEmail(newInfo.getEmail());
-                    seller.setShopName(newInfo.getShopName());
-                    // Lưu ý: Không cho sửa username/password ở đây cho an toàn
-                    return sellerRepository.save(seller);
-                }).orElse(null);
+    // Hàm lấy thông tin shop (SHOP-16)
+    public Seller getSellerById(Long id) {
+        return sellerRepository.findById(id).orElse(null);
     }
 }

@@ -1,37 +1,45 @@
 package com.biketrading.backend.controller;
 
 import com.biketrading.backend.entity.Seller;
+import com.biketrading.backend.repository.SellerRepository;
 import com.biketrading.backend.service.SellerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/sellers")
+@RequestMapping("/api/auth") // Đổi link gốc thành /auth cho đúng chuẩn
 public class SellerController {
 
     @Autowired
     private SellerService sellerService;
 
-    // 1. API Xem Profile (SHOP-16)
-    // GET http://localhost:8081/api/sellers/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<Seller> getSellerProfile(@PathVariable Long id) {
-        Seller seller = sellerService.getSellerById(id);
-        if (seller != null) {
-            return ResponseEntity.ok(seller);
-        }
-        return ResponseEntity.notFound().build();
+    @Autowired
+    private SellerRepository sellerRepository;
+
+    // SHOP-11: Đăng ký tài khoản (Signup)
+    // Link: POST /api/auth/signup
+    @PostMapping("/signup")
+    public ResponseEntity<Seller> signup(@RequestBody Seller seller) {
+        return ResponseEntity.ok(sellerService.createSeller(seller));
     }
 
-    // 2. API Cập nhật thông tin Dashboard (SHOP-17)
-    // PUT http://localhost:8081/api/sellers/{id}
-    @PutMapping("/{id}")
-    public ResponseEntity<Seller> updateSellerProfile(@PathVariable Long id, @RequestBody Seller seller) {
-        Seller updatedSeller = sellerService.updateSellerProfile(id, seller);
-        if (updatedSeller != null) {
-            return ResponseEntity.ok(updatedSeller);
+    // SHOP-10: Đăng nhập (Login)
+    // Link: POST /api/auth/login
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Seller loginInfo) {
+        Seller user = sellerRepository.findByUsernameAndPassword(loginInfo.getUsername(), loginInfo.getPassword());
+        if (user != null) {
+            return ResponseEntity.ok(user);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu");
+    }
+
+    // Lấy thông tin Profile shop
+    // Link: GET /api/auth/profile/{id}
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<Seller> getProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(sellerService.getSellerById(id));
     }
 }

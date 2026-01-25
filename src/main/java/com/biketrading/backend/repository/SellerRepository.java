@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SellerRepository extends JpaRepository<Seller, Long> {
+    // Hàm tìm kiếm user để đăng nhập (SHOP-10)
+    Seller findByUsernameAndPassword(String username, String password);
 }
