@@ -1,7 +1,7 @@
 package com.biketrading.backend.controller;
 
 import com.biketrading.backend.entity.Bike;
-import com.biketrading.backend.repository.BikeRepository; // Đã thêm import
+import com.biketrading.backend.repository.BikeRepository;
 import com.biketrading.backend.service.BikeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,10 @@ public class BikeController {
     @Autowired
     private BikeService bikeService;
 
-    // SHOP-15 (BE2): Product Detail
+    @Autowired
+    private BikeRepository bikeRepository; // Phải có dòng này mới tìm kiếm được
+
+    // SHOP-15: Xem chi tiết xe
     // GET http://localhost:8081/api/bikes/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Bike> getBikeDetail(@PathVariable Long id) {
@@ -25,23 +28,18 @@ public class BikeController {
         return ResponseEntity.ok(bike);
     }
 
-    // SHOP-12 (BE1): Product Listing
+    // SHOP-12: Xem danh sách xe (Có thể lọc theo người bán)
     // GET http://localhost:8081/api/bikes
-    // GET http://localhost:8081/api/bikes?sellerId=
-    // API 2: Xem danh sách tất cả xe
-    // GET http://localhost:8081/api/bikes
+    // GET http://localhost:8081/api/bikes?sellerId=1
     @GetMapping
     public ResponseEntity<List<Bike>> getAllBikes(@RequestParam(required = false) Long sellerId) {
         return ResponseEntity.ok(bikeService.getAllBikes(sellerId));
     }
-}
 
-
-    // API 3 (MỚI): Tìm kiếm xe theo tên (SHOP-12)
+    // SHOP-12 (MỞ RỘNG): Tìm kiếm xe theo tên
     // GET http://localhost:8081/api/bikes/search?keyword=Galaxy
     @GetMapping("/search")
     public ResponseEntity<List<Bike>> searchBikes(@RequestParam String keyword) {
         return ResponseEntity.ok(bikeRepository.findByNameContaining(keyword));
     }
-}
-
+} // Ngoặc đóng class phải nằm ở tận cùng thế này mới đúng
