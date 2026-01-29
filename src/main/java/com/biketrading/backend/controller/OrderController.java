@@ -14,13 +14,13 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    // API Tạo đơn hàng: POST /api/orders
+    // POST /api/orders
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
         return ResponseEntity.ok(orderService.createOrder(order));
     }
 
-    // API Thanh toán: PUT /api/orders/{id}/pay
+    // PUT /api/orders/{id}/pay
     @PutMapping("/{id}/pay")
     public ResponseEntity<Order> payDeposit(@PathVariable Long id) {
         Order paidOrder = orderService.payDeposit(id);
