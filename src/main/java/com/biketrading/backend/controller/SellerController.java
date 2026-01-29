@@ -19,7 +19,7 @@ public class SellerController {
     private SellerRepository sellerRepository;
 
     // Signup
-    // POST http://localhost:8081/api/auth/signup
+        // POST http://localhost:8081/api/auth/signup
     @PostMapping("/signup")
     public ResponseEntity<Seller> signup(@RequestBody Seller seller) {
         // Gọi hàm createSeller bên Service (đã sửa lúc nãy)
