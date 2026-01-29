@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/auth") // Link gốc chuẩn
+@RequestMapping("/api/auth")
 public class SellerController {
 
     @Autowired
@@ -18,16 +18,16 @@ public class SellerController {
     @Autowired
     private SellerRepository sellerRepository;
 
-    // SHOP-11: Đăng ký tài khoản (Signup)
-    // Link: POST http://localhost:8081/api/auth/signup
+    // Signup
+    // POST http://localhost:8081/api/auth/signup
     @PostMapping("/signup")
     public ResponseEntity<Seller> signup(@RequestBody Seller seller) {
         // Gọi hàm createSeller bên Service (đã sửa lúc nãy)
         return ResponseEntity.ok(sellerService.createSeller(seller));
     }
 
-    // SHOP-10: Đăng nhập (Login)
-    // Link: POST http://localhost:8081/api/auth/login
+    //  (Login)
+    // POST http://localhost:8081/api/auth/login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Seller loginInfo) {
         // Tìm user trong Database
@@ -39,8 +39,8 @@ public class SellerController {
         return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu");
     }
 
-    // SHOP-16: Xem Profile shop
-    // Link: GET http://localhost:8081/api/auth/profile/{id}
+    // xem Profile shop
+    // GET http://localhost:8081/api/auth/profile/{id}
     @GetMapping("/profile/{id}")
     public ResponseEntity<Seller> getProfile(@PathVariable Long id) {
         return ResponseEntity.ok(sellerService.getSellerById(id));

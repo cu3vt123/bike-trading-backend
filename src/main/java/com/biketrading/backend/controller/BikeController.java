@@ -18,7 +18,7 @@ public class BikeController {
     private BikeService bikeService;
 
     @Autowired
-    private BikeRepository bikeRepository; // Phải có dòng này mới tìm kiếm được
+    private BikeRepository bikeRepository;
 
     // SHOP-15: Xem chi tiết xe
     // GET http://localhost:8081/api/bikes/{id}
@@ -42,4 +42,4 @@ public class BikeController {
     public ResponseEntity<List<Bike>> searchBikes(@RequestParam String keyword) {
         return ResponseEntity.ok(bikeRepository.findByNameContaining(keyword));
     }
-} // Ngoặc đóng class phải nằm ở tận cùng thế này mới đúng
+}
