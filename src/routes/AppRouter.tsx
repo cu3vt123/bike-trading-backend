@@ -5,6 +5,7 @@ import MainLayout from "@/layouts/MainLayout";
 import HomePage from "@/pages/HomePage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import LoginPage from "@/pages/LoginPage";
+import ForbiddenPage from "@/pages/ForbiddenPage";
 
 import GuestGuard from "@/routes/GuestGuard";
 import RequireAuth from "@/routes/RequireAuth";
@@ -71,6 +72,9 @@ export default function AppRouter() {
             </GuestGuard>
           }
         />
+
+        {/* 403 Forbidden - wrong role */}
+        <Route path="/403" element={<ForbiddenPage />} />
       </Routes>
     </BrowserRouter>
   );

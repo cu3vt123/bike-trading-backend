@@ -1,25 +1,29 @@
-// src/pages/LoginPage.tsx
 import React, { useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ShoppingBag, Store, ClipboardCheck, Shield } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { Role } from "@/types/auth";
+import { cn } from "@/lib/utils";
 
 type LocationState = {
   from?: { pathname?: string };
-  // mới (HomePage dùng presetRole)
   presetRole?: Role;
-  // cũ (backward compatible)
   role?: Role;
 };
 
-function cx(...classes: Array<string | false | undefined | null>) {
-  return classes.filter(Boolean).join(" ");
-}
-
 /**
- * Sprint 1 UI-only:
- * - Chưa gọi backend
- * - Login sẽ set token giả để test flow UI
+ * Sprint 1 UI-only: mock login. Chưa gọi backend.
  */
 async function mockLogin(payload: {
   role: Role;
@@ -36,10 +40,7 @@ async function mockLogin(payload: {
 }
 
 function resolvePostLoginPath(fromPath: string, role: Role) {
-  // Seller area chỉ SELLER vào
   if (fromPath.startsWith("/seller") && role !== "SELLER") return "/";
-
-  // Buyer purchase flow chỉ BUYER vào
   const buyerOnlyPrefixes = [
     "/checkout",
     "/transaction",
@@ -52,9 +53,20 @@ function resolvePostLoginPath(fromPath: string, role: Role) {
   ) {
     return "/";
   }
-
+  if (fromPath.startsWith("/inspector") && role !== "INSPECTOR") return "/";
+  if (fromPath.startsWith("/admin") && role !== "ADMIN") return "/";
   return fromPath;
 }
+
+const ROLE_CONFIG: Record<
+  Role,
+  { label: string; icon: React.ElementType; short: string }
+> = {
+  BUYER: { label: "Buyer", icon: ShoppingBag, short: "Mua xe" },
+  SELLER: { label: "Seller", icon: Store, short: "Bán xe" },
+  INSPECTOR: { label: "Inspector", icon: ClipboardCheck, short: "Kiểm định" },
+  ADMIN: { label: "Admin", icon: Shield, short: "Quản trị" },
+};
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -100,18 +112,20 @@ export default function LoginPage() {
     }
   }
 
+  const roles: Role[] = ["BUYER", "SELLER", "INSPECTOR", "ADMIN"];
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Top bar (không dùng MainLayout để tránh 2 header/logo) */}
-      <header className="sticky top-0 z-10 border-b border-black/5 bg-white/80 backdrop-blur">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Top bar - no MainLayout to avoid double header */}
+      <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-600 text-white">
-              <span className="text-sm font-bold">S</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+              S
             </span>
             <div className="leading-tight">
               <div className="text-sm font-semibold">ShopBike</div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-xs text-muted-foreground">
                 Verified &amp; Inspected
               </div>
             </div>
@@ -120,11 +134,14 @@ export default function LoginPage() {
           <nav className="flex items-center gap-4 text-sm">
             <Link
               to="/#listings"
-              className="text-slate-600 hover:text-slate-900"
+              className="text-muted-foreground hover:text-foreground"
             >
               Explore
             </Link>
-            <Link to="/support" className="text-slate-600 hover:text-slate-900">
+            <Link
+              to="/support"
+              className="text-muted-foreground hover:text-foreground"
+            >
               Support
             </Link>
           </nav>
@@ -133,124 +150,98 @@ export default function LoginPage() {
 
       <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
-          <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-            <div className="text-center">
-              <h1 className="text-xl font-semibold">Welcome back</h1>
-              <p className="mt-1 text-sm text-slate-500">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle>Welcome back</CardTitle>
+              <CardDescription>
                 Log in to continue your verified marketplace experience.
-              </p>
-            </div>
+              </CardDescription>
+            </CardHeader>
 
-            {error && (
-              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {error}
-              </div>
-            )}
+            <CardContent className="space-y-6">
+              {error && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
 
-            {/* Role segmented */}
-            <div className="mt-5 rounded-2xl bg-slate-100 p-1">
-              <div className="grid grid-cols-2 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setRole("BUYER")}
-                  className={cx(
-                    "rounded-xl px-3 py-2 text-sm font-semibold transition",
-                    role === "BUYER"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900",
-                  )}
-                >
-                  Buyer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("SELLER")}
-                  className={cx(
-                    "rounded-xl px-3 py-2 text-sm font-semibold transition",
-                    role === "SELLER"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900",
-                  )}
-                >
-                  Seller
-                </button>
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-slate-500">
-              Roles are selected at login; your permissions depend on your
-              account.
-            </p>
-
-            <form onSubmit={onSubmit} className="mt-5 space-y-4">
-              <div>
-                <label className="text-xs font-medium text-slate-700">
-                  Email/Username
-                </label>
-                <input
-                  value={emailOrUsername}
-                  onChange={(e) => setEmailOrUsername(e.target.value)}
-                  placeholder="e.g. rider_01@shopbike.com"
-                  className="mt-1 h-11 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none ring-emerald-200 focus:ring-4"
-                />
+              {/* 4-role selector */}
+              <div className="space-y-2">
+                <Label className="text-sm">Sign in as</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {roles.map((r) => {
+                    const config = ROLE_CONFIG[r];
+                    const Icon = config.icon;
+                    const isSelected = role === r;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRole(r)}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors",
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-input hover:bg-accent hover:text-accent-foreground",
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{config.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-slate-700">
-                    Password
-                  </label>
-                  <span className="text-xs font-semibold text-slate-400">
-                    Forgot password? (Sprint 1)
-                  </span>
+              <form onSubmit={onSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email / Username</Label>
+                  <Input
+                    id="email"
+                    type="text"
+                    value={emailOrUsername}
+                    onChange={(e) => setEmailOrUsername(e.target.value)}
+                    placeholder="e.g. rider_01@shopbike.com"
+                    autoComplete="username"
+                  />
                 </div>
 
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="mt-1 h-11 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none ring-emerald-200 focus:ring-4"
-                />
-              </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Forgot? (Sprint 1)
+                    </span>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className={cx(
-                  "h-11 w-full rounded-2xl font-semibold text-white transition",
-                  submitting
-                    ? "bg-emerald-300"
-                    : "bg-emerald-600 hover:bg-emerald-700",
-                )}
-              >
-                {submitting ? "Logging in..." : "Log in"}
-              </button>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={submitting}
+                >
+                  {submitting ? "Logging in..." : "Log in"}
+                </Button>
 
-              <Link
-                to="/"
-                className="grid h-11 w-full place-items-center rounded-2xl border border-black/10 bg-white text-sm font-semibold text-slate-900 hover:bg-slate-50"
-              >
-                Continue browsing
-              </Link>
-            </form>
+                <Button type="button" variant="outline" className="w-full" asChild>
+                  <Link to="/">Continue browsing</Link>
+                </Button>
+              </form>
 
-            <div className="mt-6 text-center text-sm text-slate-600">
-              Don&apos;t have an account?{" "}
-              <span className="font-semibold text-slate-400">(Sprint 1)</span>
-              <div className="mt-1 text-[11px] text-slate-400">
-                Choose your role first.
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-slate-400">
-            <span>Privacy Policy</span>
-            <span>•</span>
-            <span>Terms</span>
-            <span>•</span>
-            <span>Cookies</span>
-          </div>
+              <p className="text-center text-sm text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <span className="text-muted-foreground/80">(Sprint 1)</span>
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

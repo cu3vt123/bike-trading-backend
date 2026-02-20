@@ -10,7 +10,7 @@ export default function RequireSeller() {
   }
 
   if (role !== "SELLER") {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/403" state={{ from: location }} replace />;
   }
 
   return <Outlet />;

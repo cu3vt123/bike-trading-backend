@@ -106,7 +106,7 @@ export default function HomePage() {
     });
   }
 
-  const showSellButton = role !== "BUYER"; // Buyer không thấy
+  const showSellButton = role === "SELLER"; // Chỉ Seller mới bán
 
   return (
     <div className="space-y-6">

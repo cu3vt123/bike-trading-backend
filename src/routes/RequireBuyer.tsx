@@ -9,7 +9,7 @@ export default function RequireBuyer() {
   }
 
   if (role !== "BUYER") {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/403" state={{ from: location }} replace />;
   }
 
   return <Outlet />;
