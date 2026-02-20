@@ -23,8 +23,12 @@ export default function ListingCard({ listing }: Props) {
     "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=1400&q=60";
 
   return (
-    <Link to={`/bikes/${listing.id}`} state={{ listing }} className="...">
-      <div className="relative overflow-hidden rounded-t-2xl">
+    <Link
+      to={`/bikes/${listing.id}`}
+      state={{ listing }}
+      className="group block overflow-hidden rounded-xl border bg-card shadow-sm transition hover:shadow-md"
+    >
+      <div className="relative overflow-hidden rounded-t-xl">
         <div className="aspect-[4/3] w-full bg-slate-100">
           <img
             src={img}
@@ -35,7 +39,7 @@ export default function ListingCard({ listing }: Props) {
         </div>
 
         {isVerified && (
-          <div className="absolute left-3 top-3 rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">
+          <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">
             Verified
           </div>
         )}
@@ -44,16 +48,16 @@ export default function ListingCard({ listing }: Props) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-slate-900">
+            <div className="truncate text-sm font-semibold text-foreground">
               {listing.brand} {listing.model ?? ""}
             </div>
-            <div className="truncate text-xs text-slate-500">
+            <div className="truncate text-xs text-muted-foreground">
               {listing.title}
             </div>
           </div>
 
           <div className="text-right">
-            <div className="text-sm font-bold text-emerald-700">
+            <div className="text-sm font-bold text-primary">
               {formatMoney(listing.price, listing.currency ?? "VND")}
             </div>
             {!!listing.msrp && listing.msrp > listing.price && (
@@ -64,7 +68,7 @@ export default function ListingCard({ listing }: Props) {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {listing.year && <span>{listing.year}</span>}
           {listing.frameSize && <span>Size {listing.frameSize}</span>}
           {listing.condition && <span>{listing.condition}</span>}

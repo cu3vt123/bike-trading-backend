@@ -226,22 +226,26 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={submitting}
-                >
+                <Button type="submit" className="w-full" disabled={submitting}>
                   {submitting ? "Creating account..." : "Create account"}
                 </Button>
 
-                <Button type="button" variant="outline" className="w-full" asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  asChild
+                >
                   <Link to="/">Back to home</Link>
                 </Button>
               </form>
 
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link to="/login" className="font-medium text-primary hover:underline">
+                <Link
+                  to="/login"
+                  className="font-medium text-primary hover:underline"
+                >
                   Log in
                 </Link>
               </p>

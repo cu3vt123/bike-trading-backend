@@ -1,70 +1,65 @@
-// src/pages/HomePage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Search, Bike } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { fetchListings } from "@/services/buyerService";
 import ListingCard from "@/components/listing/ListingCard";
 import type { Listing } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const SECTION_LISTINGS_ID = "listings";
 
-// Sprint 1: mock data (chỉ show marketplace nếu PUBLISHED + APPROVE)
-const MOCK_LISTINGS: Listing[] = [
-  {
-    id: "1",
-    title: "Specialized S-Works Tarmac SL7",
-    brand: "Specialized",
-    price: 7200000,
-    location: "Ho Chi Minh City",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=1200&q=60",
-    state: "PUBLISHED",
-    inspectionResult: "APPROVE",
-  },
-  {
-    id: "2",
-    title: "Cannondale SuperSix EVO",
-    brand: "Cannondale",
-    price: 8850000,
-    location: "Da Nang",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1528701800489-20be9c07a00c?auto=format&fit=crop&w=1200&q=60",
-    state: "PUBLISHED",
-    inspectionResult: "APPROVE",
-  },
-  {
-    id: "3",
-    title: "Trek Émonda SL 7 (Pending Inspection)",
-    brand: "Trek",
-    price: 5100000,
-    location: "Ha Noi",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1508973379184-7517410fb0bc?auto=format&fit=crop&w=1200&q=60",
-    state: "PENDING_INSPECTION",
-    inspectionResult: null,
-  },
-];
-
-function isMarketVisible(item: Listing) {
-  return item.state === "PUBLISHED" && item.inspectionResult === "APPROVE";
-}
-
 function scrollToListings() {
-  const el = document.getElementById(SECTION_LISTINGS_ID);
-  el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById(SECTION_LISTINGS_ID)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
 }
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { accessToken, role } = useAuthStore();
 
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState<string>("ALL");
 
-  const allVisible = useMemo(() => MOCK_LISTINGS.filter(isMarketVisible), []);
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchListings()
+      .then((data) => {
+        if (!cancelled) setListings(data);
+      })
+      .catch((err) => {
+        if (!cancelled)
+          setError(err?.message ?? "Failed to load listings. Using fallback.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const keyword = q.trim().toLowerCase();
-    return allVisible.filter((x) => {
+    return listings.filter((x) => {
       const okBrand = brand === "ALL" ? true : x.brand === brand;
       const okQ =
         keyword.length === 0
@@ -72,12 +67,10 @@ export default function HomePage() {
           : `${x.brand ?? ""} ${x.title ?? ""} ${x.location ?? ""}`
               .toLowerCase()
               .includes(keyword);
-
       return okBrand && okQ;
     });
-  }, [allVisible, q, brand]);
+  }, [listings, q, brand]);
 
-  // Support /#listings (Explore)
   useEffect(() => {
     if (window.location.hash === `#${SECTION_LISTINGS_ID}`) {
       setTimeout(scrollToListings, 0);
@@ -85,194 +78,198 @@ export default function HomePage() {
   }, []);
 
   const brands = useMemo(() => {
-    const set = new Set(allVisible.map((x) => x.brand));
+    const set = new Set(listings.map((x) => x.brand));
     return ["ALL", ...Array.from(set)];
-  }, [allVisible]);
+  }, [listings]);
 
   function handleSellYourBike() {
-    // Seller đã login -> vào seller dashboard
     if (accessToken && role === "SELLER") {
       navigate("/seller");
       return;
     }
-
-    // Chưa login -> qua login, preset SELLER, login xong quay về /seller
     navigate("/login", {
-      state: {
-        from: { pathname: "/seller" },
-        presetRole: "SELLER",
-      },
+      state: { from: { pathname: "/seller" }, presetRole: "SELLER" },
       replace: true,
     });
   }
 
-  const showSellButton = role === "SELLER"; // Chỉ Seller mới bán
+  const showSellButton = role === "SELLER";
 
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <section className="rounded-3xl border border-black/10 bg-white p-4 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="overflow-hidden rounded-2xl bg-slate-100">
-            <div className="aspect-[16/10] w-full">
-              <img
-                src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1400&q=60"
-                alt="ShopBike hero"
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
+      <Card>
+        <CardContent className="p-0">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="overflow-hidden rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
+              <div className="aspect-[16/10] w-full bg-muted">
+                <img
+                  src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1400&q=60"
+                  alt="ShopBike hero"
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center px-4 py-4 md:px-6">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                VERIFIED MARKETPLACE
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Inspected listings only
+              </div>
+
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
+                Find your next ride —{" "}
+                <span className="text-primary">verified</span> &{" "}
+                <span className="text-primary">inspected</span>
+              </h1>
+
+              <p className="mt-2 text-sm text-muted-foreground">
+                Marketplace for used sport bikes. Listings visible only after{" "}
+                <span className="font-semibold">inspection APPROVE</span>.
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button onClick={scrollToListings}>
+                  Browse bikes
+                </Button>
+                {showSellButton && (
+                  <Button variant="outline" onClick={handleSellYourBike}>
+                    Sell your bike
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col justify-center px-2 py-2 md:px-4">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              VERIFIED MARKETPLACE
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Inspected listings only
+          <div className="mt-4 grid gap-2 px-4 pb-4 md:grid-cols-3">
+            <div className="rounded-lg border bg-primary/5 px-4 py-3">
+              <div className="text-sm font-semibold">Inspection Report</div>
+              <div className="text-xs text-muted-foreground">
+                Clear checks, transparent info.
+              </div>
             </div>
-
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
-              Find your next ride —{" "}
-              <span className="text-emerald-700">verified</span> &amp;{" "}
-              <span className="text-emerald-700">inspected</span>
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-600">
-              Marketplace for used sport bikes. Listings are visible only after{" "}
-              <span className="font-semibold">inspection APPROVE</span>.
-            </p>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                onClick={scrollToListings}
-                className="h-10 rounded-2xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                Browse bikes
-              </button>
-
-              {showSellButton && (
-                <button
-                  onClick={handleSellYourBike}
-                  className="h-10 rounded-2xl border border-black/10 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-                >
-                  Sell your bike
-                </button>
-              )}
+            <div className="rounded-lg border bg-primary/5 px-4 py-3">
+              <div className="text-sm font-semibold">Anti-fraud</div>
+              <div className="text-xs text-muted-foreground">
+                Verified & moderated listings.
+              </div>
+            </div>
+            <div className="rounded-lg border bg-primary/5 px-4 py-3">
+              <div className="text-sm font-semibold">Support</div>
+              <div className="text-xs text-muted-foreground">
+                Help through the transaction.
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Trust row */}
-        <div className="mt-4 grid gap-2 md:grid-cols-3">
-          <div className="rounded-2xl border border-black/10 bg-emerald-50 px-4 py-3">
-            <div className="text-sm font-semibold">Inspection Report</div>
-            <div className="text-xs text-slate-600">
-              Clear checks, transparent info.
-            </div>
-          </div>
-          <div className="rounded-2xl border border-black/10 bg-emerald-50 px-4 py-3">
-            <div className="text-sm font-semibold">Anti-fraud</div>
-            <div className="text-xs text-slate-600">
-              Verified &amp; moderated listings.
-            </div>
-          </div>
-          <div className="rounded-2xl border border-black/10 bg-emerald-50 px-4 py-3">
-            <div className="text-sm font-semibold">Support</div>
-            <div className="text-xs text-slate-600">
-              Help through the transaction.
-            </div>
-          </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
-      <section className="rounded-3xl border border-black/10 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-1 items-center gap-2">
-            <div className="w-full">
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search bikes, brand, or location..."
-                className="h-10 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none ring-emerald-200 focus:ring-4"
-              />
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search bikes, brand, or location..."
+                  className="pl-9"
+                />
+              </div>
+
+              <Select value={brand} onValueChange={setBrand}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="All brands" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {b === "ALL" ? "All brands" : b}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <select
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              className="h-10 rounded-2xl border border-black/10 bg-white px-3 text-sm outline-none ring-emerald-200 focus:ring-4"
-            >
-              {brands.map((b) => (
-                <option key={b} value={b}>
-                  {b === "ALL" ? "All brands" : b}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 md:justify-end">
-            <div className="text-sm text-slate-600">
-              Showing <span className="font-semibold">{filtered.length}</span>{" "}
-              results
+            <div className="flex items-center justify-between gap-3 md:justify-end">
+              <div className="text-sm text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{filtered.length}</span> results
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setQ("");
+                  setBrand("ALL");
+                }}
+              >
+                Clear all
+              </Button>
             </div>
-
-            <button
-              onClick={() => {
-                setQ("");
-                setBrand("ALL");
-              }}
-              className="h-10 rounded-2xl border border-black/10 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-            >
-              Clear all
-            </button>
           </div>
-        </div>
-      </section>
+        </CardHeader>
+      </Card>
 
       {/* Listings */}
       <section id={SECTION_LISTINGS_ID} className="scroll-mt-24">
         <div className="flex items-end justify-between">
           <div>
             <h2 className="text-lg font-semibold">Featured Listings</h2>
-            <p className="text-sm text-slate-500">
-              Only inspected &amp; approved listings are shown.
+            <p className="text-sm text-muted-foreground">
+              Only inspected & approved listings are shown.
             </p>
           </div>
-
           <Link
             to="/#listings"
             onClick={(e) => {
               e.preventDefault();
               scrollToListings();
             }}
-            className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+            className="text-sm font-semibold text-primary hover:underline"
           >
             View all bikes →
           </Link>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="mt-6 rounded-3xl border border-black/10 bg-white p-10 text-center shadow-sm">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-50 text-emerald-700">
-              ⌕
-            </div>
-            <div className="mt-3 text-sm font-semibold">
-              No bikes found matching your criteria
-            </div>
-            <div className="mt-1 text-xs text-slate-500">
-              Try adjusting your search or clearing filters.
-            </div>
-            <button
-              onClick={() => {
-                setQ("");
-                setBrand("ALL");
-              }}
-              className="mt-4 h-10 rounded-2xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              Clear all filters
-            </button>
+        {loading ? (
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border bg-card py-16">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Loading listings...</p>
           </div>
+        ) : error ? (
+          <Card className="mt-6">
+            <CardContent className="flex flex-col items-center gap-3 py-12">
+              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-xs text-muted-foreground">
+                Showing fallback data if available.
+              </p>
+            </CardContent>
+          </Card>
+        ) : filtered.length === 0 ? (
+          <Card className="mt-6">
+            <CardContent className="flex flex-col items-center gap-3 py-12">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Bike className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-semibold">No bikes found matching your criteria</p>
+              <p className="text-xs text-muted-foreground">
+                Try adjusting your search or clearing filters.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setQ("");
+                  setBrand("ALL");
+                }}
+              >
+                Clear all filters
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((x) => (
@@ -282,20 +279,17 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="rounded-3xl border border-black/10 bg-white p-4 text-sm text-slate-600 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <Card>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm text-muted-foreground">
           <span>
-            Sprint 1: UI only • Business rule: only <b>PUBLISHED + APPROVE</b>{" "}
-            appears on marketplace.
+            Data from <b>buyerService</b> (API + mock fallback) • Only{" "}
+            <b>PUBLISHED + APPROVE</b> on marketplace.
           </span>
-          <Link
-            to="/login"
-            className="font-semibold text-emerald-700 hover:text-emerald-800"
-          >
+          <Link to="/login" className="font-semibold text-primary hover:underline">
             Go to Login →
           </Link>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </div>
   );
 }
