@@ -50,6 +50,13 @@ export type Listing = {
   specs?: Array<{ label: string; value: string }>;
 };
 
+export type BikeDetail = Listing & {
+  description?: string;
+  specs?: Record<string, string> | Array<{ label: string; value: string }>;
+  inspectionSummary?: string;
+  seller?: { id?: string; name?: string; email?: string };
+};
+
 export function isMarketVisible(item: Listing) {
   return item.state === "PUBLISHED" && item.inspectionResult === "APPROVE";
 }

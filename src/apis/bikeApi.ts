@@ -2,7 +2,7 @@ import apiClient from "@/lib/apiClient";
 import type {
   BikeDetail,
   Listing,
-  ListingStatus,
+  ListingState,
   InspectionResult,
   BikeCondition,
 } from "@/types/shopbike";
@@ -24,9 +24,9 @@ function toListing(dto: BikeDto): Listing {
     pick(dto, ["title", "name", "descriptionTitle"], `${brand} ${model}`),
   ).trim();
 
-  const status = pick<ListingStatus>(
+  const state = pick<ListingState>(
     dto,
-    ["status", "listingStatus"],
+    ["state", "status", "listingStatus"],
     "PUBLISHED",
   );
   const inspectionResult = pick<InspectionResult | undefined>(
@@ -57,7 +57,7 @@ function toListing(dto: BikeDto): Listing {
       ["imageUrls", "images"],
       undefined,
     ),
-    status,
+    state,
     inspectionResult,
   };
 }

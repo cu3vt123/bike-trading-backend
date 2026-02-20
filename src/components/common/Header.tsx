@@ -91,12 +91,20 @@ export function Header() {
           )}
 
           {!accessToken ? (
-            <button
-              onClick={onLogin}
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              Login
-            </button>
+            <>
+              <Link
+                to="/register"
+                className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              >
+                Sign up
+              </Link>
+              <button
+                onClick={onLogin}
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Login
+              </button>
+            </>
           ) : (
             <button
               onClick={onLogout}

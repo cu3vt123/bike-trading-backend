@@ -5,6 +5,7 @@ import MainLayout from "@/layouts/MainLayout";
 import HomePage from "@/pages/HomePage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 import ForbiddenPage from "@/pages/ForbiddenPage";
 
 import GuestGuard from "@/routes/GuestGuard";
@@ -63,12 +64,20 @@ export default function AppRouter() {
           </Route>
         </Route>
 
-        {/* Login outside MainLayout (tránh 2 logo/header) */}
+        {/* Login / Register outside MainLayout */}
         <Route
           path="/login"
           element={
             <GuestGuard>
               <LoginPage />
+            </GuestGuard>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestGuard>
+              <RegisterPage />
             </GuestGuard>
           }
         />

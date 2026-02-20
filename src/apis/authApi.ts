@@ -12,8 +12,17 @@ export type LoginResponse = {
   refreshToken?: string;
 };
 
+export type SignupRequest = {
+  role: "BUYER" | "SELLER";
+  username: string;
+  email?: string;
+  password: string;
+};
+
 export const authApi = {
   login: (data: LoginRequest) =>
-    apiClient.post<LoginResponse>("/api/auth/login", data).then((r) => r.data),
-  getProfile: () => apiClient.get("/api/auth/me").then((r) => r.data),
+    apiClient.post<LoginResponse>("/auth/login", data).then((r) => r.data),
+  signup: (data: SignupRequest) =>
+    apiClient.post<LoginResponse>("/auth/signup", data).then((r) => r.data),
+  getProfile: () => apiClient.get("/auth/me").then((r) => r.data),
 };

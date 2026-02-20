@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingBag, Store, ClipboardCheck, Shield } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingBag, Store } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,22 +16,32 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import type { Role } from "@/types/auth";
 import { cn } from "@/lib/utils";
 
-type LocationState = {
-  from?: { pathname?: string };
-  presetRole?: Role;
-  role?: Role;
+/* Chỉ Buyer và Seller được tự đăng ký; Inspector/Admin do hệ thống cấp */
+const REGISTER_ROLES: Role[] = ["BUYER", "SELLER"];
+
+const ROLE_CONFIG: Record<
+  (typeof REGISTER_ROLES)[number],
+  { label: string; icon: React.ElementType }
+> = {
+  BUYER: { label: "Buyer", icon: ShoppingBag },
+  SELLER: { label: "Seller", icon: Store },
 };
 
 /**
- * Sprint 1 UI-only: mock login. Chưa gọi backend.
+ * Sprint 1 UI-only: mock signup. Chưa gọi backend.
+ * Success → auto login + redirect về /
  */
-async function mockLogin(payload: {
+async function mockSignup(payload: {
   role: Role;
-  emailOrUsername: string;
+  username: string;
+  email: string;
   password: string;
 }): Promise<{ accessToken: string; refreshToken?: string }> {
-  if (!payload.emailOrUsername.trim() || payload.password.trim().length < 3) {
-    throw new Error("Invalid credentials");
+  if (!payload.username.trim() || payload.username.trim().length < 2) {
+    throw new Error("Username must be at least 2 characters");
+  }
+  if (payload.password.length < 6) {
+    throw new Error("Password must be at least 6 characters");
   }
   return {
     accessToken: `mock_access_${payload.role}_${Date.now()}`,
@@ -39,63 +49,35 @@ async function mockLogin(payload: {
   };
 }
 
-function resolvePostLoginPath(fromPath: string, role: Role) {
-  if (fromPath.startsWith("/seller") && role !== "SELLER") return "/";
-  const buyerOnlyPrefixes = [
-    "/checkout",
-    "/transaction",
-    "/finalize",
-    "/success",
-  ];
-  if (
-    buyerOnlyPrefixes.some((p) => fromPath.startsWith(p)) &&
-    role !== "BUYER"
-  ) {
-    return "/";
-  }
-  if (fromPath.startsWith("/inspector") && role !== "INSPECTOR") return "/";
-  if (fromPath.startsWith("/admin") && role !== "ADMIN") return "/";
-  return fromPath;
-}
-
-const ROLE_CONFIG: Record<
-  Role,
-  { label: string; icon: React.ElementType; short: string }
-> = {
-  BUYER: { label: "Buyer", icon: ShoppingBag, short: "Mua xe" },
-  SELLER: { label: "Seller", icon: Store, short: "Bán xe" },
-  INSPECTOR: { label: "Inspector", icon: ClipboardCheck, short: "Kiểm định" },
-  ADMIN: { label: "Admin", icon: Shield, short: "Quản trị" },
-};
-
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = (location.state || {}) as LocationState;
-
   const setTokens = useAuthStore((s) => s.setTokens);
 
-  const initialRole: Role = state.presetRole ?? state.role ?? "BUYER";
-
-  const [role, setRole] = useState<Role>(initialRole);
-  const [emailOrUsername, setEmailOrUsername] = useState("");
+  const [role, setRole] = useState<Role>("BUYER");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const fromPath = useMemo(() => {
-    const p = state.from?.pathname;
-    return p && p !== "/login" ? p : "/";
-  }, [state.from?.pathname]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     try {
       setSubmitting(true);
 
-      const res = await mockLogin({ role, emailOrUsername, password });
+      const res = await mockSignup({ role, username, email, password });
 
       setTokens({
         accessToken: res.accessToken,
@@ -103,20 +85,20 @@ export default function LoginPage() {
         role,
       });
 
-      const target = resolvePostLoginPath(fromPath, role);
-      navigate(target, { replace: true });
-    } catch {
-      setError("Invalid credentials. Please check your info and try again.");
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Signup failed. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
-  const roles: Role[] = ["BUYER", "SELLER", "INSPECTOR", "ADMIN"];
+  const roles = REGISTER_ROLES;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Top bar - no MainLayout to avoid double header */}
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -139,10 +121,10 @@ export default function LoginPage() {
               Explore
             </Link>
             <Link
-              to="/support"
+              to="/login"
               className="text-muted-foreground hover:text-foreground"
             >
-              Support
+              Log in
             </Link>
           </nav>
         </div>
@@ -152,9 +134,9 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Welcome back</CardTitle>
+              <CardTitle>Create account</CardTitle>
               <CardDescription>
-                Log in to continue your verified marketplace experience.
+                Choose your role and fill in your details to get started.
               </CardDescription>
             </CardHeader>
 
@@ -167,7 +149,7 @@ export default function LoginPage() {
 
               {/* 4-role selector */}
               <div className="space-y-2">
-                <Label className="text-sm">Sign in as</Label>
+                <Label className="text-sm">Register as</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {roles.map((r) => {
                     const config = ROLE_CONFIG[r];
@@ -195,31 +177,52 @@ export default function LoginPage() {
 
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email / Username</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="email"
+                    id="username"
                     type="text"
-                    value={emailOrUsername}
-                    onChange={(e) => setEmailOrUsername(e.target.value)}
-                    placeholder="e.g. rider_01@shopbike.com"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="e.g. rider_01"
                     autoComplete="username"
+                    minLength={2}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <span className="text-xs text-muted-foreground">
-                      Forgot? (Sprint 1)
-                    </span>
-                  </div>
+                  <Label htmlFor="email">Email (optional)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
+                    minLength={6}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -228,18 +231,18 @@ export default function LoginPage() {
                   className="w-full"
                   disabled={submitting}
                 >
-                  {submitting ? "Logging in..." : "Log in"}
+                  {submitting ? "Creating account..." : "Create account"}
                 </Button>
 
                 <Button type="button" variant="outline" className="w-full" asChild>
-                  <Link to="/">Continue browsing</Link>
+                  <Link to="/">Back to home</Link>
                 </Button>
               </form>
 
               <p className="text-center text-sm text-muted-foreground">
-                Don&apos;t have an account?{" "}
-                <Link to="/register" className="font-medium text-primary hover:underline">
-                  Sign up
+                Already have an account?{" "}
+                <Link to="/login" className="font-medium text-primary hover:underline">
+                  Log in
                 </Link>
               </p>
             </CardContent>
