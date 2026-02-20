@@ -1,3 +1,5 @@
-export function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
+/**
+ * @deprecated Use @/lib/utils cn instead.
+ * Re-export for backward compatibility.
+ */
+export { cn } from "./utils";
