@@ -1,9 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import type { Listing } from "@/types/shopbike";
-import { MOCK_LISTINGS } from "@/mocks/mockListings";
+import { ChevronRight, Shield } from "lucide-react";
+import type { BikeDetail } from "@/types/shopbike";
+import { fetchListingById } from "@/services/buyerService";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-type NavState = { listing?: Listing };
+type NavState = { listing?: BikeDetail };
 
 function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
   return new Intl.NumberFormat(undefined, {
@@ -16,7 +20,7 @@ function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
   const stars = "★★★★★☆☆☆☆☆".slice(5 - full, 10 - full);
-  return <span className="text-emerald-600">{stars}</span>;
+  return <span className="text-primary">{stars}</span>;
 }
 
 export default function ProductDetailPage() {
@@ -26,10 +30,40 @@ export default function ProductDetailPage() {
 
   const fromState = (location.state as NavState | null)?.listing;
 
-  const listing =
-    (fromState && String(fromState.id) === String(id)
-      ? fromState
-      : undefined) ?? MOCK_LISTINGS.find((x) => String(x.id) === String(id));
+  const [listing, setListing] = useState<BikeDetail | null>(
+    fromState && String(fromState.id) === String(id) ? fromState : null,
+  );
+  const [loading, setLoading] = useState(!fromState || String(fromState.id) !== String(id));
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stateMatch = fromState && String(fromState.id) === String(id);
+    if (stateMatch) {
+      setListing(fromState!);
+      setLoading(false);
+      return;
+    }
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchListingById(id)
+      .then((data) => {
+        if (!cancelled) setListing(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message ?? "Failed to load listing.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const images = useMemo(() => {
     const arr =
@@ -43,20 +77,40 @@ export default function ProductDetailPage() {
 
   const [active, setActive] = useState(0);
 
-  if (!listing) {
+  const specs = useMemo(() => {
+    const s = listing?.specs;
+    if (Array.isArray(s)) return s;
+    if (s && typeof s === "object") {
+      return Object.entries(s).map(([label, value]) => ({
+        label,
+        value: String(value),
+      }));
+    }
+    return [];
+  }, [listing]);
+
+  if (loading) {
     return (
-      <div className="rounded-2xl border border-black/10 bg-white p-8">
-        <h1 className="text-lg font-semibold">Listing not found</h1>
-        <p className="mt-1 text-sm text-black/60">
-          The bike listing you're looking for doesn't exist (Sprint 1 mock).
-        </p>
-        <Link
-          to="/"
-          className="mt-4 inline-block text-sm text-emerald-700 underline"
-        >
-          Back to Home
-        </Link>
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Loading listing...</p>
       </div>
+    );
+  }
+
+  if (error || !listing) {
+    return (
+      <Card className="mx-auto max-w-6xl">
+        <CardContent className="py-12">
+          <h1 className="text-lg font-semibold">Listing not found</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {error ?? "The bike listing you're looking for doesn't exist."}
+          </p>
+          <Button asChild variant="link" className="mt-4">
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -64,242 +118,189 @@ export default function ProductDetailPage() {
   const price = listing.price;
   const msrp = listing.msrp;
   const score = listing.inspectionScore ?? 4.6;
+  const isVerified =
+    listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
 
   return (
     <div className="mx-auto w-full max-w-6xl">
       {/* breadcrumb */}
-      <div className="mb-4 text-xs text-slate-500">
+      <div className="mb-4 flex items-center gap-1 text-xs text-muted-foreground">
         <Link to="/" className="hover:underline">
           Home
-        </Link>{" "}
-        <span className="mx-1">›</span>
-        <span className="text-slate-700">
+        </Link>
+        <ChevronRight className="h-3 w-3" />
+        <span className="text-foreground">
           {listing.brand} {listing.model}
         </span>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
         {/* LEFT: Gallery + content */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-8 space-y-6">
           {/* Gallery */}
-          <div className="rounded-2xl border border-black/10 bg-white p-4">
-            <div className="grid gap-4 md:grid-cols-12">
-              <div className="md:col-span-8">
-                <div className="overflow-hidden rounded-2xl border border-black/10 bg-slate-100">
-                  <div className="aspect-[4/3] w-full">
-                    <img
-                      src={images[Math.min(active, images.length - 1)]}
-                      alt={listing.title}
-                      className="h-full w-full object-cover"
-                    />
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid gap-4 md:grid-cols-12">
+                <div className="md:col-span-8">
+                  <div className="overflow-hidden rounded-xl border bg-muted">
+                    <div className="aspect-[4/3] w-full">
+                      <img
+                        src={images[Math.min(active, images.length - 1)]}
+                        alt={listing.title}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="md:col-span-4">
-                <div className="grid grid-cols-4 gap-3 md:grid-cols-2">
-                  {images.slice(0, 4).map((src, idx) => (
-                    <button
-                      key={`${src}-${idx}`}
-                      type="button"
-                      onClick={() => setActive(idx)}
-                      className={`overflow-hidden rounded-2xl border ${
-                        idx === active
-                          ? "border-emerald-400 ring-2 ring-emerald-100"
-                          : "border-black/10 hover:border-black/20"
-                      } bg-slate-100`}
-                    >
-                      <div className="aspect-square">
-                        <img
-                          src={src}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {images.length > 4 && (
-                  <div className="mt-3 text-xs text-slate-500">
-                    +{images.length - 4} more photos
+                <div className="md:col-span-4">
+                  <div className="grid grid-cols-4 gap-3 md:grid-cols-2">
+                    {images.slice(0, 4).map((src, idx) => (
+                      <button
+                        key={`${src}-${idx}`}
+                        type="button"
+                        onClick={() => setActive(idx)}
+                        className={`overflow-hidden rounded-lg border-2 transition ${
+                          idx === active
+                            ? "border-primary ring-2 ring-primary/20"
+                            : "border-input hover:border-primary/50"
+                        } bg-muted`}
+                      >
+                        <div className="aspect-square">
+                          <img src={src} alt="" className="h-full w-full object-cover" />
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                )}
+                  {images.length > 4 && (
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      +{images.length - 4} more photos
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Title block */}
-          <div className="mt-5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-              Verified marketplace
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Inspected
-            </div>
-
-            <h1 className="mt-3 text-2xl font-bold text-slate-900">
+          <div>
+            {isVerified && (
+              <Badge variant="default" className="mb-3">
+                <Shield className="mr-1 h-3 w-3" />
+                Verified marketplace • Inspected
+              </Badge>
+            )}
+            <h1 className="text-2xl font-bold text-foreground">
               {listing.brand} {listing.model}
             </h1>
-
-            <div className="mt-2 text-sm text-slate-600">{listing.title}</div>
+            <p className="mt-2 text-sm text-muted-foreground">{listing.title}</p>
           </div>
 
-          {/* Inspection report summary */}
-          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-slate-900">
-                Inspection Report
-              </div>
-
-              <button
-                type="button"
-                onClick={() => alert("Sprint 1 UI only")}
-                className="text-xs font-semibold text-emerald-700 hover:underline"
-              >
+          {/* Inspection report */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <span className="text-sm font-semibold">Inspection Report</span>
+              <Button variant="link" size="sm" className="text-primary" onClick={() => alert("Sprint 1 UI only")}>
                 View full report
-              </button>
-            </div>
-
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-black/10 bg-slate-50 p-4">
-                <div className="text-xs text-slate-500">Frame integrity</div>
-                <div className="mt-2 text-sm font-semibold text-slate-900">
-                  Excellent
-                </div>
-                <div className="mt-1 text-xs">
-                  <Stars value={score} />{" "}
-                  <span className="text-slate-500">({score.toFixed(1)})</span>
-                </div>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  { label: "Frame integrity", value: "Excellent", score },
+                  { label: "Drivetrain health", value: "Great", score: Math.max(4.2, score - 0.2) },
+                  { label: "Braking system", value: "Great", score: Math.max(4.0, score - 0.3) },
+                ].map(({ label, value, score: s }) => (
+                  <div key={label} className="rounded-lg border bg-muted/50 p-4">
+                    <div className="text-xs text-muted-foreground">{label}</div>
+                    <div className="mt-2 text-sm font-semibold">{value}</div>
+                    <div className="mt-1 text-xs">
+                      <Stars value={s} />{" "}
+                      <span className="text-muted-foreground">({s.toFixed(1)})</span>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="rounded-2xl border border-black/10 bg-slate-50 p-4">
-                <div className="text-xs text-slate-500">Drivetrain health</div>
-                <div className="mt-2 text-sm font-semibold text-slate-900">
-                  Great
-                </div>
-                <div className="mt-1 text-xs">
-                  <Stars value={Math.max(4.2, score - 0.2)} />
-                </div>
+          {/* Specs */}
+          <Card>
+            <CardHeader>
+              <span className="text-sm font-semibold">Technical Specifications</span>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <SpecRow label="Brand" value={listing.brand} />
+                <SpecRow label="Model" value={listing.model ?? "—"} />
+                <SpecRow label="Year" value={listing.year ? String(listing.year) : "—"} />
+                <SpecRow label="Frame size" value={listing.frameSize ?? "—"} />
+                <SpecRow label="Condition" value={listing.condition ?? "—"} />
+                <SpecRow label="Location" value={listing.location ?? "—"} />
+                {specs.map((s, idx) => (
+                  <SpecRow key={`${s.label}-${idx}`} label={s.label} value={String(s.value)} />
+                ))}
               </div>
-
-              <div className="rounded-2xl border border-black/10 bg-slate-50 p-4">
-                <div className="text-xs text-slate-500">Braking system</div>
-                <div className="mt-2 text-sm font-semibold text-slate-900">
-                  Great
-                </div>
-                <div className="mt-1 text-xs">
-                  <Stars value={Math.max(4.0, score - 0.3)} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Technical specs */}
-          <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5">
-            <div className="text-sm font-semibold text-slate-900">
-              Technical Specifications
-            </div>
-
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <SpecRow label="Brand" value={listing.brand} />
-              <SpecRow label="Model" value={listing.model ?? "—"} />
-              <SpecRow
-                label="Year"
-                value={listing.year ? String(listing.year) : "—"}
-              />
-              <SpecRow label="Frame size" value={listing.frameSize ?? "—"} />
-              <SpecRow label="Condition" value={listing.condition ?? "—"} />
-              <SpecRow label="Location" value={listing.location ?? "—"} />
-            </div>
-
-            {listing.specs?.length ? (
-              <div className="mt-5 border-t border-black/5 pt-5">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {listing.specs.map((s, idx) => (
-                    <SpecRow
-                      key={`${s.label}-${idx}`}
-                      label={s.label}
-                      value={s.value}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* RIGHT: Price / actions card */}
+        {/* RIGHT: Price / actions */}
         <div className="lg:col-span-4">
-          <div className="sticky top-6 space-y-4">
-            <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-xs text-slate-500">Total Price</div>
-                  <div className="mt-1 text-2xl font-bold text-slate-900">
-                    {formatMoney(price, currency)}
+          <div className="sticky top-24 space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Total Price</div>
+                    <div className="mt-1 text-2xl font-bold">{formatMoney(price, currency)}</div>
+                    {msrp && msrp > price && (
+                      <div className="mt-1 text-xs text-muted-foreground line-through">
+                        {formatMoney(msrp, currency)}
+                      </div>
+                    )}
+                    <p className="mt-2 text-xs text-primary">Service fee included</p>
                   </div>
-                  {msrp && msrp > price ? (
-                    <div className="mt-1 text-xs text-slate-400 line-through">
-                      {formatMoney(msrp, currency)}
+                  <div className="rounded-lg bg-primary/10 px-3 py-2 text-center">
+                    <div className="text-[10px] font-semibold text-primary">INSPECTED</div>
+                    <div className="mt-1 text-xs">
+                      <Stars value={score} />
                     </div>
-                  ) : null}
-
-                  <div className="mt-2 text-xs text-emerald-700">
-                    Service fee included
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-emerald-50 px-3 py-2 text-center">
-                  <div className="text-[10px] font-semibold text-emerald-800">
-                    INSPECTED
-                  </div>
-                  <div className="mt-1 text-xs text-emerald-700">
-                    <Stars value={score} />
-                  </div>
+                <Button
+                  className="mt-4 w-full"
+                  onClick={() => navigate(`/checkout/${listing.id}`)}
+                >
+                  Buy now →
+                </Button>
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => alert("Sprint 1 UI only")}
+                >
+                  Reserve for 24h
+                </Button>
+
+                <div className="mt-4 space-y-2 text-xs">
+                  <InfoLine title="Secure Payment" desc="Protected marketplace escrow flow" />
+                  <InfoLine title="Insured Shipping" desc="Delivery & handling supported" />
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <button
-                onClick={() => navigate(`/checkout/${listing.id}`)}
-                className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                Buy now →
-              </button>
-
-              <button
-                onClick={() => alert("Sprint 1 UI only")}
-                className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-              >
-                Reserve for 24h
-              </button>
-
-              <div className="mt-4 space-y-2 text-xs text-slate-600">
-                <InfoLine
-                  title="Secure Payment"
-                  desc="Protected marketplace escrow flow"
-                />
-                <InfoLine
-                  title="Insured Shipping"
-                  desc="Delivery & handling supported"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-black/10 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">
-                Seller (Sprint 1 UI)
-              </div>
-              <div className="mt-2 text-xs text-slate-600">
-                ProCyclist SF • 97% response • Verified seller
-              </div>
-
-              <button
-                onClick={() => alert("Sprint 1 UI only")}
-                className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-              >
-                Ask seller a question
-              </button>
-            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-sm font-semibold">Seller</div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {listing.seller?.name ?? "ProCyclist SF"} • 97% response • Verified seller
+                </p>
+                <Button variant="outline" className="mt-4 w-full" onClick={() => alert("Sprint 1 UI only")}>
+                  Ask seller a question
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -307,25 +308,22 @@ export default function ProductDetailPage() {
   );
 }
 
-/* --- small components --- */
 function SpecRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 rounded-xl border border-black/10 bg-white px-4 py-3">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="text-sm font-semibold text-slate-900 text-right">
-        {value}
-      </div>
+    <div className="flex items-start justify-between gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-right text-sm font-medium">{value}</span>
     </div>
   );
 }
 
 function InfoLine({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="flex gap-3 rounded-xl border border-black/10 bg-slate-50 px-3 py-2">
-      <div className="mt-0.5 h-2 w-2 rounded-full bg-emerald-500" />
+    <div className="flex gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+      <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
       <div>
-        <div className="font-semibold text-slate-900">{title}</div>
-        <div className="text-slate-500">{desc}</div>
+        <div className="font-semibold">{title}</div>
+        <div className="text-muted-foreground">{desc}</div>
       </div>
     </div>
   );
