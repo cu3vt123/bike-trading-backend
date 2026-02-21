@@ -1,6 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { getListingById } from "@/mocks/mockListings";
+import { Clock, CheckCircle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { fetchListingById } from "@/services/buyerService";
+import type { BikeDetail } from "@/types/shopbike";
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
@@ -11,8 +17,9 @@ type TxState = {
   orderId?: string;
   depositPaid?: number;
   totalPrice?: number;
-  expiresAt?: number; // timestamp ms
+  expiresAt?: number;
   paymentMethod?: PaymentMethod;
+  totals?: { deposit?: number; totalNow?: number };
 };
 
 function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
@@ -36,18 +43,34 @@ function formatPaymentMethod(pm?: PaymentMethod) {
 
 export default function TransactionPage() {
   const { id } = useParams();
-  const listing = useMemo(() => (id ? getListingById(id) : undefined), [id]);
-
   const location = useLocation();
   const navigate = useNavigate();
   const state = (location.state ?? {}) as TxState;
 
-  const currency = listing?.currency ?? "USD";
-  const totalPrice = state.totalPrice ?? listing?.price ?? 0;
-  const depositPaid = state.depositPaid ?? Math.round(totalPrice * 0.08); // UI-only default
-  const orderId = state.orderId ?? "SB-9921";
+  const [listing, setListing] = useState<BikeDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const expiresAt = state.expiresAt ?? Date.now() + 24 * 60 * 60 * 1000;
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    fetchListingById(id)
+      .then((data) => {
+        if (!cancelled) setListing(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message ?? "Failed to load listing.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -55,248 +78,251 @@ export default function TransactionPage() {
     return () => clearInterval(t);
   }, []);
 
+  const currency = (listing?.currency ?? "USD") as "VND" | "USD";
+  const totalPrice =
+    state.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
+  const depositPaid =
+    state.depositPaid ?? state.totals?.deposit ?? Math.round(totalPrice * 0.08);
+  const orderId = state.orderId ?? "SB-9921";
+  const expiresAt = state.expiresAt ?? Date.now() + 24 * 60 * 60 * 1000;
+
   const diff = Math.max(0, expiresAt - now);
   const totalSeconds = Math.floor(diff / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  if (!listing) {
+  const img =
+    listing?.imageUrls?.[0] ??
+    listing?.thumbnailUrl ??
+    "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=800&q=60";
+
+  if (loading) {
     return (
-      <div className="rounded-2xl border border-black/10 bg-white p-6">
-        <div className="text-lg font-semibold">Transaction not found</div>
-        <Link to="/" className="mt-4 inline-block text-emerald-700 underline">
-          Back to Home
-        </Link>
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Loading transaction...</p>
       </div>
+    );
+  }
+
+  if (error || !listing) {
+    return (
+      <Card className="mx-auto max-w-6xl">
+        <CardContent className="py-12">
+          <h1 className="text-lg font-semibold">Transaction not found</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {error ?? "Unable to load this transaction."}
+          </p>
+          <Button asChild variant="link" className="mt-4">
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="text-2xl font-bold text-slate-900">Transaction</div>
-          <div className="mt-1 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+          <h1 className="text-2xl font-bold">Transaction</h1>
+          <Badge className="mt-2" variant="default">
             RESERVED / IN TRANSACTION
-          </div>
-          <div className="mt-2 text-sm text-slate-500">
+          </Badge>
+          <p className="mt-2 text-sm text-muted-foreground">
             Updated just now • Order #{orderId}
-          </div>
+          </p>
         </div>
-
-        <button
-          onClick={() => navigate(`/bikes/${listing.id}`)}
-          className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-        >
+        <Button variant="outline" onClick={() => navigate(`/bikes/${listing.id}`)}>
           View listing
-        </button>
+        </Button>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
-        {/* Left */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Countdown (mint) */}
-          <div className="rounded-2xl border border-black/10 bg-white p-5">
-            <div className="text-xs font-semibold text-slate-600">
-              TIME LEFT TO COMPLETE PURCHASE
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-900">
-                  {pad2(hours)}
-                </div>
-                <div className="mt-1 text-xs text-emerald-800">Hours</div>
+        <div className="space-y-4 lg:col-span-7">
+          {/* Countdown */}
+          <Card>
+            <CardHeader>
+              <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                TIME LEFT TO COMPLETE PURCHASE
+              </span>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { val: hours, label: "Hours" },
+                  { val: minutes, label: "Minutes" },
+                  { val: seconds, label: "Seconds" },
+                ].map(({ val, label }) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
+                  >
+                    <div className="text-2xl font-bold text-primary">{pad2(val)}</div>
+                    <div className="mt-1 text-xs text-primary/80">{label}</div>
+                  </div>
+                ))}
               </div>
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-900">
-                  {pad2(minutes)}
-                </div>
-                <div className="mt-1 text-xs text-emerald-800">Minutes</div>
-              </div>
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-                <div className="text-2xl font-bold text-emerald-900">
-                  {pad2(seconds)}
-                </div>
-                <div className="mt-1 text-xs text-emerald-800">Seconds</div>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Progress */}
-          <div className="rounded-2xl border border-black/10 bg-white p-5">
-            <div className="text-sm font-semibold text-slate-900">
-              Transaction Progress
-            </div>
+          <Card>
+            <CardHeader>
+              <span className="text-sm font-semibold">Transaction Progress</span>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { done: true, title: "Reservation Confirmed", desc: "Deposit paid successfully" },
+                { done: true, title: "Finalize Purchase", desc: "Action required: pay balance & shipping" },
+                { done: false, title: "Completed", desc: "Ownership transferred" },
+              ].map(({ done, title, desc }) => (
+                <div key={title} className="flex gap-3">
+                  <div
+                    className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
+                      done ? "bg-primary" : "bg-muted"
+                    }`}
+                  />
+                  <div className={done ? "" : "opacity-50"}>
+                    <div className="font-semibold">{title}</div>
+                    <div className="text-sm text-muted-foreground">{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-            <div className="mt-4 space-y-4 text-sm">
-              <div className="flex gap-3">
-                <div className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                <div>
-                  <div className="font-semibold">Reservation Confirmed</div>
-                  <div className="text-slate-500">
-                    Deposit paid successfully
+          {/* Logistics */}
+          <Card>
+            <CardHeader>
+              <span className="text-sm font-semibold">Logistics & Payment</span>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-lg border bg-muted/50 p-4">
+                  <div className="text-xs text-muted-foreground">Order ID</div>
+                  <div className="mt-1 font-semibold">#{orderId}</div>
+                </div>
+                <div className="rounded-lg border bg-muted/50 p-4">
+                  <div className="text-xs text-muted-foreground">Payment Method</div>
+                  <div className="mt-1 font-semibold">
+                    {formatPaymentMethod(state.paymentMethod)}
+                  </div>
+                </div>
+                <div className="rounded-lg border bg-muted/50 p-4 sm:col-span-2">
+                  <div className="text-xs text-muted-foreground">Delivery Address</div>
+                  <div className="mt-1 font-semibold">
+                    (Sprint 1 UI) 123 Cycling Way, District 1, HCMC
                   </div>
                 </div>
               </div>
-
-              <div className="flex gap-3">
-                <div className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                <div>
-                  <div className="font-semibold">Finalize Purchase</div>
-                  <div className="text-slate-500">
-                    Action required: pay balance & shipping
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 opacity-50">
-                <div className="mt-1 h-2.5 w-2.5 rounded-full bg-slate-400" />
-                <div>
-                  <div className="font-semibold">Completed</div>
-                  <div className="text-slate-500">Ownership transferred</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Logistics & Payment (show payment method) */}
-          <div className="rounded-2xl border border-black/10 bg-white p-5">
-            <div className="text-sm font-semibold text-slate-900">
-              Logistics & Payment
-            </div>
-
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
-              <div className="rounded-xl border border-black/10 bg-slate-50 p-4">
-                <div className="text-xs text-slate-500">Order ID</div>
-                <div className="mt-1 font-semibold">#{orderId}</div>
-              </div>
-
-              <div className="rounded-xl border border-black/10 bg-slate-50 p-4">
-                <div className="text-xs text-slate-500">Payment Method</div>
-                <div className="mt-1 font-semibold">
-                  {formatPaymentMethod(state.paymentMethod)}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-black/10 bg-slate-50 p-4 sm:col-span-2">
-                <div className="text-xs text-slate-500">Delivery Address</div>
-                <div className="mt-1 font-semibold">
-                  (Sprint 1 UI-only) 123 Cycling Way, District 1, HCMC
-                </div>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Actions */}
-          <div className="rounded-2xl border border-black/10 bg-white p-5">
-            <Link
-              to={`/finalize/${listing.id}`}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-              state={{
-                orderId,
-                depositPaid,
-                totalPrice,
-                paymentMethod: state.paymentMethod,
-              }}
-            >
-              Finalize Purchase
-            </Link>
-
-            <button
-              onClick={() => alert("Cancel reservation (Sprint 1 UI-only)")}
-              className="mt-3 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50"
-            >
-              Cancel Reservation
-            </button>
-
-            <div className="mt-3 text-center text-xs text-slate-500">
-              Refund policy applies • Anti-spam cancellation limit (Sprint 1
-              note)
-            </div>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <Button asChild className="w-full">
+                <Link
+                  to={`/finalize/${listing.id}`}
+                  state={{
+                    orderId,
+                    depositPaid,
+                    totalPrice,
+                    paymentMethod: state.paymentMethod,
+                  }}
+                >
+                  Finalize Purchase
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="mt-3 w-full"
+                onClick={() => alert("Cancel reservation (Sprint 1 UI)")}
+              >
+                Cancel Reservation
+              </Button>
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Refund policy applies • Anti-spam cancellation limit
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right: Summary card */}
+        {/* Right: Summary */}
         <div className="lg:col-span-5">
-          <div className="sticky top-6 space-y-4">
-            <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-              <div className="flex gap-4">
-                <div className="h-20 w-24 overflow-hidden rounded-xl bg-slate-100">
-                  <img
-                    src={
-                      listing.imageUrls?.[0] ??
-                      "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=800&q=60"
-                    }
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-slate-900 truncate">
-                    {listing.brand} {listing.model ?? ""}
+          <div className="sticky top-24 space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex gap-4">
+                  <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
+                    <img src={img} alt="" className="h-full w-full object-cover" />
                   </div>
-                  <div className="text-xs text-slate-500 truncate">
-                    {listing.frameSize ?? "—"} • {listing.condition ?? "—"}
-                  </div>
-
-                  <div className="mt-2 text-sm font-bold text-slate-900">
-                    {formatMoney(totalPrice, currency)}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">
+                      {listing.brand} {listing.model ?? ""}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {listing.frameSize ?? "—"} • {listing.condition ?? "—"}
+                    </div>
+                    <div className="mt-2 text-sm font-bold">
+                      {formatMoney(totalPrice, currency)}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-4 overflow-hidden rounded-xl border border-black/10">
-                <div className="flex items-center justify-between bg-slate-50 px-4 py-3 text-sm">
-                  <span className="text-slate-600">Deposit Paid</span>
-                  <span className="font-semibold">
-                    {formatMoney(depositPaid, currency)}
+                <div className="mt-4 overflow-hidden rounded-lg border">
+                  <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Deposit Paid</span>
+                    <span className="font-semibold">
+                      {formatMoney(depositPaid, currency)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Due on delivery</span>
+                    <span className="font-semibold">
+                      {formatMoney(Math.max(0, totalPrice - depositPaid), currency)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+                  <CheckCircle className="h-4 w-4 text-primary" />
+                  <span>
+                    Payment:{" "}
+                    <span className="font-semibold">
+                      {formatPaymentMethod(state.paymentMethod)}
+                    </span>
                   </span>
                 </div>
-                <div className="flex items-center justify-between px-4 py-3 text-sm">
-                  <span className="text-slate-600">Due on delivery</span>
-                  <span className="font-semibold">
-                    {formatMoney(
-                      Math.max(0, totalPrice - depositPaid),
-                      currency,
-                    )}
-                  </span>
-                </div>
-              </div>
 
-              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                Payment method:{" "}
-                <span className="font-semibold">
-                  {formatPaymentMethod(state.paymentMethod)}
-                </span>
-              </div>
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full"
+                  onClick={() => alert("View inspection report (Sprint 1 UI)")}
+                >
+                  View inspection report
+                </Button>
+              </CardContent>
+            </Card>
 
-              <button
-                onClick={() =>
-                  alert("View inspection report (Sprint 1 UI-only)")
-                }
-                className="mt-4 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50"
-              >
-                View inspection report
-              </button>
-            </div>
-
-            <div className="rounded-2xl border border-black/10 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">
-                Contact Support
-              </div>
-              <div className="mt-1 text-sm text-slate-600">
-                24/7 assistance (Sprint 1 UI-only)
-              </div>
-              <button
-                onClick={() => alert("Support chat (Sprint 1 UI-only)")}
-                className="mt-3 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50"
-              >
-                Chat with support
-              </button>
-            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-sm font-semibold">Contact Support</div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  24/7 assistance (Sprint 1 UI)
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => alert("Support chat (Sprint 1 UI)")}
+                >
+                  Chat with support
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
