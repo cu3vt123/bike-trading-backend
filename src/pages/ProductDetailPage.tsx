@@ -275,13 +275,10 @@ export default function ProductDetailPage() {
                 >
                   Buy now →
                 </Button>
-                <Button
-                  variant="outline"
-                  className="mt-3 w-full"
-                  onClick={() => alert("Sprint 1 UI only")}
-                >
-                  Reserve for 24h
-                </Button>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Reservation is created after <span className="font-semibold">deposit payment</span>{" "}
+                  in checkout and is held for <span className="font-semibold">24 hours</span>.
+                </p>
 
                 <div className="mt-4 space-y-2 text-xs">
                   <InfoLine title="Secure Payment" desc="Protected marketplace escrow flow" />
@@ -296,9 +293,6 @@ export default function ProductDetailPage() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   {listing.seller?.name ?? "ProCyclist SF"} • 97% response • Verified seller
                 </p>
-                <Button variant="outline" className="mt-4 w-full" onClick={() => alert("Sprint 1 UI only")}>
-                  Ask seller a question
-                </Button>
               </CardContent>
             </Card>
           </div>
