@@ -39,6 +39,7 @@ export default function CheckoutPage() {
   const [plan, setPlan] = useState<Plan>("DEPOSIT");
   const [method, setMethod] = useState<Method>("CARD");
   const [agree, setAgree] = useState(false);
+  const [agreeError, setAgreeError] = useState(false);
   const [ship, setShip] = useState({ street: "", city: "", postalCode: "" });
   const [card, setCard] = useState({ number: "", name: "", exp: "", cvc: "" });
 
@@ -98,9 +99,10 @@ export default function CheckoutPage() {
 
   function onSubmit() {
     if (!agree) {
-      alert("Please agree to cancellation & refund policy (Sprint 1).");
+      setAgreeError(true);
       return;
     }
+    setAgreeError(false);
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
     const paymentMethod =
       method === "CARD"
@@ -318,17 +320,27 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="agree"
-              checked={agree}
-              onCheckedChange={(v) => setAgree(!!v)}
-              className="mt-0.5"
-            />
-            <Label htmlFor="agree" className="text-xs text-muted-foreground cursor-pointer">
-              I agree to the{" "}
-              <span className="text-primary underline">cancellation & refund policy</span>.
-            </Label>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="agree"
+                checked={agree}
+                onCheckedChange={(v) => {
+                  setAgree(!!v);
+                  if (agreeError) setAgreeError(false);
+                }}
+                className="mt-0.5"
+              />
+              <Label htmlFor="agree" className="text-xs text-muted-foreground cursor-pointer">
+                I agree to the{" "}
+                <span className="text-primary underline">cancellation & refund policy</span>.
+              </Label>
+            </div>
+            {agreeError && (
+              <p className="text-sm text-destructive">
+                Please agree to the cancellation & refund policy to continue.
+              </p>
+            )}
           </div>
 
           <Button onClick={onSubmit} className="w-full" size="lg">

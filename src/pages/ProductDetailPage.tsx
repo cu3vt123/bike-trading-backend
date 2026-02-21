@@ -6,6 +6,12 @@ import { fetchListingById } from "@/services/buyerService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type NavState = { listing?: BikeDetail };
 
@@ -76,6 +82,7 @@ export default function ProductDetailPage() {
   }, [listing]);
 
   const [active, setActive] = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const specs = useMemo(() => {
     const s = listing?.specs;
@@ -200,7 +207,7 @@ export default function ProductDetailPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <span className="text-sm font-semibold">Inspection Report</span>
-              <Button variant="link" size="sm" className="text-primary" onClick={() => alert("Sprint 1 UI only")}>
+              <Button variant="link" size="sm" className="text-primary" onClick={() => setReportOpen(true)}>
                 View full report
               </Button>
             </CardHeader>
@@ -243,6 +250,33 @@ export default function ProductDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Full Report Dialog */}
+          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Inspection Report</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                {[
+                  { label: "Frame integrity", value: "Excellent", s: score },
+                  { label: "Drivetrain health", value: "Great", s: Math.max(4.2, score - 0.2) },
+                  { label: "Braking system", value: "Great", s: Math.max(4.0, score - 0.3) },
+                  { label: "Wheels & tires", value: "Good", s: Math.max(3.8, score - 0.4) },
+                  { label: "Overall condition", value: "Great", s: score },
+                ].map(({ label, value, s }) => (
+                  <div key={label} className="flex items-center justify-between rounded-lg border px-4 py-3">
+                    <span className="text-sm text-muted-foreground">{label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">{value}</span>
+                      <Stars value={s} />
+                      <span className="text-xs text-muted-foreground">({s.toFixed(1)})</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* RIGHT: Price / actions */}

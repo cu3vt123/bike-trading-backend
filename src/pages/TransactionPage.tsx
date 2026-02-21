@@ -5,8 +5,22 @@ import { Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { fetchListingById } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
+
+function Stars({ value }: { value: number }) {
+  const full = Math.round(Math.max(0, Math.min(5, value)));
+  const stars = "★★★★★☆☆☆☆☆".slice(5 - full, 10 - full);
+  return <span className="text-primary">{stars}</span>;
+}
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
@@ -73,12 +87,22 @@ export default function TransactionPage() {
   }, [id]);
 
   const [now, setNow] = useState(() => Date.now());
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(t);
   }, []);
 
+  function handleCancelReservation() {
+    setCancelOpen(false);
+    navigate(`/bikes/${id}`, { replace: true });
+  }
+
   const currency = (listing?.currency ?? "USD") as "VND" | "USD";
+  const score = listing?.inspectionScore ?? 4.6;
   const totalPrice =
     state.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
   const depositPaid =
@@ -214,7 +238,7 @@ export default function TransactionPage() {
                 <div className="rounded-lg border bg-muted/50 p-4 sm:col-span-2">
                   <div className="text-xs text-muted-foreground">Delivery Address</div>
                   <div className="mt-1 font-semibold">
-                    (Sprint 1 UI) 123 Cycling Way, District 1, HCMC
+                    123 Cycling Way, District 1, HCMC
                   </div>
                 </div>
               </div>
@@ -240,7 +264,7 @@ export default function TransactionPage() {
               <Button
                 variant="outline"
                 className="mt-3 w-full"
-                onClick={() => alert("Cancel reservation (Sprint 1 UI)")}
+                onClick={() => setCancelOpen(true)}
               >
                 Cancel Reservation
               </Button>
@@ -301,7 +325,7 @@ export default function TransactionPage() {
                 <Button
                   variant="outline"
                   className="mt-4 w-full"
-                  onClick={() => alert("View inspection report (Sprint 1 UI)")}
+                  onClick={() => setReportOpen(true)}
                 >
                   View inspection report
                 </Button>
@@ -312,12 +336,12 @@ export default function TransactionPage() {
               <CardContent className="pt-6">
                 <div className="text-sm font-semibold">Contact Support</div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  24/7 assistance (Sprint 1 UI)
+                  24/7 assistance
                 </p>
                 <Button
                   variant="outline"
                   className="mt-3 w-full"
-                  onClick={() => alert("Support chat (Sprint 1 UI)")}
+                  onClick={() => setSupportOpen(true)}
                 >
                   Chat with support
                 </Button>
@@ -326,6 +350,63 @@ export default function TransactionPage() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Reservation Confirm */}
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Reservation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this reservation? A refund will be processed according to our policy (up to 7 days). Cancel limit: max 3 per period.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>Keep Reservation</Button>
+            <Button variant="destructive" onClick={handleCancelReservation}>Cancel & Refund</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Inspection Report Dialog */}
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Inspection Report</DialogTitle>
+            <DialogDescription>{listing?.brand} {listing?.model ?? ""}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {[
+              { label: "Frame integrity", value: "Excellent", s: score },
+              { label: "Drivetrain health", value: "Great", s: Math.max(4.2, score - 0.2) },
+              { label: "Braking system", value: "Great", s: Math.max(4.0, score - 0.3) },
+            ].map(({ label, value, s }) => (
+              <div key={label} className="flex items-center justify-between rounded-lg border px-4 py-3">
+                <span className="text-sm text-muted-foreground">{label}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">{value}</span>
+                  <Stars value={s} />
+                  <span className="text-xs text-muted-foreground">({s.toFixed(1)})</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Support Chat Dialog */}
+      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Support</DialogTitle>
+            <DialogDescription>
+              Live chat will be available when backend integration is complete. For now, please contact support@shopbike.example.com for assistance.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setSupportOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

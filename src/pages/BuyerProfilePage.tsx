@@ -34,10 +34,19 @@ export default function BuyerProfilePage() {
               <Badge className="mt-4">Verified Buyer</Badge>
 
               <nav className="mt-5 space-y-2">
-                <Button className="w-full justify-start" size="sm">
+                <Button
+                  className="w-full justify-start"
+                  size="sm"
+                  onClick={() => document.getElementById("personal-info")?.scrollIntoView({ behavior: "smooth" })}
+                >
                   Personal Info
                 </Button>
-                <Button variant="outline" className="w-full justify-start" size="sm">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  size="sm"
+                  onClick={() => document.getElementById("orders-section")?.scrollIntoView({ behavior: "smooth" })}
+                >
                   My Orders
                 </Button>
                 <Button variant="outline" className="w-full justify-start" size="sm">
@@ -67,7 +76,7 @@ export default function BuyerProfilePage() {
             </p>
           </div>
 
-          <Card>
+          <Card id="personal-info">
             <CardContent className="pt-6">
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <div className="text-sm font-semibold text-primary">
@@ -99,10 +108,10 @@ export default function BuyerProfilePage() {
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-between">
+              <div id="orders-section" className="mt-6 flex items-center justify-between">
                 <span className="text-sm font-semibold">Recent Orders</span>
-                <Button variant="link" size="sm" className="text-primary">
-                  View All Orders
+                <Button variant="link" size="sm" className="text-primary" asChild>
+                  <a href="#orders-section">View All Orders</a>
                 </Button>
               </div>
 

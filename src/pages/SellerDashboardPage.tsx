@@ -158,9 +158,9 @@ export default function SellerDashboardPage() {
             <div className="text-sm font-semibold text-slate-900">
               Your inventory
             </div>
-            <button className="text-sm font-semibold text-emerald-700 hover:underline">
-              View all (Sprint 1)
-            </button>
+            <Link to="/seller" className="text-sm font-semibold text-emerald-700 hover:underline">
+              View all
+            </Link>
           </div>
 
           <div className="mt-4 overflow-hidden rounded-xl border border-black/10">

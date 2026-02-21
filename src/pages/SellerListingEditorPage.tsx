@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 type Condition = "MINT_USED" | "GOOD_USED" | "FAIR_USED";
@@ -15,6 +15,11 @@ export default function SellerListingEditorPage() {
   const [location, setLocation] = useState("");
   const [condition, setCondition] = useState<Condition>("MINT_USED");
   const [step, setStep] = useState<Step>("DRAFT");
+  const [photoItems, setPhotoItems] = useState<
+    Array<{ file: File; url: string }>
+  >([]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const isEdit = useMemo(() => !!id, [id]);
 
@@ -23,12 +28,54 @@ export default function SellerListingEditorPage() {
   }
 
   function onSubmitForInspection() {
+    if (photoItems.length === 0) {
+      setPhotoError("Please upload at least 1 photo before submitting.");
+      return;
+    }
     // UI-only: chuyển trạng thái + quay về dashboard
     setStep("PENDING_INSPECTION");
     navigate("/seller", { replace: true });
   }
 
   const locked = step === "PENDING_INSPECTION";
+
+  useEffect(() => {
+    return () => {
+      // cleanup object URLs
+      for (const p of photoItems) URL.revokeObjectURL(p.url);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function onPickFiles(files: FileList | null) {
+    if (!files || locked) return;
+    setPhotoError(null);
+
+    const next: Array<{ file: File; url: string }> = [];
+    for (const f of Array.from(files)) {
+      if (!f.type.startsWith("image/")) continue;
+      next.push({ file: f, url: URL.createObjectURL(f) });
+    }
+
+    // limit to 8 photos
+    const merged = [...photoItems, ...next].slice(0, 8);
+    // revoke unused urls if clipped
+    const clipped = [...photoItems, ...next].slice(8);
+    for (const c of clipped) URL.revokeObjectURL(c.url);
+
+    setPhotoItems(merged);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removePhoto(idx: number) {
+    setPhotoError(null);
+    setPhotoItems((prev) => {
+      const copy = [...prev];
+      const removed = copy.splice(idx, 1)[0];
+      if (removed) URL.revokeObjectURL(removed.url);
+      return copy;
+    });
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl">
@@ -108,23 +155,83 @@ export default function SellerListingEditorPage() {
           </div>
 
           <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-            <div className="text-sm font-semibold text-slate-900">
-              Photos checklist
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-slate-900">
+                  Photos
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  Upload 1–8 photos. Required before submit for inspection.
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => onPickFiles(e.target.files)}
+                  className="hidden"
+                  disabled={locked}
+                />
+                <button
+                  type="button"
+                  disabled={locked || photoItems.length >= 8}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+                >
+                  + Add photos
+                </button>
+              </div>
             </div>
-            <div className="mt-3 grid gap-2 text-sm text-slate-700">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" disabled={locked} /> Full bike (both
-                sides)
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" disabled={locked} /> Frame serial
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" disabled={locked} /> Drivetrain close-up
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" disabled={locked} /> Brakes / wheels
-              </label>
+
+            {photoError && (
+              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {photoError}
+              </div>
+            )}
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {photoItems.map((p, idx) => (
+                <div
+                  key={p.url}
+                  className="group relative overflow-hidden rounded-xl border border-black/10 bg-slate-100"
+                >
+                  <div className="aspect-square">
+                    <img
+                      src={p.url}
+                      alt={`photo-${idx + 1}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  {!locked && (
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(idx)}
+                      className="absolute right-2 top-2 rounded-lg bg-black/60 px-2 py-1 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100"
+                      aria-label="Remove photo"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {photoItems.length === 0 && (
+                <div className="col-span-2 rounded-xl border border-dashed border-black/15 bg-white p-4 text-sm text-slate-600 sm:col-span-4">
+                  No photos yet. Click <b>Add photos</b> to upload.
+                  <div className="mt-2 text-xs text-slate-500">
+                    Checklist: full bike (both sides), frame serial, drivetrain,
+                    brakes/wheels.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-3 text-xs text-slate-500">
+              {photoItems.length}/8 uploaded
             </div>
           </div>
         </div>

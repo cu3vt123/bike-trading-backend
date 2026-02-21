@@ -22,6 +22,7 @@ import PurchaseSuccessPage from "@/pages/PurchaseSuccessPage";
 // Seller pages (Sprint 1 UI-only)
 import SellerDashboardPage from "@/pages/SellerDashboardPage";
 import SellerListingEditorPage from "@/pages/SellerListingEditorPage";
+import SellerStatsPage from "@/pages/SellerStatsPage";
 
 // Profile (auto render buyer/seller)
 import ProfilePage from "@/pages/ProfilePage";
@@ -53,6 +54,7 @@ export default function AppRouter() {
           {/* SELLER-only flow */}
           <Route element={<RequireSeller />}>
             <Route path="seller" element={<SellerDashboardPage />} />
+            <Route path="seller/stats" element={<SellerStatsPage />} />
             <Route
               path="seller/listings/new"
               element={<SellerListingEditorPage />}
