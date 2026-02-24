@@ -38,3 +38,4 @@
 - Listing edit rules: Draft editable; Pending locked; Need Update editable; Published restrict core edits.
 - FIFO transaction: Available→Reserved(lock after successful deposit)→Sold; Cancel/Fail→Available immediately.
 - Refund: simple flow (no in-app dispute), up to 7 days, cancel limit max 3 per period.
+- Password: 8–64 chars, at least 1 uppercase letter and 1 special character.

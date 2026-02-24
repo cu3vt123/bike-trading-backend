@@ -124,7 +124,7 @@ Làm lần lượt để FE test từng bước:
 |-------|----------|
 | username | 2–30 ký tự, chỉ chữ cái, số, dấu gạch dưới (_) |
 | email | Tùy chọn; nếu có thì phải đúng định dạng, max 100 ký tự |
-| password | 8–64 ký tự |
+| password | 8–64 ký tự, **ít nhất 1 chữ in hoa** và **ít nhất 1 ký tự đặc biệt** (!@#$%^&*...) |
 
 **Request body:**
 
@@ -142,7 +142,7 @@ Làm lần lượt để FE test từng bước:
 | role | string | Có | Chỉ `BUYER` hoặc `SELLER` |
 | username | string | Có | 2–30 ký tự, pattern `^[a-zA-Z0-9_]+$` |
 | email | string | Không | Email hợp lệ, max 100 ký tự |
-| password | string | Có | 8–64 ký tự |
+| password | string | Có | 8–64 ký tự, ít nhất 1 chữ in hoa và 1 ký tự đặc biệt |
 
 **Response 201 Created:**
 

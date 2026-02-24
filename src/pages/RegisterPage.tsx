@@ -38,6 +38,9 @@ const LIMITS = {
   PASSWORD_MIN: 8,
   PASSWORD_MAX: 64,
   EMAIL_MAX: 100,
+  /** Mật khẩu: ít nhất 1 chữ in hoa, 1 ký tự đặc biệt */
+  PASSWORD_UPPERCASE: /[A-Z]/,
+  PASSWORD_SPECIAL: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
 } as const;
 
 function validateRegister(data: {
@@ -70,6 +73,12 @@ function validateRegister(data: {
   }
   if (data.password.length > LIMITS.PASSWORD_MAX) {
     return `Mật khẩu tối đa ${LIMITS.PASSWORD_MAX} ký tự.`;
+  }
+  if (!LIMITS.PASSWORD_UPPERCASE.test(data.password)) {
+    return "Mật khẩu phải có ít nhất 1 chữ in hoa.";
+  }
+  if (!LIMITS.PASSWORD_SPECIAL.test(data.password)) {
+    return "Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*...).";
   }
   if (data.password !== data.confirmPassword) {
     return "Mật khẩu xác nhận không khớp.";
@@ -270,7 +279,7 @@ export default function RegisterPage() {
                     maxLength={LIMITS.PASSWORD_MAX}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {LIMITS.PASSWORD_MIN}–{LIMITS.PASSWORD_MAX} ký tự
+                    {LIMITS.PASSWORD_MIN}–{LIMITS.PASSWORD_MAX} ký tự, ít nhất 1 chữ in hoa và 1 ký tự đặc biệt
                   </p>
                 </div>
 

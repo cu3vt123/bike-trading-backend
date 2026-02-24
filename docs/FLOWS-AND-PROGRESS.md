@@ -116,6 +116,22 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 
 ---
 
+## 6b) Ghi nhận Sprint 3
+
+**Ưu tiên:** Demo luồng mua chính (Home → Detail → Checkout → Transaction → Finalize → Success) trước.
+
+**Backend còn thiếu (chưa hoàn thành theo task giao):**
+- GET /auth/me
+- Các API Buyer: orders, payments (theo HUONG-DAN-BACKEND)
+- Các API Seller: listings, profile, payment methods (chưa giao chi tiết trong docs)
+
+**Test bikes:**
+- `VITE_USE_MOCK_API=true` → FE dùng mock bikes, **test được** không cần Backend bật.
+- `VITE_USE_MOCK_API=false` + Backend **chưa bật** → API lỗi, FE fallback mock (vẫn có bikes).
+- `VITE_USE_MOCK_API=false` + Backend **bật** → gọi API thật, có bikes từ Backend.
+
+---
+
 ## 7) Điều kiện để test với Backend (Sprint 2)
 
 Để FE test với BE “mượt”, BE nên có:
