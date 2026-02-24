@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import { ChevronRight, Shield } from "lucide-react";
+import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
 import type { BikeDetail } from "@/types/shopbike";
 import { fetchListingById } from "@/services/buyerService";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useWishlistStore } from "@/stores/useWishlistStore";
 
 type NavState = { listing?: BikeDetail };
 
@@ -83,6 +84,8 @@ export default function ProductDetailPage() {
 
   const [active, setActive] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const { has: inWishlist, toggle: toggleWishlist } = useWishlistStore();
 
   const specs = useMemo(() => {
     const s = listing?.specs;
@@ -303,8 +306,29 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => toggleWishlist(listing.id)}
+                    aria-label={inWishlist(listing.id) ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${inWishlist(listing.id) ? "fill-primary text-primary" : ""}`}
+                    />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setChatOpen(true)}
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Chat với người bán
+                  </Button>
+                </div>
                 <Button
-                  className="mt-4 w-full"
+                  className="mt-3 w-full"
                   onClick={() => navigate(`/checkout/${listing.id}`)}
                 >
                   Buy now →
@@ -327,8 +351,32 @@ export default function ProductDetailPage() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   {listing.seller?.name ?? "ProCyclist SF"} • 97% response • Verified seller
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 w-full"
+                  onClick={() => setChatOpen(true)}
+                >
+                  <MessageCircle className="mr-2 h-3.5 w-3.5" />
+                  Nhắn tin
+                </Button>
               </CardContent>
             </Card>
+
+            {/* Chat placeholder dialog */}
+            <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Chat với người bán</DialogTitle>
+                </DialogHeader>
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  Tính năng chat trực tiếp sẽ có khi tích hợp Backend. Hiện tại bạn có thể liên hệ qua email
+                  <a href="mailto:support@shopbike.example.com" className="ml-1 text-primary hover:underline">
+                    support@shopbike.example.com
+                  </a>.
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

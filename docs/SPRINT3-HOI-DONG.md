@@ -77,12 +77,12 @@
 
 ### 2.3 Luồng demo đầy đủ
 
-| Luồng | Cần chạy được |
-|-------|----------------|
-| **Luồng mua** | Register/Login → Home → Detail → Checkout → Transaction → Finalize → Success |
-| **Luồng bán** | Login Seller → Dashboard → Create/Edit Listing → Profile |
-| **Luồng kiểm định** | Login Inspector → Dashboard → Duyệt/Từ chối tin (nếu có) |
-| **RBAC** | Buyer không vào /seller, Seller không vào /checkout |
+| Luồng | Cần chạy được | Trạng thái FE |
+|-------|----------------|---------------|
+| **Luồng mua** | Register/Login → Home → Detail → Checkout → Transaction → Finalize → Success | ✅ Sẵn sàng |
+| **Luồng bán** | Login Seller → Dashboard → Create/Edit Listing → Profile | ✅ Sẵn sàng (API scaffold + mock) |
+| **Luồng kiểm định** | Login Inspector → Dashboard → Duyệt/Từ chối tin | ✅ **Đã có** (InspectorDashboardPage, mock + API) |
+| **RBAC** | Buyer không vào /seller, Seller không vào /checkout | ✅ |
 
 ---
 
@@ -143,7 +143,7 @@
 |------|--------------------|
 | **BA** | Shipping spec (SHOP-28), ERD Shipping (SHOP-30) |
 | **Backend** | **API Seller, Inspector, Admin** (mục 0), Shipping API (nếu làm), fix bug, deploy |
-| **Frontend** | Tích hợp API Seller/Inspector/Admin, Shipping UI (nếu làm), Inspector polish, fix bug, deploy |
+| **Frontend** | ✅ Inspector Dashboard (SHOP-41) đã xong – UI + scaffold API. Seller Dashboard/Listing đã gọi sellerService. Còn: map API thật khi BE xong, Shipping UI (nếu làm), fix bug, deploy |
 | **Cả team** | Báo cáo, slide, hướng dẫn chạy, tập demo, deploy |
 
 → **Mục tiêu:** 4 luồng (Mua, Bán, Kiểm định, Admin) chạy với API thật, dự án ổn định, sẵn sàng trình bày trước hội đồng.

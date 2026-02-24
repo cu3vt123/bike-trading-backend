@@ -4,8 +4,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import HomePage from "@/pages/HomePage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
+import SupportPage from "@/pages/SupportPage";
+import WishlistPage from "@/pages/WishlistPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import ForbiddenPage from "@/pages/ForbiddenPage";
 
 import GuestGuard from "@/routes/GuestGuard";
@@ -39,6 +43,8 @@ export default function AppRouter() {
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="bikes/:id" element={<ProductDetailPage />} />
+          <Route path="support" element={<SupportPage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
 
           {/* ✅ Profile: chỉ cần login, tự ra Buyer/Seller/Inspector theo role */}
           <Route element={<RequireAuth />}>
@@ -87,6 +93,22 @@ export default function AppRouter() {
           element={
             <GuestGuard>
               <RegisterPage />
+            </GuestGuard>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <GuestGuard>
+              <ForgotPasswordPage />
+            </GuestGuard>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <GuestGuard>
+              <ResetPasswordPage />
             </GuestGuard>
           }
         />

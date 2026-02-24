@@ -312,7 +312,7 @@ export default function CheckoutPage() {
 
           {method !== "CARD" && (
             <div className="rounded-lg border bg-primary/5 p-3 text-xs text-primary">
-              Sprint 1 UI: bạn đang chọn{" "}
+              Bạn đang chọn{" "}
               <span className="font-semibold">
                 {method === "MOMO" ? "MoMo" : "Bank Transfer"}
               </span>
@@ -401,7 +401,7 @@ export default function CheckoutPage() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                Sprint 1 mock — chưa map backend. Mục tiêu: lock UI + flow.
+                UI hoàn thiện. Tích hợp API khi Backend sẵn sàng.
               </p>
             </CardContent>
           </Card>

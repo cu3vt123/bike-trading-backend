@@ -117,7 +117,7 @@ export default function FinalizePurchasePage() {
     <div className="mx-auto w-full max-w-6xl">
       <h1 className="text-2xl font-bold">Finalize Purchase</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Pay balance & confirm shipping (Sprint 1 UI).
+        Thanh toán số dư và xác nhận giao hàng.
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">

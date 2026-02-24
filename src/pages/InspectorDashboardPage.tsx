@@ -181,7 +181,7 @@ export default function InspectorDashboardPage() {
               </div>
             )}
             <p className="mt-4 text-xs text-muted-foreground">
-              Sprint 3 • Inspector Dashboard (mock data). Khi BE có API sẽ gọi thật.
+              Inspector Dashboard. Mock khi chưa có API.
             </p>
           </CardContent>
         </Card>

@@ -152,7 +152,7 @@ export default function SellerListingEditorPage() {
             {isEdit ? "Edit listing" : "Create listing"}
           </div>
           <div className="mt-1 text-sm text-slate-500">
-            Draft → Submit for Inspection → (Approve) Publish (later sprint).
+            Draft → Submit for Inspection → (Approve) Publish.
           </div>
         </div>
 
@@ -172,8 +172,7 @@ export default function SellerListingEditorPage() {
 
       {locked && (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          This listing is <b>Pending Inspection</b>. Editing is locked (Sprint 1
-          rule).
+          Tin này đang <b>chờ kiểm định</b>. Không thể chỉnh sửa cho đến khi có kết quả.
         </div>
       )}
 

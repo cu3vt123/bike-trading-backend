@@ -22,9 +22,51 @@
 
 ---
 
+## Seller API (Sprint 3 scaffold)
+
+| Endpoint | Method | Ghi chú |
+|----------|--------|---------|
+| `/seller/dashboard` | GET | Thống kê + danh sách tin |
+| `/seller/listings` | GET | Danh sách tin của seller |
+| `/seller/listings` | POST | Tạo tin mới |
+| `/seller/listings/:id` | PUT | Sửa tin |
+| `/seller/listings/:id` | GET | Chi tiết tin |
+| `/seller/listings/:id/submit` | PUT | Gửi kiểm định |
+
+`sellerService.ts` có fallback mock khi API lỗi.
+
+---
+
+## Inspector API (Sprint 3 scaffold)
+
+| Endpoint | Method | Ghi chú |
+|----------|--------|---------|
+| `/inspector/pending-listings` | GET | Tin chờ kiểm định |
+| `/inspector/listings/:id` | GET | Chi tiết tin |
+| `/inspector/listings/:id/approve` | PUT | Duyệt tin |
+| `/inspector/listings/:id/reject` | PUT | Từ chối |
+| `/inspector/listings/:id/need-update` | PUT | Yêu cầu cập nhật |
+
+`InspectorDashboardPage` gọi `inspectorApi` khi `VITE_USE_MOCK_API=false`, mock khi true hoặc API lỗi.
+
+---
+
 ## Auth API
 
-Khi 2 bạn làm Backend có API, chỉ cần đổi vài chỗ.
+### Login, Signup, Forgot Password, Reset Password
+
+| Endpoint | Method | Ghi chú |
+|----------|--------|---------|
+| `/auth/login` | POST | Đăng nhập |
+| `/auth/signup` | POST | Đăng ký |
+| `/auth/forgot-password` | POST | Request reset – body `{ email }` |
+| `/auth/reset-password` | POST | Đặt mật khẩu mới – body `{ token, newPassword }` |
+
+**Forgot Password:** FE gửi `{ email }` → Backend gửi email chứa link `/reset-password?token=xxx`.
+
+**Reset Password:** FE nhận token từ URL, gửi `{ token, newPassword }` → Backend xác thực token và cập nhật mật khẩu.
+
+Khi Backend có API, chỉ cần đổi mock → gọi `authApi`.
 
 ---
 
@@ -89,9 +131,12 @@ const res = await authApi.signup({
 | File | Ghi chú |
 |------|---------|
 | `src/lib/apiClient.ts` | Axios instance, baseURL, Bearer token, 401 → logout |
-| `src/apis/authApi.ts` | `login`, `signup`, `getProfile` – sẵn sàng gọi |
+| `src/apis/authApi.ts` | `login`, `signup`, `getProfile`, `forgotPassword`, `resetPassword` – sẵn sàng gọi |
 | `src/apis/buyerApi.ts` | Order, payment, transaction, profile – scaffold |
+| `src/apis/sellerApi.ts` | Dashboard, listings, create, update, submit – scaffold |
+| `src/apis/inspectorApi.ts` | Pending listings, approve, reject, need-update – scaffold |
 | `src/services/buyerService.ts` | Facade có fallback mock khi API lỗi |
+| `src/services/sellerService.ts` | Facade có fallback mock cho Seller |
 | `src/stores/useAuthStore.ts` | Lưu token + role, dùng trong `apiClient` |
 
 ---
@@ -102,6 +147,8 @@ const res = await authApi.signup({
 - **Endpoints** (baseURL đã có `/api`):
   - `POST /auth/login` → `{ accessToken, refreshToken?, role }`
   - `POST /auth/signup` → `{ accessToken, refreshToken?, role }`
+  - `POST /auth/forgot-password` → body `{ email }` – gửi email reset
+  - `POST /auth/reset-password` → body `{ token, newPassword }`
 - **Contract:** Gửi cho FE Swagger/OpenAPI để đối chiếu payload
 
 ---

@@ -67,6 +67,15 @@ export function Header() {
             Explore
           </button>
 
+          {!!accessToken && role === "BUYER" && (
+            <Link
+              to="/wishlist"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            >
+              Wishlist
+            </Link>
+          )}
+
           <Link
             to="/support"
             className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"

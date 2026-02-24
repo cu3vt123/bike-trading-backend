@@ -15,6 +15,7 @@ import {
 import { fetchListings } from "@/services/buyerService";
 import ListingCard from "@/components/listing/ListingCard";
 import type { Listing } from "@/types/shopbike";
+import { BIKE_CONDITION_LABEL } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const SECTION_LISTINGS_ID = "listings";
@@ -36,6 +37,10 @@ export default function HomePage() {
 
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState<string>("ALL");
+  const [condition, setCondition] = useState<string>("ALL");
+  const [frameSize, setFrameSize] = useState<string>("ALL");
+  const [priceMin, setPriceMin] = useState<string>("");
+  const [priceMax, setPriceMax] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
@@ -59,17 +64,22 @@ export default function HomePage() {
 
   const filtered = useMemo(() => {
     const keyword = q.trim().toLowerCase();
+    const min = priceMin.trim() ? parseFloat(priceMin) : null;
+    const max = priceMax.trim() ? parseFloat(priceMax) : null;
     return listings.filter((x) => {
       const okBrand = brand === "ALL" ? true : x.brand === brand;
+      const okCondition = condition === "ALL" ? true : x.condition === condition;
+      const okFrame = frameSize === "ALL" ? true : (x.frameSize ?? "").toLowerCase().includes(frameSize.toLowerCase());
+      const okPrice = (min == null || x.price >= min) && (max == null || x.price <= max);
       const okQ =
         keyword.length === 0
           ? true
           : `${x.brand ?? ""} ${x.title ?? ""} ${x.location ?? ""}`
               .toLowerCase()
               .includes(keyword);
-      return okBrand && okQ;
+      return okBrand && okCondition && okFrame && okPrice && okQ;
     });
-  }, [listings, q, brand]);
+  }, [listings, q, brand, condition, frameSize, priceMin, priceMax]);
 
   useEffect(() => {
     if (window.location.hash === `#${SECTION_LISTINGS_ID}`) {
@@ -78,8 +88,17 @@ export default function HomePage() {
   }, []);
 
   const brands = useMemo(() => {
-    const set = new Set(listings.map((x) => x.brand));
-    return ["ALL", ...Array.from(set)];
+    const set = new Set(listings.map((x) => x.brand).filter(Boolean));
+    return ["ALL", ...Array.from(set).sort()];
+  }, [listings]);
+
+  const frameSizes = useMemo(() => {
+    const set = new Set(
+      listings
+        .map((x) => x.frameSize)
+        .filter((s): s is string => !!s && s.trim() !== "")
+    );
+    return ["ALL", ...Array.from(set).sort()];
   }, [listings]);
 
   function handleSellYourBike() {
@@ -156,12 +175,12 @@ export default function HomePage() {
                 Verified & moderated listings.
               </div>
             </div>
-            <div className="rounded-lg border bg-primary/5 px-4 py-3">
+            <Link to="/support" className="rounded-lg border bg-primary/5 px-4 py-3 hover:bg-primary/10 transition-colors">
               <div className="text-sm font-semibold">Support</div>
               <div className="text-xs text-muted-foreground">
                 Help through the transaction.
               </div>
-            </div>
+            </Link>
           </div>
         </CardContent>
       </Card>
@@ -170,7 +189,7 @@ export default function HomePage() {
       <Card>
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-1 flex-wrap gap-2 sm:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -182,7 +201,7 @@ export default function HomePage() {
               </div>
 
               <Select value={brand} onValueChange={setBrand}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="All brands" />
                 </SelectTrigger>
                 <SelectContent>
@@ -193,6 +212,50 @@ export default function HomePage() {
                   ))}
                 </SelectContent>
               </Select>
+
+              <Select value={condition} onValueChange={setCondition}>
+                <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectValue placeholder="Condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All conditions</SelectItem>
+                  {Object.entries(BIKE_CONDITION_LABEL).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={frameSize} onValueChange={setFrameSize}>
+                <SelectTrigger className="w-full sm:w-[140px]">
+                  <SelectValue placeholder="Frame size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {frameSizes.map((f) => (
+                    <SelectItem key={f} value={f}>
+                      {f === "ALL" ? "All sizes" : f}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="flex gap-2 sm:flex-nowrap">
+                <Input
+                  type="number"
+                  placeholder="Min $"
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(e.target.value)}
+                  className="w-24"
+                />
+                <Input
+                  type="number"
+                  placeholder="Max $"
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
+                  className="w-24"
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between gap-3 md:justify-end">
@@ -205,6 +268,10 @@ export default function HomePage() {
                 onClick={() => {
                   setQ("");
                   setBrand("ALL");
+                  setCondition("ALL");
+                  setFrameSize("ALL");
+                  setPriceMin("");
+                  setPriceMax("");
                 }}
               >
                 Clear all
@@ -264,6 +331,10 @@ export default function HomePage() {
                 onClick={() => {
                   setQ("");
                   setBrand("ALL");
+                  setCondition("ALL");
+                  setFrameSize("ALL");
+                  setPriceMin("");
+                  setPriceMax("");
                 }}
               >
                 Clear all filters

@@ -144,7 +144,7 @@ export default function BuyerProfilePage() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                Sprint 1 UI • Orders are mock data.
+                Đơn hàng (mock – sẽ sync API khi Backend có).
               </p>
 
               <Button asChild variant="link" className="mt-4">

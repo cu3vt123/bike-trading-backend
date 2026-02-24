@@ -21,8 +21,8 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 
 - **Guest**: xem Home, xem Detail, truy cập Login/Register
 - **Buyer**: checkout/payment/transaction/finalize/success, profile buyer
-- **Seller**: seller dashboard, tạo/sửa listing (UI sprint 1), profile seller
-- **Inspector/Admin**: thuộc hệ thống (không self-register), phần dashboard dự kiến sprint sau
+- **Seller**: seller dashboard, tạo/sửa listing (gọi sellerService), profile seller
+- **Inspector/Admin**: dashboard kiểm định (Sprint 3) – Duyệt/Từ chối/Cần cập nhật tin đăng
 
 ### Rule quan trọng
 - **Register chỉ cho Buyer/Seller**
@@ -70,6 +70,13 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 ### RBAC checks
 - Buyer vào `/seller` → **/403**
 - Seller vào `/checkout/:id` → **/403**
+- Inspector/Admin có route riêng `/inspector` (RequireInspector)
+
+### Flow D – Inspector kiểm định (Sprint 3)
+- **Login Inspector** → Header hiện nút "Inspector" → **Inspector Dashboard** (`/inspector`)
+- Danh sách tin chờ kiểm định (PENDING_INSPECTION)
+- Nút: **Duyệt** (approve), **Từ chối** (reject), **Cần cập nhật** (need-update)
+- Mock data khi `VITE_USE_MOCK_API=true`; gọi `inspectorApi` khi có Backend
 
 ---
 
@@ -93,7 +100,15 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 - **SHOP-24**: Transaction page shadcn + load listing via `buyerService`
 - **SHOP-25**: Checkout/Payment page shadcn + load listing via `buyerService`
 - **SHOP-26**: Finalize + Success pages shadcn + load listing via `buyerService`
-- **SHOP-27**: Profile pages shadcn (Buyer/Seller), Inspector/Admin placeholder
+- **SHOP-27**: Profile pages shadcn (Buyer/Seller), Inspector/Admin → InspectorDashboardPage
+- **SHOP-41**: Inspector Dashboard – danh sách tin chờ kiểm định, Duyệt/Từ chối/Cần cập nhật (Sprint 3)
+
+### Sprint 3 FE (bổ sung)
+- **sellerApi.ts** + **sellerService.ts**: Dashboard, create/update/submit listing – scaffold + mock fallback
+- **inspectorApi.ts**: pending-listings, approve, reject, need-update – scaffold + mock fallback
+- **RequireInspector** guard, route `/inspector`
+- **SellerDashboardPage**: gọi `fetchSellerDashboard()` thay SELLER_MOCK
+- **SellerListingEditorPage**: Save draft / Submit for inspection gọi `sellerService`
 
 ---
 
@@ -110,7 +125,13 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 - **Buyer API**: `src/apis/buyerApi.ts`
   - orders/payments/transactions/profile (scaffold)
 
-- **Service fallback**: `src/services/buyerService.ts`
+- **Seller API**: `src/apis/sellerApi.ts`
+  - dashboard, listings, create, update, submitForInspection (scaffold)
+
+- **Inspector API**: `src/apis/inspectorApi.ts`
+  - pending-listings, approve, reject, need-update (scaffold)
+
+- **Service fallback**: `src/services/buyerService.ts`, `src/services/sellerService.ts`
   - `VITE_USE_MOCK_API=true` để ép dùng mock
   - nếu API lỗi → fallback mock để không “kẹt sprint”
 
@@ -118,12 +139,16 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 
 ## 6b) Ghi nhận Sprint 3
 
-**Ưu tiên:** Demo luồng mua chính (Home → Detail → Checkout → Transaction → Finalize → Success) trước.
+**FE đã hoàn thành (Sprint 3):**
+- Inspector Dashboard (SHOP-41): UI + inspectorApi scaffold + mock
+- Seller API scaffold: sellerApi, sellerService – Dashboard, Create/Edit listing gọi API (fallback mock)
+- RequireInspector, route `/inspector`, Header nút Inspector cho role INSPECTOR/ADMIN
 
 **Backend còn thiếu (chưa hoàn thành theo task giao):**
 - GET /auth/me
 - Các API Buyer: orders, payments (theo HUONG-DAN-BACKEND)
-- Các API Seller: listings, profile, payment methods (chưa giao chi tiết trong docs)
+- Các API Seller: dashboard, listings, create/update/submit (xem SPRINT3-HOI-DONG)
+- Các API Inspector: pending-listings, approve, reject, need-update
 
 **Test bikes:**
 - `VITE_USE_MOCK_API=true` → FE dùng mock bikes, **test được** không cần Backend bật.
@@ -148,6 +173,8 @@ Hướng dẫn đổi mock → API thật: xem `docs/API-INTEGRATION.md`.
 1. Register Buyer → về Home
 2. Home → click 1 listing → Detail
 3. Detail → Buy now → Checkout → Pay deposit → Transaction → Finalize → Success
-4. Logout → Login Seller → thử vào `/checkout/:id` → 403 (RBAC)
-5. Login Buyer → thử vào `/seller` → 403
+4. Logout → Login Seller → Dashboard → Create/Edit listing → Submit for inspection
+5. Logout → Login Inspector → Inspector Dashboard → Duyệt/Từ chối tin
+6. Login Buyer → thử vào `/seller` → 403 (RBAC)
+7. Login Seller → thử vào `/checkout/:id` → 403
 

@@ -213,9 +213,12 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <span className="text-xs text-muted-foreground">
-                      Forgot? (Sprint 1)
-                    </span>
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Quên mật khẩu?
+                    </Link>
                   </div>
                   <Input
                     id="password"

@@ -399,7 +399,10 @@ export default function TransactionPage() {
           <DialogHeader>
             <DialogTitle>Contact Support</DialogTitle>
             <DialogDescription>
-              Live chat will be available when backend integration is complete. For now, please contact support@shopbike.example.com for assistance.
+              Chat trực tiếp sẽ có khi tích hợp Backend. Hiện tại vui lòng liên hệ{" "}
+              <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
+                support@shopbike.example.com
+              </a>.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

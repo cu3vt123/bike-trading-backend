@@ -1,8 +1,6 @@
 # ShopBike Frontend – Tổng kết dự án
 
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
->
-> 📄 **Bản tiếng Việt đầy đủ:** [PROJECT-SUMMARY-VI.md](./PROJECT-SUMMARY-VI.md)
 
 ---
 
@@ -26,8 +24,8 @@
 | Guest    | Xem Home, Detail, Login, Register           |
 | Buyer    | Mua hàng, Checkout, Transaction, Profile    |
 | Seller   | Đăng tin, quản lý tin, Profile, Payouts     |
-| Inspector| Thuộc hệ thống (Sprint 2)                   |
-| Admin    | Thuộc hệ thống (Sprint 2)                   |
+| Inspector| Dashboard kiểm định (Sprint 3) – Duyệt/Từ chối tin |
+| Admin    | Cùng quyền Inspector (Sprint 3)             |
 
 ---
 
@@ -97,10 +95,19 @@ Seller Dashboard → Create/Edit Listing → Profile → Stats
 - **Profile** (`/profile`): Khi role = Seller → Seller Profile
 - **Stats** (`/seller/stats`): Thống kê chi tiết
 
-### 3.3 Luồng Auth
+### 3.3 Luồng Inspector / Admin
 
-- **Login** (`/login`): Chọn role, đăng nhập (mock)
-- **Register** (`/register`): Chọn Buyer/Seller, đăng ký (mock) → auto login
+```
+Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ chối/Cần cập nhật
+```
+
+- **Inspector Dashboard** (`/inspector`, `/profile` khi role = Inspector/Admin): Danh sách tin chờ kiểm định, nút Duyệt / Từ chối / Cần cập nhật
+- Header: Nút **Inspector** khi role INSPECTOR hoặc ADMIN
+
+### 3.4 Luồng Auth
+
+- **Login** (`/login`): Chọn role, đăng nhập (API / mock)
+- **Register** (`/register`): Chọn Buyer/Seller, đăng ký (API / mock) → auto login
 - **Logout**: `clearTokens()` → về Home
 
 ---
@@ -119,10 +126,11 @@ Seller Dashboard → Create/Edit Listing → Profile → Stats
 | Login          | Mock login, chọn 4 role                               |
 | Register       | Mock signup, chỉ Buyer/Seller                         |
 | GuestGuard     | Redirect user đã login khỏi /login, /register          |
-| RequireAuth    | Bảo vệ /profile                                       |
-| RequireBuyer   | Bảo vệ /checkout, /transaction, /finalize, /success  |
-| RequireSeller  | Bảo vệ /seller, /seller/stats, /seller/listings/*    |
-| 403 Forbidden  | Trang sai role                                        |
+| RequireAuth     | Bảo vệ /profile                                       |
+| RequireBuyer    | Bảo vệ /checkout, /transaction, /finalize, /success  |
+| RequireSeller   | Bảo vệ /seller, /seller/stats, /seller/listings/*    |
+| RequireInspector| Bảo vệ /inspector (role Inspector/Admin)              |
+| 403 Forbidden   | Trang sai role                                        |
 
 ### 4.3 Buyer Pages
 
@@ -140,12 +148,18 @@ Seller Dashboard → Create/Edit Listing → Profile → Stats
 
 | Trang                 | Chức năng chính                                      |
 |-----------------------|------------------------------------------------------|
-| SellerDashboardPage   | Thống kê tin, inventory, View all                   |
-| SellerListingEditorPage | Tạo/sửa tin, upload 1–8 ảnh, Draft/Pending logic    |
+| SellerDashboardPage   | Thống kê tin, inventory (gọi `sellerService` – API + mock) |
+| SellerListingEditorPage | Tạo/sửa tin, upload 1–8 ảnh, Save draft / Submit for inspection (gọi API) |
 | SellerProfilePage    | Edit Profile, Payment methods (Add/Remove/Set default) |
 | SellerStatsPage      | Total Sales, Active Listings, Completed Deals       |
 
-### 4.5 Seller Profile – Chi tiết
+### 4.5 Inspector Pages (Sprint 3)
+
+| Trang                  | Chức năng chính                                      |
+|------------------------|------------------------------------------------------|
+| InspectorDashboardPage | Danh sách tin chờ kiểm định, Duyệt / Từ chối / Cần cập nhật (mock + API) |
+
+### 4.6 Seller Profile – Chi tiết
 
 #### Edit Profile
 
@@ -159,17 +173,20 @@ Seller Dashboard → Create/Edit Listing → Profile → Stats
 - **Add New**: Dialog thêm Visa/MoMo; với Visa yêu cầu 4 số cuối
 - Khi xóa DEFAULT, item còn lại đầu tiên trở thành DEFAULT
 
-### 4.6 API & Services
+### 4.7 API & Services
 
 | File             | Mô tả                                                |
 |------------------|------------------------------------------------------|
 | `apiClient.ts`   | Axios instance, Bearer token, 401 → logout           |
 | `authApi.ts`     | login, signup, getProfile (scaffold)                  |
-| `buyerApi.ts`    | bikes, orders, payments (scaffold)                    |
+| `buyerApi.ts`    | bikes, orders, payments (scaffold)                   |
 | `buyerService.ts`| Facade + fallback mock khi API lỗi                  |
+| `sellerApi.ts`   | dashboard, listings, create, update, submit (scaffold) |
+| `sellerService.ts`| Facade + fallback mock cho Seller                   |
+| `inspectorApi.ts`| pending-listings, approve, reject, need-update (scaffold) |
 | `useAuthStore`   | Tokens, role, persist `auth-storage`                 |
 
-### 4.5 Các sửa đổi theo business rules (gần đây)
+### 4.8 Các sửa đổi theo business rules (gần đây)
 
 | Khu vực         | Thay đổi                                                       |
 |-----------------|----------------------------------------------------------------|
@@ -186,7 +203,7 @@ Seller Dashboard → Create/Edit Listing → Profile → Stats
 
 ```
 src/
-├── apis/           # authApi, buyerApi, bikeApi
+├── apis/           # authApi, buyerApi, bikeApi, sellerApi, inspectorApi
 ├── components/
 │   ├── common/     # Header
 │   ├── listing/    # ListingCard
@@ -195,8 +212,8 @@ src/
 ├── lib/            # apiClient, utils, cn
 ├── mocks/          # bikeApi.mock, listings.mock
 ├── pages/          # Các trang (Home, Detail, Checkout, ...)
-├── routes/         # AppRouter, Guards (RequireAuth, RequireBuyer, RequireSeller)
-├── services/       # buyerService
+├── routes/         # AppRouter, Guards (RequireAuth, RequireBuyer, RequireSeller, RequireInspector)
+├── services/       # buyerService, sellerService
 ├── stores/         # useAuthStore
 └── types/          # auth, shopbike, order, listing
 ```
@@ -207,9 +224,12 @@ src/
 
 | File                  | Nội dung                                |
 |-----------------------|-----------------------------------------|
+| `docs/CHANGELOG.md`           | Tóm tắt thay đổi theo phiên bản        |
 | `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ theo ticket   |
 | `docs/API-INTEGRATION.md`    | Hướng dẫn gắn API thật khi BE sẵn sàng |
 | `docs/HUONG-DAN-BACKEND.md`  | Hướng dẫn gửi cho Backend – các API cần implement  |
+| `docs/BACKEND-API-CON-THIEU.md` | Chi tiết API Backend còn thiếu – task cho team     |
+| `docs/SPRINT3-HOI-DONG.md`          | Sprint 3 – Chuẩn bị đem dự án ra hội đồng          |
 | `.kiro/steering/project-standards.md` | Chuẩn dự án, business rules      |
 | `.kiro/steering/product.md`  | Mô tả sản phẩm                         |
 
@@ -229,10 +249,12 @@ src/
 1. Register Buyer → Home
 2. Home → Product Detail → Buy now → Checkout → Pay deposit → Transaction → Finalize → Success
 3. Logout → Login Seller → Vào Profile → Edit Profile, Add/Remove payment, Set default
-4. Seller → /seller/stats
-5. Buyer thử vào /seller → 403
-6. Seller thử vào /checkout/:id → 403
+4. Seller → Dashboard → Create/Edit listing → Submit for inspection
+5. Seller → /seller/stats
+6. Logout → Login Inspector → Inspector Dashboard → Duyệt / Từ chối / Cần cập nhật
+7. Buyer thử vào /seller → 403
+8. Seller thử vào /checkout/:id → 403
 
 ---
 
-*Tài liệu cập nhật: Sprint 1 hoàn thiện + tích hợp Backend API*
+*Tài liệu cập nhật: Sprint 3 – Inspector Dashboard, Seller API scaffold, chuẩn bị hội đồng*

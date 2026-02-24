@@ -110,7 +110,7 @@ export default function PurchaseSuccessPage() {
                 Order completed successfully
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your purchase is confirmed. (Sprint 1 UI)
+                Giao dịch của bạn đã được xác nhận.
               </p>
               {state.orderId && (
                 <p className="mt-3 text-sm">
@@ -168,7 +168,7 @@ export default function PurchaseSuccessPage() {
       </Card>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        Sprint 1 mock — chưa map backend. Mục tiêu: hoàn thiện UI + flow.
+        UI hoàn thiện. Khi Backend có API, tích hợp để hiển thị dữ liệu thật.
       </p>
     </div>
   );

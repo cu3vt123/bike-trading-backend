@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Package, Star } from "lucide-react";
 import type { Listing, ListingState } from "@/types/shopbike";
 import { fetchSellerDashboard } from "@/services/sellerService";
+
+// Mock: đơn đặt mua / đặt cọc
+const MOCK_ORDERS = [
+  { id: "ORD-101", bike: "Trek Domane SL", buyer: "buyer_01", amount: 3100, deposit: 248, status: "RESERVED" },
+  { id: "ORD-102", bike: "Cervelo S5", buyer: "rider_99", amount: 6900, deposit: 552, status: "PAID" },
+];
 
 function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
   return new Intl.NumberFormat(undefined, {
@@ -156,7 +163,7 @@ export default function SellerDashboardPage() {
                     <div className="col-span-6 flex items-center gap-3">
                       <div className="h-10 w-14 overflow-hidden rounded-lg bg-slate-100">
                         <img
-                          src={x.thumbnailUrl}
+                          src={x.thumbnailUrl ?? x.imageUrls?.[0] ?? ""}
                           alt={x.title}
                           className="h-full w-full object-cover"
                           loading="lazy"
@@ -208,8 +215,7 @@ export default function SellerDashboardPage() {
           </div>
 
           <div className="mt-3 text-xs text-slate-500">
-            Rule: Draft/Need Update có thể sửa. Pending Inspection khóa sửa.
-            Published không cho sửa nội dung cốt lõi (Sprint 1 UI-only).
+            Draft/Need Update có thể sửa. Pending Inspection khóa sửa. Published hạn chế sửa nội dung cốt lõi.
           </div>
         </div>
 
@@ -251,6 +257,74 @@ export default function SellerDashboardPage() {
               Continue to editor →
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Orders & Ratings row */}
+      <div className="mt-6 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-emerald-600" />
+            <span className="text-sm font-semibold text-slate-900">Đơn đặt mua / đặt cọc</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Quản lý đơn hàng và tiền cọc.</p>
+          <div className="mt-4 space-y-3">
+            {MOCK_ORDERS.map((o) => (
+              <div
+                key={o.id}
+                className="flex items-center justify-between rounded-lg border border-black/10 bg-slate-50/50 px-4 py-3"
+              >
+                <div>
+                  <div className="text-sm font-semibold">{o.bike}</div>
+                  <div className="text-xs text-slate-500">
+                    {o.id} • {o.buyer} • {formatMoney(o.deposit)} cọc
+                  </div>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    o.status === "PAID" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {o.status === "PAID" ? "Đã thanh toán" : "Đang chờ"}
+                </span>
+              </div>
+            ))}
+            {MOCK_ORDERS.length === 0 && (
+              <p className="py-4 text-center text-sm text-slate-500">Chưa có đơn nào.</p>
+            )}
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Sẽ tích hợp API khi Backend có endpoint quản lý đơn.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-amber-500" />
+            <span className="text-sm font-semibold text-slate-900">Đánh giá & uy tín</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Mức độ uy tín từ người mua.</p>
+          <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-black/10 bg-slate-50/50 py-6">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold text-slate-900">4.8</span>
+              <span className="text-amber-500">★★★★★</span>
+            </div>
+            <p className="mt-2 text-sm text-slate-600">12 đánh giá</p>
+            <p className="mt-1 text-xs text-slate-500">97% phản hồi tích cực</p>
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-600">5 sao</span>
+              <span className="font-semibold">10</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-600">4 sao</span>
+              <span className="font-semibold">2</span>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Đánh giá từ giao dịch thành công. Sẽ sync API khi có.
+          </p>
         </div>
       </div>
     </div>
