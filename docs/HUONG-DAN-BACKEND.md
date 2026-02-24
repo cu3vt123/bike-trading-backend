@@ -118,6 +118,14 @@ Làm lần lượt để FE test từng bước:
 
 **POST** `/api/auth/signup`
 
+**Business rules – giới hạn (FE đã validate, Backend cũng phải enforce):**
+
+| Field | Giới hạn |
+|-------|----------|
+| username | 2–30 ký tự, chỉ chữ cái, số, dấu gạch dưới (_) |
+| email | Tùy chọn; nếu có thì phải đúng định dạng, max 100 ký tự |
+| password | 8–64 ký tự |
+
 **Request body:**
 
 ```json
@@ -132,9 +140,9 @@ Làm lần lượt để FE test từng bước:
 | Field | Type | Bắt buộc | Ghi chú |
 |-------|------|----------|---------|
 | role | string | Có | Chỉ `BUYER` hoặc `SELLER` |
-| username | string | Có | Tên đăng nhập |
-| email | string | Không | Email |
-| password | string | Có | Mật khẩu |
+| username | string | Có | 2–30 ký tự, pattern `^[a-zA-Z0-9_]+$` |
+| email | string | Không | Email hợp lệ, max 100 ký tự |
+| password | string | Có | 8–64 ký tự |
 
 **Response 201 Created:**
 

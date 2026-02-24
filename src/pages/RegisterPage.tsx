@@ -83,13 +83,7 @@ async function mockSignup(payload: {
   email: string;
   password: string;
 }): Promise<{ accessToken: string; refreshToken?: string }> {
-  const err = validateRegister({
-    username: payload.username,
-    email: payload.email,
-    password: payload.password,
-    confirmPassword: payload.password,
-  });
-  if (err) throw new Error(err);
+  // validation đã chạy trong onSubmit trước khi gọi
   return {
     accessToken: `mock_access_${payload.role}_${Date.now()}`,
     refreshToken: `mock_refresh_${Date.now()}`,
@@ -234,7 +228,7 @@ export default function RegisterPage() {
 
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">Username *</Label>
                   <Input
                     id="username"
                     type="text"
@@ -242,12 +236,16 @@ export default function RegisterPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="e.g. rider_01"
                     autoComplete="username"
-                    minLength={2}
+                    minLength={LIMITS.USERNAME_MIN}
+                    maxLength={LIMITS.USERNAME_MAX}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    {LIMITS.USERNAME_MIN}–{LIMITS.USERNAME_MAX} ký tự, chỉ chữ, số và dấu _
+                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email (optional)</Label>
+                  <Label htmlFor="email">Email (tùy chọn)</Label>
                   <Input
                     id="email"
                     type="email"
@@ -255,11 +253,12 @@ export default function RegisterPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     autoComplete="email"
+                    maxLength={LIMITS.EMAIL_MAX}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Mật khẩu *</Label>
                   <Input
                     id="password"
                     type="password"
@@ -267,12 +266,16 @@ export default function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="new-password"
-                    minLength={6}
+                    minLength={LIMITS.PASSWORD_MIN}
+                    maxLength={LIMITS.PASSWORD_MAX}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    {LIMITS.PASSWORD_MIN}–{LIMITS.PASSWORD_MAX} ký tự
+                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm password</Label>
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -280,6 +283,7 @@ export default function RegisterPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="new-password"
+                    maxLength={LIMITS.PASSWORD_MAX}
                   />
                 </div>
 
