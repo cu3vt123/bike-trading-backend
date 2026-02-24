@@ -53,7 +53,7 @@ function resolvePostLoginPath(fromPath: string, role: Role) {
   ) {
     return "/";
   }
-  if (fromPath.startsWith("/inspector") && role !== "INSPECTOR") return "/";
+  if (fromPath.startsWith("/inspector") && role !== "INSPECTOR" && role !== "ADMIN") return "/";
   if (fromPath.startsWith("/admin") && role !== "ADMIN") return "/";
   return fromPath;
 }

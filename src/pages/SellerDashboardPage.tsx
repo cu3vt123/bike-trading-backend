@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Listing, ListingState } from "@/types/shopbike";
+import { fetchSellerDashboard } from "@/services/sellerService";
 
 function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
   return new Intl.NumberFormat(undefined, {
@@ -44,54 +46,6 @@ function stateLabel(state: ListingState) {
   }
 }
 
-// Sprint 1: mock inventory cho seller (UI-only)
-const SELLER_MOCK: Listing[] = [
-  {
-    id: "S-101",
-    title: "Specialized Tarmac SL7 — ready for inspection",
-    brand: "Specialized",
-    price: 7200,
-    location: "Ho Chi Minh City",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=1400&q=60",
-    state: "DRAFT",
-    inspectionResult: null,
-  },
-  {
-    id: "S-102",
-    title: "Trek Domane SL — submitted for review",
-    brand: "Trek",
-    price: 3100,
-    location: "Da Nang",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1518655048521-f130df041f66?auto=format&fit=crop&w=1400&q=60",
-    state: "PENDING_INSPECTION",
-    inspectionResult: null,
-  },
-  {
-    id: "S-103",
-    title: "Cannondale SuperSix — please update photos",
-    brand: "Cannondale",
-    price: 3850,
-    location: "Ha Noi",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1400&q=60",
-    state: "NEED_UPDATE",
-    inspectionResult: "NEED_UPDATE",
-  },
-  {
-    id: "S-104",
-    title: "Cervelo S5 Aero — approved & published",
-    brand: "Cervelo",
-    price: 6900,
-    location: "Ho Chi Minh City",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=1400&q=60",
-    state: "PUBLISHED",
-    inspectionResult: "APPROVE",
-  },
-];
-
 function StatCard({
   label,
   value,
@@ -111,14 +65,31 @@ function StatCard({
 }
 
 export default function SellerDashboardPage() {
-  const total = SELLER_MOCK.length;
-  const active = SELLER_MOCK.filter((x) => x.state === "PUBLISHED").length;
-  const inReview = SELLER_MOCK.filter(
-    (x) => x.state === "PENDING_INSPECTION",
-  ).length;
-  const needUpdate = SELLER_MOCK.filter(
-    (x) => x.state === "NEED_UPDATE",
-  ).length;
+  const [stats, setStats] = useState({ total: 0, active: 0, inReview: 0, needUpdate: 0 });
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSellerDashboard()
+      .then(({ stats: s, listings: ls }) => {
+        setStats(s);
+        setListings(ls);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const { total, active, inReview, needUpdate } = stats;
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl py-12">
+        <div className="flex flex-col items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="mt-3 text-sm text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl">
@@ -172,7 +143,7 @@ export default function SellerDashboardPage() {
             </div>
 
             <div className="divide-y divide-black/5">
-              {SELLER_MOCK.map((x) => {
+              {listings.map((x) => {
                 const badge = stateLabel(x.state);
                 const canEdit =
                   x.state === "DRAFT" || x.state === "NEED_UPDATE";

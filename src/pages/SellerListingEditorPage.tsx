@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  createListing,
+  updateListing,
+  submitForInspection,
+  fetchListingById,
+} from "@/services/sellerService";
 
 type Condition = "MINT_USED" | "GOOD_USED" | "FAIR_USED";
 type Step = "DRAFT" | "PENDING_INSPECTION";
@@ -8,33 +14,94 @@ export default function SellerListingEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Sprint 1: local-only state
   const [title, setTitle] = useState("");
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState<string>("");
   const [location, setLocation] = useState("");
   const [condition, setCondition] = useState<Condition>("MINT_USED");
   const [step, setStep] = useState<Step>("DRAFT");
+  const [savedId, setSavedId] = useState<string | null>(id ?? null);
   const [photoItems, setPhotoItems] = useState<
     Array<{ file: File; url: string }>
   >([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const isEdit = useMemo(() => !!id, [id]);
+  const isEdit = useMemo(() => !!id || !!savedId, [id, savedId]);
+  const listingId = id ?? savedId ?? "";
 
-  function onSaveDraft() {
-    // UI-only: không alert, chỉ giữ state
+  useEffect(() => {
+    if (!listingId) return;
+    fetchListingById(listingId).then((listing) => {
+      if (listing) {
+        setTitle(listing.title ?? "");
+        setBrand(listing.brand ?? "");
+        setPrice(String(listing.price ?? ""));
+        setLocation(listing.location ?? "");
+        setCondition((listing.condition as Condition) ?? "MINT_USED");
+        if (listing.state === "PENDING_INSPECTION") setStep("PENDING_INSPECTION");
+      }
+    });
+  }, [listingId]);
+
+  function buildPayload() {
+    const priceNum = parseFloat(price) || 0;
+    return {
+      title: title || "Untitled",
+      brand: brand || "Unknown",
+      price: priceNum,
+      location,
+      condition,
+      imageUrls: [], // TODO: upload photos → URLs khi BE có API
+    };
   }
 
-  function onSubmitForInspection() {
+  async function onSaveDraft() {
+    setError(null);
+    setSubmitting(true);
+    try {
+      if (isEdit && listingId) {
+        await updateListing(listingId, buildPayload());
+        setStep("DRAFT");
+      } else {
+        const created = await createListing(buildPayload());
+        setSavedId(created.id);
+        setStep("DRAFT");
+        navigate(`/seller/listings/${created.id}/edit`, { replace: true });
+      }
+    } catch {
+      setError("Không thể lưu draft. Thử lại sau.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function onSubmitForInspection() {
     if (photoItems.length === 0) {
       setPhotoError("Please upload at least 1 photo before submitting.");
       return;
     }
-    // UI-only: chuyển trạng thái + quay về dashboard
-    setStep("PENDING_INSPECTION");
-    navigate("/seller", { replace: true });
+    setError(null);
+    setSubmitting(true);
+    try {
+      let targetId = listingId;
+      if (!targetId) {
+        const created = await createListing(buildPayload());
+        targetId = created.id;
+        setSavedId(created.id);
+      } else {
+        await updateListing(targetId, buildPayload());
+      }
+      await submitForInspection(targetId);
+      setStep("PENDING_INSPECTION");
+      navigate("/seller", { replace: true });
+    } catch {
+      setError("Không thể gửi kiểm định. Thử lại sau.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const locked = step === "PENDING_INSPECTION";
@@ -96,6 +163,12 @@ export default function SellerListingEditorPage() {
           ← Back to dashboard
         </Link>
       </div>
+
+      {error && (
+        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {error}
+        </div>
+      )}
 
       {locked && (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -242,18 +315,18 @@ export default function SellerListingEditorPage() {
 
             <button
               onClick={onSaveDraft}
-              disabled={locked}
+              disabled={locked || submitting}
               className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
             >
-              Save draft
+              {submitting ? "Đang lưu..." : "Save draft"}
             </button>
 
             <button
               onClick={onSubmitForInspection}
-              disabled={locked}
+              disabled={locked || submitting}
               className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-200"
             >
-              Submit for inspection →
+              {submitting ? "Đang gửi..." : "Submit for inspection →"}
             </button>
 
             <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">

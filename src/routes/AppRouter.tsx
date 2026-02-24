@@ -12,6 +12,7 @@ import GuestGuard from "@/routes/GuestGuard";
 import RequireAuth from "@/routes/RequireAuth";
 import RequireBuyer from "@/routes/RequireBuyer";
 import RequireSeller from "@/routes/RequireSeller";
+import RequireInspector from "@/routes/RequireInspector";
 
 // Buyer pages (Sprint 1 UI-only)
 import CheckoutPage from "@/pages/CheckoutPage";
@@ -26,6 +27,7 @@ import SellerStatsPage from "@/pages/SellerStatsPage";
 
 // Profile (auto render buyer/seller)
 import ProfilePage from "@/pages/ProfilePage";
+import InspectorDashboardPage from "@/pages/InspectorDashboardPage";
 
 // NotFound
 
@@ -38,9 +40,14 @@ export default function AppRouter() {
           <Route index element={<HomePage />} />
           <Route path="bikes/:id" element={<ProductDetailPage />} />
 
-          {/* ✅ Profile: chỉ cần login, tự ra Buyer/Seller profile */}
+          {/* ✅ Profile: chỉ cần login, tự ra Buyer/Seller/Inspector theo role */}
           <Route element={<RequireAuth />}>
             <Route path="profile" element={<ProfilePage />} />
+          </Route>
+
+          {/* Inspector / Admin flow */}
+          <Route element={<RequireInspector />}>
+            <Route path="inspector" element={<InspectorDashboardPage />} />
           </Route>
 
           {/* BUYER-only flow */}
