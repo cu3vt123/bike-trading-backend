@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { Role } from "@/types/auth";
 import { cn } from "@/lib/utils";
+import { authApi } from "@/apis/authApi";
 
 /* Chỉ Buyer và Seller được tự đăng ký; Inspector/Admin do hệ thống cấp */
 const REGISTER_ROLES: Role[] = ["BUYER", "SELLER"];
@@ -27,22 +28,68 @@ const ROLE_CONFIG: Record<
   SELLER: { label: "Seller", icon: Store },
 };
 
-/**
- * Sprint 1 UI-only: mock signup. Chưa gọi backend.
- * Success → auto login + redirect về /
- */
+const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_API === "true";
+
+/** Business rules: giới hạn đăng ký (phải khớp Backend) */
+const LIMITS = {
+  USERNAME_MIN: 2,
+  USERNAME_MAX: 30,
+  USERNAME_PATTERN: /^[a-zA-Z0-9_]+$/,
+  PASSWORD_MIN: 8,
+  PASSWORD_MAX: 64,
+  EMAIL_MAX: 100,
+} as const;
+
+function validateRegister(data: {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}): string | null {
+  const u = data.username.trim();
+  if (u.length < LIMITS.USERNAME_MIN) {
+    return `Username phải từ ${LIMITS.USERNAME_MIN}–${LIMITS.USERNAME_MAX} ký tự.`;
+  }
+  if (u.length > LIMITS.USERNAME_MAX) {
+    return `Username tối đa ${LIMITS.USERNAME_MAX} ký tự.`;
+  }
+  if (!LIMITS.USERNAME_PATTERN.test(u)) {
+    return "Username chỉ được dùng chữ cái, số và dấu gạch dưới (_).";
+  }
+  if (data.email.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email.trim())) {
+      return "Email không hợp lệ.";
+    }
+    if (data.email.length > LIMITS.EMAIL_MAX) {
+      return `Email tối đa ${LIMITS.EMAIL_MAX} ký tự.`;
+    }
+  }
+  if (data.password.length < LIMITS.PASSWORD_MIN) {
+    return `Mật khẩu phải từ ${LIMITS.PASSWORD_MIN}–${LIMITS.PASSWORD_MAX} ký tự.`;
+  }
+  if (data.password.length > LIMITS.PASSWORD_MAX) {
+    return `Mật khẩu tối đa ${LIMITS.PASSWORD_MAX} ký tự.`;
+  }
+  if (data.password !== data.confirmPassword) {
+    return "Mật khẩu xác nhận không khớp.";
+  }
+  return null;
+}
+
 async function mockSignup(payload: {
   role: Role;
   username: string;
   email: string;
   password: string;
 }): Promise<{ accessToken: string; refreshToken?: string }> {
-  if (!payload.username.trim() || payload.username.trim().length < 2) {
-    throw new Error("Username must be at least 2 characters");
-  }
-  if (payload.password.length < 6) {
-    throw new Error("Password must be at least 6 characters");
-  }
+  const err = validateRegister({
+    username: payload.username,
+    email: payload.email,
+    password: payload.password,
+    confirmPassword: payload.password,
+  });
+  if (err) throw new Error(err);
   return {
     accessToken: `mock_access_${payload.role}_${Date.now()}`,
     refreshToken: `mock_refresh_${Date.now()}`,
@@ -65,24 +112,34 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    const validationError = validateRegister({
+      username,
+      email,
+      password,
+      confirmPassword,
+    });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     try {
       setSubmitting(true);
 
-      const res = await mockSignup({ role, username, email, password });
+      const res = USE_MOCK_AUTH
+        ? await mockSignup({ role, username, email, password })
+        : await authApi.signup({
+            role: role as "BUYER" | "SELLER",
+            username,
+            email: email || undefined,
+            password,
+          });
 
+      const resolvedRole = (res as { role?: Role }).role ?? role;
       setTokens({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
-        role,
+        role: resolvedRole,
       });
 
       navigate("/", { replace: true });

@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/useAuthStore";
 import type { Role } from "@/types/auth";
 import { cn } from "@/lib/utils";
+import { authApi } from "@/apis/authApi";
 
 type LocationState = {
   from?: { pathname?: string };
@@ -22,9 +23,8 @@ type LocationState = {
   role?: Role;
 };
 
-/**
- * Sprint 1 UI-only: mock login. Chưa gọi backend.
- */
+const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_API === "true";
+
 async function mockLogin(payload: {
   role: Role;
   emailOrUsername: string;
@@ -95,18 +95,22 @@ export default function LoginPage() {
     try {
       setSubmitting(true);
 
-      const res = await mockLogin({ role, emailOrUsername, password });
+      const res = USE_MOCK_AUTH
+        ? await mockLogin({ role, emailOrUsername, password })
+        : await authApi.login({ role, emailOrUsername, password });
 
+      const resolvedRole = (res as { role?: Role }).role ?? role;
       setTokens({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
-        role,
+        role: resolvedRole,
       });
 
-      const target = resolvePostLoginPath(fromPath, role);
+      const target = resolvePostLoginPath(fromPath, resolvedRole);
       navigate(target, { replace: true });
-    } catch {
-      setError("Invalid credentials. Please check your info and try again.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Invalid credentials. Please check your info and try again.";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }

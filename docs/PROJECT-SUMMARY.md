@@ -1,6 +1,8 @@
 # ShopBike Frontend – Tổng kết dự án
 
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
+>
+> 📄 **Bản tiếng Việt đầy đủ:** [PROJECT-SUMMARY-VI.md](./PROJECT-SUMMARY-VI.md)
 
 ---
 
@@ -207,6 +209,7 @@ src/
 |-----------------------|-----------------------------------------|
 | `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ theo ticket   |
 | `docs/API-INTEGRATION.md`    | Hướng dẫn gắn API thật khi BE sẵn sàng |
+| `docs/HUONG-DAN-BACKEND.md`  | Hướng dẫn gửi cho Backend – các API cần implement  |
 | `.kiro/steering/project-standards.md` | Chuẩn dự án, business rules      |
 | `.kiro/steering/product.md`  | Mô tả sản phẩm                         |
 
@@ -232,4 +235,4 @@ src/
 
 ---
 
-*Tài liệu cập nhật: Sprint 1 hoàn thiện*
+*Tài liệu cập nhật: Sprint 1 hoàn thiện + tích hợp Backend API*

@@ -1,5 +1,7 @@
 # Hướng dẫn gộp API thật khi Backend sẵn sàng
 
+> **Cho Backend:** Gửi file [HUONG-DAN-BACKEND.md](./HUONG-DAN-BACKEND.md) – hướng dẫn đầy đủ các API cần implement.
+
 ---
 
 ## Buyer API (SHOP-21 scaffold)
