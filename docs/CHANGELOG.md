@@ -142,4 +142,17 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
-*Cập nhật lần cuối: 2025-02 – Forgot Password, Support, Wishlist, Filters, UI Polish*
+---
+
+## [2025-02] Hướng dẫn FE2 Join Git
+
+### Thay đổi tài liệu
+
+| File | Nội dung |
+|------|----------|
+| **HUONG-DAN-FE2-JOIN-GIT.md** | Hướng dẫn FE2: clone repo, cấu hình Git, branch, cài đặt & chạy, quy trình commit/push, cấu trúc code, tài liệu tham khảo |
+| **PROJECT-SUMMARY.md** | Thêm tham chiếu `HUONG-DAN-FE2-JOIN-GIT.md` |
+
+---
+
+*Cập nhật lần cuối: 2025-02 – Hướng dẫn FE2 Join Git*
