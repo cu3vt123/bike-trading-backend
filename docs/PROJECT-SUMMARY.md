@@ -225,6 +225,7 @@ src/
 | File                  | Nội dung                                |
 |-----------------------|-----------------------------------------|
 | `docs/CHANGELOG.md`           | Tóm tắt thay đổi theo phiên bản        |
+| `docs/HUONG-DAN-FE2-JOIN-GIT.md` | Hướng dẫn FE2 clone, setup, join Git   |
 | `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ theo ticket   |
 | `docs/API-INTEGRATION.md`    | Hướng dẫn gắn API thật khi BE sẵn sàng |
 | `docs/HUONG-DAN-BACKEND.md`  | Hướng dẫn gửi cho Backend – các API cần implement  |
