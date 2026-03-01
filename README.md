@@ -2,7 +2,7 @@
 
 Đây là mã nguồn Backend cho dự án Sàn Giao Dịch Xe Đạp Thể Thao.
 
-## 🛠 1. Cài đặt môi trường (Prerequisites)
+## 1. Cài đặt môi trường (Prerequisites)
 - **Java:** JDK 24
 - **Database:**  MySQL Workbench
 - **IDE:** IntelliJ IDEA 
@@ -11,7 +11,7 @@
 1. Bật MySQL Server (Start MySQL trên XAMPP).
 2. Tạo database trắng tên là `bike_trading_db`.
 3. Mở IntelliJ, tìm file `ShopBikeApplication.java` (hoặc tên tương tự) chứa hàm `main`.
-4. Bấm nút **Run (▶)** màu xanh lá.
+4. Bấm nút **Run** màu xanh lá.
 5. Code báo `Started Application in ... seconds` là thành công!
 
 ## 🔗 3. Tài liệu API (Swagger UI)
