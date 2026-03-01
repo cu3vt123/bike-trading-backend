@@ -1,123 +1,54 @@
 package com.biketrading.backend.controller;
 
+import com.biketrading.backend.dto.SellerDTO;
 import com.biketrading.backend.entity.Seller;
-import com.biketrading.backend.repository.SellerRepository;
 import com.biketrading.backend.service.SellerService;
-import com.biketrading.backend.dto.LoginRequest;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/sellers") // Đổi sang /sellers để phân biệt với /auth
 public class SellerController {
 
     @Autowired
     private SellerService sellerService;
 
-    @Autowired
-    private SellerRepository sellerRepository;
-
-    // Signup
-        // POST http://localhost:8081/api/auth/signup
-    @Operation(
-            summary = "Signup seller",
-            description = "Create a new seller account. Returns created seller profile."
-    )
+    @Operation(summary = "Đăng ký Seller mới", description = "Tạo tài khoản người bán hàng trên hệ thống.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Seller created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data")
+            @ApiResponse(responseCode = "201", description = "Tạo thành công"),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu nhập vào không hợp lệ"),
+            @ApiResponse(responseCode = "409", description = "Username hoặc Email đã tồn tại")
     })
     @PostMapping("/signup")
-    public ResponseEntity<Seller> signup(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(
-                            examples = @ExampleObject(
-                                    name = "SignupExample",
-                                    value = """
-                                {
-                                  "username": "buyer_demo",
-                                  "password": "123456",
-                                  "email": "demo@gmail.com",
-                                  "phone": "0900000000",
-                                  "shopName": "Demo Bike Shop"
-                                }
-                                """
-                            )
-                    )
-            )
-            @RequestBody Seller seller
-    ) {
-        return ResponseEntity.status(201).body(
-                sellerService.createSeller(seller)
-        );
+    public ResponseEntity<Seller> register(@Valid @RequestBody SellerDTO sellerDTO) {
+        // Map từ DTO sang Entity (Sau này dùng ModelMapper cho nhanh nhé anh)
+        Seller seller = new Seller();
+        seller.setUsername(sellerDTO.getUsername());
+        seller.setPassword(sellerDTO.getPassword()); // Trong Service sẽ mã hóa password sau
+        seller.setEmail(sellerDTO.getEmail());
+        seller.setPhone(sellerDTO.getPhone());
+        seller.setShopName(sellerDTO.getShopName());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(sellerService.createSeller(seller));
     }
 
-    //  (Login)
-    // POST http://localhost:8081/api/auth/login
-    @Operation(
-            summary = "Login seller",
-            description = "Authenticate seller by username/password. Returns seller profile when success."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
-            @ApiResponse(responseCode = "401", description = "Invalid username or password",
-                    content = @Content(examples = @ExampleObject(value = "\"Sai tài khoản hoặc mật khẩu\"")))
-    })
-    @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(
-                            examples = @ExampleObject(
-                                    name = "LoginExample",
-                                    value = """
-                                {
-                                  "username": "buyer_demo",
-                                  "password": "123456"
-                                }
-                                """
-                            )
-                    )
-            )
-            @RequestBody LoginRequest loginInfo
-    ) {
-        Seller user = sellerRepository.findByUsernameAndPassword(
-                loginInfo.getUsername(),
-                loginInfo.getPassword()
-        );
-
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        }
-        return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu");
+    @Operation(summary = "Lấy thông tin Seller", description = "Lấy chi tiết Profile của người bán theo ID.")
+    @GetMapping("/{id}")
+    public ResponseEntity<Seller> getSeller(@PathVariable Long id) {
+        return ResponseEntity.ok(sellerService.getSellerById(id));
     }
 
-    // xem Profile shop
-    // GET http://localhost:8081/api/auth/profile/{id}
-    @Operation(
-            summary = "Get seller profile",
-            description = "Get seller/shop profile by id."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "404", description = "Seller not found")
-    })
-    @GetMapping("/profile/{id}")
-    public ResponseEntity<Seller> getProfile(@PathVariable Long id) {
-        Seller seller = sellerService.getSellerById(id);
-        if (seller == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(seller);
+    @Operation(summary = "Lấy danh sách Seller", description = "Lấy toàn bộ danh sách người bán trên hệ thống.")
+    @GetMapping
+    public ResponseEntity<List<Seller>> getAllSellers() {
+        return ResponseEntity.ok(sellerService.getAllSellers());
     }
 }
