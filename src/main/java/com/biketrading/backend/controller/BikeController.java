@@ -1,13 +1,19 @@
 package com.biketrading.backend.controller;
 
+import com.biketrading.backend.dto.BikeDTO;
 import com.biketrading.backend.entity.Bike;
 import com.biketrading.backend.repository.BikeRepository;
 import com.biketrading.backend.service.BikeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -82,5 +88,21 @@ public class BikeController {
             @RequestParam String keyword
     ) {
         return ResponseEntity.ok(bikeRepository.findByNameContaining(keyword));
+    }
+    @PostMapping
+    @Operation(summary = "Seller đăng bán xe mới")
+    public ResponseEntity<?> createListing(@Valid @RequestBody BikeDTO bikeDTO) {
+        // Lấy username của Seller hiện tại từ Token (đã qua lớp Security lọc)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentSeller = auth.getName();
+
+        // Logic: Gọi service để lưu xe vào DB và gắn ID của Seller này vào
+        // bikeService.saveBike(bikeDTO, currentSeller);
+
+        return ResponseEntity.status(201).body(Map.of(
+                "message", "Đăng xe thành công!",
+                "seller", currentSeller,
+                "bikeName", bikeDTO.getName()
+        ));
     }
 }
