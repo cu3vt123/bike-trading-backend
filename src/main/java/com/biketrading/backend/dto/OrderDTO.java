@@ -3,10 +3,12 @@ package com.biketrading.backend.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Data; // Phải có cái này
 import lombok.NoArgsConstructor;
 
-@Data // Cái này cực quan trọng để nó tự sinh ra getAmount() và getStatus()
+import java.math.BigDecimal; // Import này cực kỳ quan trọng
+
+@Data // "Bùa" này để tự tạo Getter/Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDTO {
@@ -19,7 +21,7 @@ public class OrderDTO {
 
     @NotNull(message = "Số tiền không được để trống!")
     @Min(value = 1000, message = "Số tiền tối thiểu là 1000 VNĐ")
-    private Double amount; // Đổi tên thành amount cho khớp Controller
+    private BigDecimal amount; // Chuẩn BigDecimal để lưu tiền cho chính xác
 
-    private String status = "PENDING"; // Thêm trường status
+    private String status = "PENDING";
 }

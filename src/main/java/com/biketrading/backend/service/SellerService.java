@@ -5,6 +5,9 @@ import com.biketrading.backend.repository.SellerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+
 @Service
 public class SellerService {
 
@@ -33,5 +36,8 @@ public class SellerService {
                     if (newInfo.getShopName() != null) seller.setShopName(newInfo.getShopName());
                     return sellerRepository.save(seller);
                 }).orElse(null);
+    }
+    public List<Seller> getAllSellers() {
+        return sellerRepository.findAll(); // Dùng hàm có sẵn của JPA để lấy hết danh sách
     }
 }
