@@ -1,0 +1,196 @@
+{
+  "info": {
+    "_postman_id": "d91fc953-175d-4ca9-ad85-6f28a19fed48",
+    "name": "Bike Trading API (BE2)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "51623934",
+    "_collection_link": "https://go.postman.co/collection/51623934-d91fc953-175d-4ca9-ad85-6f28a19fed48?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"username\": \"buyer_tuan\",\r\n  \"password\": \"123\",\r\n  \"email\": \"tuanbuyer@gmail.com\",\r\n  \"phone\": \"0988111222\",\r\n  \"shopName\": \"\" \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/auth/signup",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    // Chỗ này check xem field trả về tên là gì (token hay accessToken) rồi sửa cho đúng nhé\r",
+                  "    if (jsonData.token) {\r",
+                  "        pm.environment.set(\"current_token\", jsonData.token);\r",
+                  "        console.log(\"Đã lưu Token thành công!\");\r",
+                  "    }\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"username\": \"buyer_tuan\",\r\n  \"password\": \"123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Bikes",
+      "item": [
+        {
+          "name": "Danh sách xe đạp",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/bikes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "bikes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chi tiết xe đạp",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/bikes/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "bikes",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Sellers",
+      "item": [
+        {
+          "name": "Tạo đơn hàng",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"buyerId\": 2,\r\n  \"bikeId\": 1,\r\n  \"note\": \"Ship cho mình vào buổi chiều nhé, xe đẹp mình lấy liền!\",\r\n  \"totalPrice\": 8500000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Buyers",
+      "item": []
+    },
+    {
+      "name": "5. Orders",
+      "item": []
+    }
+  ]
+}
