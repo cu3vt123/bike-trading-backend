@@ -8,10 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 
 @RestController
 @RequestMapping("/api/bikes")
-@CrossOrigin(origins = "*")
 public class BikeController {
 
     @Autowired
@@ -22,24 +27,60 @@ public class BikeController {
 
     // SHOP-15: Xem chi tiết xe
     // GET http://localhost:8081/api/bikes/{id}
+    @Operation(
+            summary = "Get bike detail",
+            description = "Public endpoint. Returns details of a bike listing by id."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "404", description = "Bike not found", content = @Content())
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<Bike> getBikeDetail(@PathVariable Long id) {
+    public ResponseEntity<Bike> getBikeDetail(
+            @Parameter(description = "Bike id", example = "1")
+            @PathVariable Long id
+    ) {
         Bike bike = bikeService.getBikeById(id);
+        if (bike == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(bike);
     }
 
     // SHOP-12: Xem danh sách xe (Có thể lọc theo người bán)
     // GET http://localhost:8081/api/bikes
     // GET http://localhost:8081/api/bikes?sellerId=1
+    @Operation(
+            summary = "Get bike listings",
+            description = "Public endpoint. Returns bike listings. Optional filter by sellerId."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Invalid query parameter")
+    })
     @GetMapping
-    public ResponseEntity<List<Bike>> getAllBikes(@RequestParam(required = false) Long sellerId) {
+    public ResponseEntity<List<Bike>> getAllBikes(
+            @Parameter(description = "Filter by seller id", example = "1")
+            @RequestParam(required = false) Long sellerId
+    ) {
         return ResponseEntity.ok(bikeService.getAllBikes(sellerId));
     }
 
     // SHOP-12 (MỞ RỘNG): Tìm kiếm xe theo tên
     // GET http://localhost:8081/api/bikes/search?keyword=Galaxy
+    @Operation(
+            summary = "Search bikes by keyword",
+            description = "Public endpoint. Search bikes by name (contains)."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Missing/invalid keyword")
+    })
     @GetMapping("/search")
-    public ResponseEntity<List<Bike>> searchBikes(@RequestParam String keyword) {
+    public ResponseEntity<List<Bike>> searchBikes(
+            @Parameter(description = "Keyword to search in bike name", example = "Giant")
+            @RequestParam String keyword
+    ) {
         return ResponseEntity.ok(bikeRepository.findByNameContaining(keyword));
     }
 }
