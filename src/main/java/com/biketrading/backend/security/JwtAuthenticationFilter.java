@@ -22,17 +22,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtTokenProvider tokenProvider;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/api/auth/")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui")
+                || path.equals("/swagger-ui.html");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        try {
-            // 1. Lấy Token từ Request (nằm trong header "Authorization")
-            String jwt = getJwtFromRequest(request);
 
-            // 2. Nếu Token hợp lệ, thì "set" thông tin User vào hệ thống Security
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+        String jwt = getJwtFromRequest(request);
+
+        // Không có token thì cho qua luôn (đúng chuẩn)
+        if (!StringUtils.hasText(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            if (tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromJWT(jwt);
 
-                // Tạo đối tượng chứng thực (Vì mình chưa làm phân quyền nên tạm để list rỗng)
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -40,7 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+            logger.error("JWT authentication failed", ex);
+            // không block request ở đây để swagger/public endpoint vẫn chạy
         }
 
         filterChain.doFilter(request, response);
@@ -49,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Cắt bỏ chữ "Bearer " để lấy mỗi chuỗi Token
+            return bearerToken.substring(7);
         }
         return null;
     }

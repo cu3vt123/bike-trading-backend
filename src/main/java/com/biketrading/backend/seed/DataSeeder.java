@@ -109,8 +109,8 @@ public class DataSeeder implements CommandLineRunner {
 
         Bike b = new Bike();
         b.setSellerId(sellerId);
-        b.setCategoryId(categoryId);
-        b.setBrandId(brandId);
+        b.setCategoryId(null);
+        b.setBrandId(null);
         b.setName(name);
         b.setDescription(description);
         b.setPrice(new BigDecimal(price));
