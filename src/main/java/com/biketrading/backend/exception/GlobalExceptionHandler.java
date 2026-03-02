@@ -34,15 +34,44 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // 2. Bắt lỗi trùng lặp dữ liệu (Ví dụ: Trùng Username, Email đã có trong DB)
+    // 2. Bắt lỗi ràng buộc dữ liệu từ DB (UNIQUE/FK/NOT NULL/...)
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConflictException(DataIntegrityViolationException ex) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put("status", "409");
-        errors.put("error", "Conflict");
-        errors.put("message", "Tên đăng nhập hoặc dữ liệu này đã tồn tại rồi! (Duplicate Key)");
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        Map<String, Object> body = new HashMap<>();
 
-        return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        String rootMsg = ex.getMostSpecificCause() != null
+                ? ex.getMostSpecificCause().getMessage()
+                : ex.getMessage();
+
+        String msgLower = rootMsg != null ? rootMsg.toLowerCase() : "";
+
+        boolean isDuplicate = msgLower.contains("duplicate") || msgLower.contains("unique");
+        boolean isFkFail = msgLower.contains("foreign key constraint fails")
+                || msgLower.contains("cannot add or update a child row");
+        boolean isNotNull = msgLower.contains("cannot be null") || msgLower.contains("doesn't have a default value");
+
+        if (isDuplicate) {
+            body.put("status", 409);
+            body.put("error", "Conflict");
+            body.put("message", "Dữ liệu đã tồn tại (trùng khóa/unique).");
+            body.put("debug", rootMsg); // DEV: xem key nào bị trùng
+            return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+        }
+
+        // Các lỗi còn lại thường là dữ liệu request không đúng -> 400
+        body.put("status", 400);
+        body.put("error", "Bad Request");
+
+        if (isFkFail) {
+            body.put("message", "Sai khóa ngoại: buyerId hoặc bikeId không tồn tại.");
+        } else if (isNotNull) {
+            body.put("message", "Thiếu dữ liệu bắt buộc theo ràng buộc CSDL (NOT NULL).");
+        } else {
+            body.put("message", "Dữ liệu vi phạm ràng buộc CSDL.");
+        }
+
+        body.put("debug", rootMsg); // DEV: cực hữu ích để test SHOP-33
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     // 3. Chốt chặn cuối cùng: Bắt mọi lỗi chưa xác định (Tránh văng lỗi 500 kèm log đỏ loằng ngoằng)
