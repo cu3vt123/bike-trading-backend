@@ -11,7 +11,7 @@ public class BikeTradingBackendApplication {
         SpringApplication.run(BikeTradingBackendApplication.class, args);
     }
 
-    @Bean // Khai báo bean này để BuyerServiceImpl có thể dùng @Autowired
+    @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }

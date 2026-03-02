@@ -1,6 +1,7 @@
 package com.biketrading.backend.controller;
 
-import com.biketrading.backend.dto.*;
+import com.biketrading.backend.dto.AuthResponse;
+import com.biketrading.backend.dto.LoginRequest;
 import com.biketrading.backend.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth") // Đã xóa dấu @ thừa bị lỗi
 public class AuthController {
-    @Autowired private JwtTokenProvider tokenProvider;
+
+    @Autowired
+    private JwtTokenProvider tokenProvider;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
@@ -19,9 +22,13 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    @GetMapping("/me") // Hoàn thành Task SHOP-38 bổ sung
+    @GetMapping("/me")
     public ResponseEntity<?> getMe() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(Map.of("username", username, "status", "Active"));
+        return ResponseEntity.ok(Map.of(
+                "username", username,
+                "status", "Active",
+                "city", "Vũng Tàu" // Một chút thông tin cho Bảo Vũng Tàu nhé
+        ));
     }
 }
