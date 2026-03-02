@@ -1,9 +1,9 @@
 /**
- * SHOP-21: Buyer API mapping scaffold.
- * Khi Backend sẵn sàng, các endpoint này sẽ gọi API thật.
- * Hiện dùng apiClient – khi BE chưa có sẽ lỗi; pages vẫn dùng mock.
+ * Buyer API – maps to backend endpoints.
+ * Update API_PATHS in apiConfig.ts when Swagger spec is available.
  */
 import apiClient from "@/lib/apiClient";
+import { API_PATHS } from "@/lib/apiConfig";
 import { bikeApi } from "./bikeApi";
 import type { Listing, BikeDetail } from "@/types/shopbike";
 import type {
@@ -12,52 +12,52 @@ import type {
   InitiatePaymentRequest,
 } from "@/types/order";
 
-/* --- Listings (re-export từ bikeApi) --- */
 export const getListings = (): Promise<Listing[]> => bikeApi.getAll();
 export const getListingById = (id: string): Promise<BikeDetail> =>
   bikeApi.getById(id);
 
-/* --- Orders --- */
 export const orderApi = {
   create: (data: CreateOrderRequest): Promise<Order> =>
-    apiClient.post("/buyer/orders", data).then((r) => r.data?.data ?? r.data),
+    apiClient.post(API_PATHS.BUYER.ORDERS, data).then((r) => r.data?.data ?? r.data),
 
   getById: (orderId: string): Promise<Order> =>
     apiClient
-      .get(`/buyer/orders/${orderId}`)
+      .get(API_PATHS.BUYER.ORDER_BY_ID(orderId))
       .then((r) => r.data?.data ?? r.data),
 
   getMyOrders: (): Promise<Order[]> =>
     apiClient
-      .get("/buyer/orders")
+      .get(API_PATHS.BUYER.ORDERS)
       .then((r) => {
         const raw = r.data?.content ?? r.data?.data ?? r.data;
         return Array.isArray(raw) ? raw : [];
       }),
+
+  complete: (orderId: string): Promise<Order> =>
+    apiClient
+      .put(API_PATHS.BUYER.ORDER_COMPLETE(orderId))
+      .then((r) => r.data?.data ?? r.data),
 };
 
-/* --- Payment --- */
 export const paymentApi = {
   initiate: (data: InitiatePaymentRequest): Promise<{ paymentUrl?: string }> =>
     apiClient
-      .post("/buyer/payments/initiate", data)
+      .post(API_PATHS.BUYER.PAYMENTS_INITIATE, data)
       .then((r) => r.data?.data ?? r.data),
 
   confirm: (orderId: string, payload?: Record<string, unknown>): Promise<Order> =>
     apiClient
-      .post(`/buyer/payments/confirm/${orderId}`, payload)
+      .post(API_PATHS.BUYER.PAYMENTS_CONFIRM(orderId), payload)
       .then((r) => r.data?.data ?? r.data),
 };
 
-/* --- Transaction (order trong flow mua) --- */
 export const transactionApi = {
   getStatus: (orderId: string): Promise<Order> =>
     apiClient
-      .get(`/buyer/transactions/${orderId}`)
+      .get(API_PATHS.BUYER.TRANSACTIONS(orderId))
       .then((r) => r.data?.data ?? r.data),
 };
 
-/* --- Buyer Profile --- */
 export type BuyerProfile = {
   id?: string;
   username?: string;
@@ -68,5 +68,5 @@ export type BuyerProfile = {
 
 export const buyerProfileApi = {
   get: (): Promise<BuyerProfile> =>
-    apiClient.get("/buyer/profile").then((r) => r.data?.data ?? r.data),
+    apiClient.get(API_PATHS.BUYER.PROFILE).then((r) => r.data?.data ?? r.data),
 };

@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { fetchListingById } from "@/services/buyerService";
+import { fetchListingById, completeOrder } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
-  | { type: "MOMO" }
   | { type: "BANK_TRANSFER" };
 
 type LocationState = {
@@ -33,7 +32,6 @@ function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
 
 function paymentLabel(method?: PaymentMethod) {
   if (!method) return "—";
-  if (method.type === "MOMO") return "MoMo";
   if (method.type === "BANK_TRANSFER") return "Bank transfer";
   return `${method.brand} •••• ${method.last4}`;
 }
@@ -46,6 +44,7 @@ export default function FinalizePurchasePage() {
 
   const [listing, setListing] = useState<BikeDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,17 +75,30 @@ export default function FinalizePurchasePage() {
   const due = Math.max(0, total - deposit);
   const currency = (listing?.currency ?? "USD") as "VND" | "USD";
 
-  const onComplete = () => {
-    navigate(`/success/${listing!.id}`, {
-      state: {
-        ...state,
-        totalPrice: total,
-        depositPaid: deposit,
-        completedAt: Date.now(),
-      },
-      replace: true,
-    });
-  };
+  async function onComplete() {
+    if (!state.orderId) {
+      setError("Missing order information. Please go back to the transaction page.");
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+    try {
+      await completeOrder(state.orderId);
+      navigate(`/success/${listing!.id}`, {
+        state: {
+          ...state,
+          totalPrice: total,
+          depositPaid: deposit,
+          completedAt: Date.now(),
+        },
+        replace: true,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not complete order. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -117,7 +129,7 @@ export default function FinalizePurchasePage() {
     <div className="mx-auto w-full max-w-6xl">
       <h1 className="text-2xl font-bold">Finalize Purchase</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Thanh toán số dư và xác nhận giao hàng.
+        Pay balance and confirm delivery.
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
@@ -159,8 +171,13 @@ export default function FinalizePurchasePage() {
                 Due now:{" "}
                 <span className="font-semibold">{formatMoney(due, currency)}</span>
               </div>
-              <Button onClick={onComplete} className="mt-4 w-full">
-                Pay Balance & Complete →
+              {error && (
+                <div className="mb-3 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+              <Button onClick={onComplete} className="mt-4 w-full" disabled={submitting}>
+                {submitting ? "Processing..." : "Pay Balance & Complete →"}
               </Button>
               <Button asChild variant="ghost" className="mt-3 w-full" size="sm">
                 <Link to={`/transaction/${listing.id}`} state={state}>

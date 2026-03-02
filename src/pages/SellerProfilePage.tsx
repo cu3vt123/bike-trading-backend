@@ -22,13 +22,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type PaymentItem =
-  | { id: string; type: "VISA" | "MASTERCARD"; label: string; sub: string; tag?: "DEFAULT" }
-  | { id: string; type: "MOMO"; label: string; sub: string; tag?: "DEFAULT" };
+type PaymentItem = {
+  id: string;
+  type: "VISA" | "MASTERCARD";
+  label: string;
+  sub: string;
+  tag?: "DEFAULT";
+};
 
 const INITIAL_PAYMENTS: PaymentItem[] = [
   { id: "pm-1", type: "VISA", label: "Visa ending in 4422", sub: "Expires 12/26", tag: "DEFAULT" },
-  { id: "pm-2", type: "MOMO", label: "MoMo Wallet", sub: "Connected" },
+  { id: "pm-2", type: "MASTERCARD", label: "Mastercard ending in 4444", sub: "Expires 12/26" },
 ];
 
 export default function SellerProfilePage() {
@@ -127,7 +131,7 @@ export default function SellerProfilePage() {
 
   // Add payment dialog
   const [addOpen, setAddOpen] = useState(false);
-  const [addType, setAddType] = useState<"VISA" | "MOMO">("VISA");
+  const [addType, setAddType] = useState<"VISA" | "MASTERCARD">("VISA");
   const [addLast4, setAddLast4] = useState("");
   const [addExpiry, setAddExpiry] = useState("");
   const [addError, setAddError] = useState("");
@@ -151,25 +155,19 @@ export default function SellerProfilePage() {
     }
     const id = `pm-${Date.now()}`;
     const isDefault = paymentMethods.length === 0;
-    if (addType === "MOMO") {
-      setPaymentMethods([
-        ...paymentMethods,
-        { id, type: "MOMO", label: "MoMo Wallet", sub: "Connected", tag: isDefault ? "DEFAULT" : undefined },
-      ]);
-    } else {
-      const last4 = addLast4.replace(/\D/g, "").slice(-4);
-      const expiry = addExpiry.trim() || "12/26";
-      setPaymentMethods([
-        ...paymentMethods,
-        {
-          id,
-          type: "VISA",
-          label: `Visa ending in ${last4}`,
-          sub: `Expires ${expiry}`,
-          tag: isDefault ? "DEFAULT" : undefined,
-        },
-      ]);
-    }
+    const last4 = addLast4.replace(/\D/g, "").slice(-4);
+    const expiry = addExpiry.trim() || "12/26";
+    const label = addType === "VISA" ? `Visa ending in ${last4}` : `Mastercard ending in ${last4}`;
+    setPaymentMethods([
+      ...paymentMethods,
+      {
+        id,
+        type: addType,
+        label,
+        sub: `Expires ${expiry}`,
+        tag: isDefault ? "DEFAULT" : undefined,
+      },
+    ]);
     setAddOpen(false);
   }
 
@@ -282,12 +280,8 @@ export default function SellerProfilePage() {
                     className="flex items-center justify-between rounded-lg border px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg text-xs font-bold ${
-                          p.type === "MOMO" ? "bg-rose-100 text-rose-700" : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {p.type === "MOMO" ? "MoMo" : p.type}
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                        {p.type}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 text-sm font-semibold">
@@ -406,7 +400,7 @@ export default function SellerProfilePage() {
           <DialogHeader>
             <DialogTitle>Add Payment Method</DialogTitle>
             <DialogDescription>
-              Add a new card or connect MoMo Wallet.
+              Add a Visa or Mastercard. Last 4 digits only (PCI safe).
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -417,13 +411,13 @@ export default function SellerProfilePage() {
             )}
             <div className="grid gap-2">
               <Label>Type</Label>
-              <Select value={addType} onValueChange={(v) => setAddType(v as "VISA" | "MOMO")}>
+              <Select value={addType} onValueChange={(v) => setAddType(v as "VISA" | "MASTERCARD")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="VISA">Visa / Mastercard</SelectItem>
-                  <SelectItem value="MOMO">MoMo Wallet</SelectItem>
+                  <SelectItem value="VISA">Visa</SelectItem>
+                  <SelectItem value="MASTERCARD">Mastercard</SelectItem>
                 </SelectContent>
               </Select>
             </div>

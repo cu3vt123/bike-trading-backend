@@ -41,7 +41,7 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
    - Load detail qua `buyerService.fetchListingById(id)` (có dùng `location.state` nếu đi từ Home)
 3. **Checkout / Payment** (`/checkout/:id`)
    - Chọn plan (FULL / DEPOSIT)
-   - Chọn method (CARD / MOMO / BANK)
+   - Chọn method (CARD / BANK)
    - Nhập shipping + card (nếu CARD)
    - Submit → chuyển qua Transaction
 4. **Transaction** (`/transaction/:id`)

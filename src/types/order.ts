@@ -13,7 +13,7 @@ export type OrderStatus =
   | "CANCELLED"
   | "REFUNDED";
 
-export type PaymentMethod = "CARD" | "MOMO" | "BANK_TRANSFER";
+export type PaymentMethod = "CARD" | "BANK_TRANSFER";
 
 export type Order = {
   id: string;
@@ -46,10 +46,10 @@ export type CreateOrderRequest = {
 };
 
 export type InitiatePaymentRequest = {
-  orderId: string;
   method: PaymentMethod;
-  amount: number;
+  amount?: number;
   cardDetails?: { number: string; name: string; exp: string; cvc: string };
+  bankDetails?: { accountNumber: string; bankName: string; accountHolderName?: string };
 };
 
 export type Transaction = Order & {

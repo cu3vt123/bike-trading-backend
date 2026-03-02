@@ -9,7 +9,6 @@ import type { BikeDetail } from "@/types/shopbike";
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
-  | { type: "MOMO" }
   | { type: "BANK_TRANSFER" };
 
 type State = {
@@ -31,7 +30,6 @@ function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
 function formatPaymentMethod(pm?: PaymentMethod) {
   if (!pm) return "—";
   if (pm.type === "CARD") return `${pm.brand} •••• ${pm.last4}`;
-  if (pm.type === "MOMO") return "MoMo";
   return "Bank transfer";
 }
 
@@ -110,7 +108,7 @@ export default function PurchaseSuccessPage() {
                 Order completed successfully
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Giao dịch của bạn đã được xác nhận.
+                Your transaction has been confirmed.
               </p>
               {state.orderId && (
                 <p className="mt-3 text-sm">
@@ -118,9 +116,14 @@ export default function PurchaseSuccessPage() {
                 </p>
               )}
             </div>
-            <Button onClick={() => navigate("/", { replace: true })}>
-              Back to Home
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => navigate("/profile", { replace: true })} variant="outline">
+                View my orders
+              </Button>
+              <Button onClick={() => navigate("/", { replace: true })}>
+                Continue shopping
+              </Button>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -167,8 +170,16 @@ export default function PurchaseSuccessPage() {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        UI hoàn thiện. Khi Backend có API, tích hợp để hiển thị dữ liệu thật.
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Thank you for shopping at ShopBike. Your order is saved in{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/profile")}
+          className="font-medium text-primary hover:underline"
+        >
+          Profile → My Orders
+        </button>
+        .
       </p>
     </div>
   );

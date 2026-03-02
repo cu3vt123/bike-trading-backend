@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient";
+import { API_PATHS } from "@/lib/apiConfig";
 import type { Role } from "@/types/auth";
 
 export type LoginRequest = {
@@ -10,12 +11,13 @@ export type LoginRequest = {
 export type LoginResponse = {
   accessToken: string;
   refreshToken?: string;
+  role?: Role;
 };
 
 export type SignupRequest = {
   role: "BUYER" | "SELLER";
-  username: string;
-  email?: string;
+  username?: string;
+  email: string;
   password: string;
 };
 
@@ -24,12 +26,21 @@ export type ResetPasswordRequest = { token: string; newPassword: string };
 
 export const authApi = {
   login: (data: LoginRequest) =>
-    apiClient.post<LoginResponse>("/auth/login", data).then((r) => r.data),
+    apiClient
+      .post<LoginResponse>(API_PATHS.AUTH.LOGIN, data)
+      .then((r) => r.data?.data ?? r.data),
   signup: (data: SignupRequest) =>
-    apiClient.post<LoginResponse>("/auth/signup", data).then((r) => r.data),
-  getProfile: () => apiClient.get("/auth/me").then((r) => r.data),
+    apiClient
+      .post<LoginResponse>(API_PATHS.AUTH.SIGNUP, data)
+      .then((r) => r.data?.data ?? r.data),
+  getProfile: () =>
+    apiClient.get(API_PATHS.AUTH.ME).then((r) => r.data?.data ?? r.data),
   forgotPassword: (email: string) =>
-    apiClient.post<ForgotPasswordResponse>("/auth/forgot-password", { email }).then((r) => r.data),
+    apiClient
+      .post<ForgotPasswordResponse>(API_PATHS.AUTH.FORGOT_PASSWORD, { email })
+      .then((r) => r.data?.data ?? r.data),
   resetPassword: (data: ResetPasswordRequest) =>
-    apiClient.post<ForgotPasswordResponse>("/auth/reset-password", data).then((r) => r.data),
+    apiClient
+      .post<ForgotPasswordResponse>(API_PATHS.AUTH.RESET_PASSWORD, data)
+      .then((r) => r.data?.data ?? r.data),
 };

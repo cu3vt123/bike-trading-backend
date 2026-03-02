@@ -7,7 +7,9 @@ import { getListingById } from "@/mocks/mockListings";
 import type { Listing, BikeDetail } from "@/types/shopbike";
 import type { Order } from "@/types/order";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
+import { USE_MOCK_API } from "@/lib/apiConfig";
+
+const USE_MOCK = USE_MOCK_API;
 
 /* --- Listings --- */
 export async function fetchListings(): Promise<Listing[]> {
@@ -84,11 +86,46 @@ export async function fetchOrderById(orderId: string): Promise<Order | null> {
 
 export async function fetchMyOrders(): Promise<Order[]> {
   if (USE_MOCK) {
-    return []; // BuyerProfilePage dùng MOCK_ORDERS riêng
+    return [];
   }
   try {
     return await buyerApi.orderApi.getMyOrders();
   } catch {
     return [];
+  }
+}
+
+export async function completeOrder(orderId: string): Promise<Order> {
+  if (USE_MOCK) {
+    return { id: orderId, listingId: "", status: "COMPLETED" } as Order;
+  }
+  return await buyerApi.orderApi.complete(orderId);
+}
+
+/** Validate payment (Visa/Bank) via backend sandbox before order creation */
+export async function validatePayment(data: {
+  method: "CARD" | "BANK_TRANSFER";
+  cardDetails?: { number: string; name: string; exp: string; cvc: string };
+  bankDetails?: { accountNumber: string; bankName: string; accountHolderName?: string };
+}): Promise<{ ok: boolean; paymentMethod?: { type: string; brand?: string; last4?: string; bankRef?: string }; error?: string }> {
+  if (USE_MOCK) {
+    if (data.method === "CARD" && data.cardDetails) {
+      const last4 = data.cardDetails.number.replace(/\D/g, "").slice(-4) || "0000";
+      return { ok: true, paymentMethod: { type: "CARD", brand: "Visa", last4 } };
+    }
+    return { ok: true, paymentMethod: { type: "BANK_TRANSFER", bankRef: "BANK-MOCK" } };
+  }
+  try {
+    const res = await buyerApi.paymentApi.initiate(data as Parameters<typeof buyerApi.paymentApi.initiate>[0]);
+    const d = res as { ok?: boolean; paymentMethod?: Record<string, unknown> };
+    if (d?.ok && d?.paymentMethod) {
+      return { ok: true, paymentMethod: d.paymentMethod };
+    }
+    return { ok: false, error: "Payment validation failed" };
+  } catch (err: unknown) {
+    const msg = err && typeof err === "object" && "response" in err
+      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      : err instanceof Error ? err.message : "Payment validation failed";
+    return { ok: false, error: String(msg) };
   }
 }

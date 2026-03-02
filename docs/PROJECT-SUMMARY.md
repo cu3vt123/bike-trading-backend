@@ -170,7 +170,7 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 
 - **Remove**: Xóa item, confirm dialog; bắt buộc giữ ≥1 phương thức
 - **Set as default**: Chỉ với item không phải DEFAULT, khi có ≥2 phương thức
-- **Add New**: Dialog thêm Visa/MoMo; với Visa yêu cầu 4 số cuối
+- **Add New**: Dialog thêm Visa/Mastercard; yêu cầu 4 số cuối (PCI safe)
 - Khi xóa DEFAULT, item còn lại đầu tiên trở thành DEFAULT
 
 ### 4.7 API & Services
@@ -226,6 +226,8 @@ src/
 |-----------------------|-----------------------------------------|
 | `docs/CHANGELOG.md`           | Tóm tắt thay đổi theo phiên bản        |
 | `docs/HUONG-DAN-FE2-JOIN-GIT.md` | Hướng dẫn FE2 clone, setup, join Git   |
+| `docs/HUONG-DAN-DEMO.md`         | Hướng dẫn demo từng bước – luồng mua hoàn chỉnh |
+| `docs/API-SETUP.md`              | API config, kết nối Backend, chuẩn bị Swagger   |
 | `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ theo ticket   |
 | `docs/API-INTEGRATION.md`    | Hướng dẫn gắn API thật khi BE sẵn sàng |
 | `docs/HUONG-DAN-BACKEND.md`  | Hướng dẫn gửi cho Backend – các API cần implement  |

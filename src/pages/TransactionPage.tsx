@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Clock, CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { fetchListingById } from "@/services/buyerService";
+import { fetchListingById, fetchOrderById } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 
 function Stars({ value }: { value: number }) {
@@ -24,7 +24,6 @@ function Stars({ value }: { value: number }) {
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
-  | { type: "MOMO" }
   | { type: "BANK_TRANSFER" };
 
 type TxState = {
@@ -51,19 +50,51 @@ function pad2(n: number) {
 function formatPaymentMethod(pm?: PaymentMethod) {
   if (!pm) return "—";
   if (pm.type === "CARD") return `${pm.brand} ending in ${pm.last4}`;
-  if (pm.type === "MOMO") return "MoMo Wallet";
   return "Bank Transfer";
 }
 
 export default function TransactionPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const state = (location.state ?? {}) as TxState;
+  const locationState = (location.state ?? {}) as TxState;
 
   const [listing, setListing] = useState<BikeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [orderState, setOrderState] = useState<TxState | null>(null);
+
+  const state = orderState ?? locationState;
+
+  // When no state (refresh, bookmark) but orderId in URL → fetch order
+  useEffect(() => {
+    const orderIdFromUrl = searchParams.get("orderId");
+    if (orderIdFromUrl && !locationState.orderId) {
+      let cancelled = false;
+      fetchOrderById(orderIdFromUrl)
+        .then((o) => {
+          if (!cancelled && o && (o.status === "RESERVED" || o.status === "IN_TRANSACTION")) {
+            const listingId = o.listingId ?? (o.listing as { id?: string })?.id;
+            if (listingId && id === listingId) {
+              setOrderState({
+                orderId: o.id,
+                depositPaid: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
+                totalPrice: o.totalPrice ?? 0,
+                expiresAt: o.expiresAt ? new Date(o.expiresAt).getTime() : undefined,
+                paymentMethod: { type: "BANK_TRANSFER" },
+                totals: {
+                  deposit: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
+                  totalNow: o.depositAmount ?? o.totalPrice ?? 0,
+                },
+              });
+            }
+          }
+        })
+        .catch(() => {});
+      return () => { cancelled = true; };
+    }
+  }, [searchParams, locationState.orderId, id]);
 
   useEffect(() => {
     if (!id) {
@@ -158,9 +189,14 @@ export default function TransactionPage() {
             Updated just now • Order #{orderId}
           </p>
         </div>
-        <Button variant="outline" onClick={() => navigate(`/bikes/${listing.id}`)}>
-          View listing
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/profile")}>
+            My orders
+          </Button>
+          <Button variant="outline" onClick={() => navigate(`/bikes/${listing.id}`)}>
+            View listing
+          </Button>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
@@ -399,7 +435,7 @@ export default function TransactionPage() {
           <DialogHeader>
             <DialogTitle>Contact Support</DialogTitle>
             <DialogDescription>
-              Chat trực tiếp sẽ có khi tích hợp Backend. Hiện tại vui lòng liên hệ{" "}
+              Live chat will be available when Backend is integrated. For now, please contact{" "}
               <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
                 support@shopbike.example.com
               </a>.

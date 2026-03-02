@@ -49,7 +49,7 @@
 |-----|-------|---------|
 | **Transaction / Escrow Logic** | API xử lý transaction, escrow (lock tiền, release, refund) | Chưa thấy trên Swagger |
 | **Order – path chuẩn** | FE gọi `/api/buyer/orders` | Backend có `/api/orders` – cần thống nhất hoặc alias |
-| **Payments initiate** | Khởi tạo thanh toán (MoMo, Card, Bank) | Chưa thấy `/api/buyer/payments/initiate` |
+| **Payments initiate** | Khởi tạo thanh toán (Card, Bank) – sandbox Visa/MC | Đã có `/api/buyer/payments/initiate` |
 | **Payments confirm** | Xác nhận thanh toán sau khi user thanh toán | Chưa thấy `/api/buyer/payments/confirm/:orderId` |
 
 ---

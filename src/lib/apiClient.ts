@@ -1,13 +1,15 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { API_BASE_URL, API_TIMEOUT } from "./apiConfig";
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
-  timeout: 15000,
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
-// attach token
+// Attach JWT token to requests
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
@@ -17,7 +19,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// auto logout on 401 (optional but recommended)
+// Handle 401 – clear tokens (session expired / invalid)
 apiClient.interceptors.response.use(
   (res) => res,
   (err) => {

@@ -51,37 +51,35 @@ function validateRegister(data: {
 }): string | null {
   const u = data.username.trim();
   if (u.length < LIMITS.USERNAME_MIN) {
-    return `Username phải từ ${LIMITS.USERNAME_MIN}–${LIMITS.USERNAME_MAX} ký tự.`;
+    return `Username must be ${LIMITS.USERNAME_MIN}–${LIMITS.USERNAME_MAX} characters.`;
   }
   if (u.length > LIMITS.USERNAME_MAX) {
-    return `Username tối đa ${LIMITS.USERNAME_MAX} ký tự.`;
+    return `Username must be at most ${LIMITS.USERNAME_MAX} characters.`;
   }
   if (!LIMITS.USERNAME_PATTERN.test(u)) {
-    return "Username chỉ được dùng chữ cái, số và dấu gạch dưới (_).";
+    return "Username can only contain letters, numbers and underscores (_).";
   }
-  if (data.email.trim()) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email.trim())) {
-      return "Email không hợp lệ.";
-    }
-    if (data.email.length > LIMITS.EMAIL_MAX) {
-      return `Email tối đa ${LIMITS.EMAIL_MAX} ký tự.`;
-    }
+  const e = data.email.trim();
+  if (!e) return "Email is required.";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(e)) return "Invalid email.";
+  if (data.email.length > LIMITS.EMAIL_MAX) {
+    return `Email must be at most ${LIMITS.EMAIL_MAX} characters.`;
   }
   if (data.password.length < LIMITS.PASSWORD_MIN) {
-    return `Mật khẩu phải từ ${LIMITS.PASSWORD_MIN}–${LIMITS.PASSWORD_MAX} ký tự.`;
+    return `Password must be ${LIMITS.PASSWORD_MIN}–${LIMITS.PASSWORD_MAX} characters.`;
   }
   if (data.password.length > LIMITS.PASSWORD_MAX) {
-    return `Mật khẩu tối đa ${LIMITS.PASSWORD_MAX} ký tự.`;
+    return `Password must be at most ${LIMITS.PASSWORD_MAX} characters.`;
   }
   if (!LIMITS.PASSWORD_UPPERCASE.test(data.password)) {
-    return "Mật khẩu phải có ít nhất 1 chữ in hoa.";
+    return "Password must have at least 1 uppercase letter.";
   }
   if (!LIMITS.PASSWORD_SPECIAL.test(data.password)) {
-    return "Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*...).";
+    return "Password must have at least 1 special character (!@#$%^&*...).";
   }
   if (data.password !== data.confirmPassword) {
-    return "Mật khẩu xác nhận không khớp.";
+    return "Passwords do not match.";
   }
   return null;
 }
@@ -133,8 +131,8 @@ export default function RegisterPage() {
         ? await mockSignup({ role, username, email, password })
         : await authApi.signup({
             role: role as "BUYER" | "SELLER",
-            username,
-            email: email || undefined,
+            username: username || undefined,
+            email: email.trim(),
             password,
           });
 
@@ -249,12 +247,12 @@ export default function RegisterPage() {
                     maxLength={LIMITS.USERNAME_MAX}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {LIMITS.USERNAME_MIN}–{LIMITS.USERNAME_MAX} ký tự, chỉ chữ, số và dấu _
+                    {LIMITS.USERNAME_MIN}–{LIMITS.USERNAME_MAX} characters, letters, numbers and _
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email (tùy chọn)</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -262,12 +260,13 @@ export default function RegisterPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     autoComplete="email"
+                    required
                     maxLength={LIMITS.EMAIL_MAX}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mật khẩu *</Label>
+                  <Label htmlFor="password">Password *</Label>
                   <Input
                     id="password"
                     type="password"
@@ -279,12 +278,12 @@ export default function RegisterPage() {
                     maxLength={LIMITS.PASSWORD_MAX}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {LIMITS.PASSWORD_MIN}–{LIMITS.PASSWORD_MAX} ký tự, ít nhất 1 chữ in hoa và 1 ký tự đặc biệt
+                    {LIMITS.PASSWORD_MIN}–{LIMITS.PASSWORD_MAX} characters, at least 1 uppercase and 1 special char
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
+                  <Label htmlFor="confirmPassword">Confirm password *</Label>
                   <Input
                     id="confirmPassword"
                     type="password"

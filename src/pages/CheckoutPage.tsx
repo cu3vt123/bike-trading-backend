@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { CreditCard, Wallet, Building2 } from "lucide-react";
+import { CreditCard, Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { fetchListingById } from "@/services/buyerService";
+import { fetchListingById, createOrder, validatePayment } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { cn } from "@/lib/utils";
 
 type Plan = "DEPOSIT" | "FULL";
-type Method = "CARD" | "MOMO" | "BANK";
+type Method = "CARD" | "BANK";
 
 function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
   return new Intl.NumberFormat(undefined, {
@@ -23,9 +23,8 @@ function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
 }
 
 const METHOD_CONFIG: Record<Method, { label: string; icon: React.ElementType }> = {
-  CARD: { label: "Card", icon: CreditCard },
-  MOMO: { label: "MoMo", icon: Wallet },
-  BANK: { label: "Bank", icon: Building2 },
+  CARD: { label: "Card (Visa/Mastercard)", icon: CreditCard },
+  BANK: { label: "Bank Transfer", icon: Building2 },
 };
 
 export default function CheckoutPage() {
@@ -40,8 +39,10 @@ export default function CheckoutPage() {
   const [method, setMethod] = useState<Method>("CARD");
   const [agree, setAgree] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [ship, setShip] = useState({ street: "", city: "", postalCode: "" });
   const [card, setCard] = useState({ number: "", name: "", exp: "", cvc: "" });
+  const [bank, setBank] = useState({ accountNumber: "", bankName: "", accountHolderName: "" });
 
   useEffect(() => {
     if (!id) {
@@ -97,40 +98,92 @@ export default function CheckoutPage() {
   const totalNowFull = itemPrice + shipping;
   const dueOnDeliveryDeposit = Math.max(0, itemPrice + shipping - deposit);
 
-  function onSubmit() {
+  function validatePaymentFields(): string | null {
+    if (!ship.street.trim()) return "Shipping street address is required";
+    if (!ship.city.trim()) return "Shipping city is required";
+    if (method === "CARD") {
+      const n = card.number.replace(/\D/g, "");
+      if (n.length < 13) return "Enter a valid card number (13–19 digits)";
+      if (!card.name.trim()) return "Cardholder name is required";
+      if (!card.exp.trim()) return "Expiry date (MM/YY) is required";
+      if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim())) return "Expiry format: MM/YY";
+      if (card.cvc.replace(/\D/g, "").length < 3) return "CVC must be 3 digits";
+    } else {
+      if (bank.accountNumber.replace(/\D/g, "").length < 8)
+        return "Account number must be at least 8 digits";
+      if (!bank.bankName.trim()) return "Bank name is required";
+    }
+    return null;
+  }
+
+  async function onSubmit() {
     if (!agree) {
       setAgreeError(true);
       return;
     }
     setAgreeError(false);
-    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-    const paymentMethod =
-      method === "CARD"
-        ? { type: "CARD" as const, brand: "Visa" as const, last4: card.number.slice(-4) || "0000" }
-        : method === "MOMO"
-          ? { type: "MOMO" as const }
-          : { type: "BANK_TRANSFER" as const };
+    setError(null);
+    const fieldError = validatePaymentFields();
+    if (fieldError) {
+      setError(fieldError);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const validation = await validatePayment({
+        method: method === "CARD" ? "CARD" : "BANK_TRANSFER",
+        cardDetails: method === "CARD" ? card : undefined,
+        bankDetails: method === "BANK" ? bank : undefined,
+      });
+      if (!validation.ok) {
+        setError(validation.error ?? "Payment validation failed. Use test card 4242 4242 4242 4242.");
+        setSubmitting(false);
+        return;
+      }
 
-    navigate(`/transaction/${listing.id}`, {
-      state: {
-        orderId: "SB-9921",
+      const order = await createOrder({
         listingId: listing.id,
         plan,
-        method,
-        expiresAt,
-        ship,
-        depositPaid: deposit,
-        totalPrice: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
-        paymentMethod,
-        totals: {
-          itemPrice,
-          shipping,
-          deposit,
-          totalNow: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
-          dueOnDelivery: plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0,
+        shippingAddress: {
+          street: ship.street,
+          city: ship.city,
+          postalCode: ship.postalCode,
         },
-      },
-    });
+      });
+      const paymentMethod =
+        validation.paymentMethod?.type === "CARD"
+          ? {
+              type: "CARD" as const,
+              brand: (validation.paymentMethod.brand ?? "Visa") as "Visa" | "Mastercard",
+              last4: String(validation.paymentMethod.last4 ?? card.number.slice(-4)).slice(-4),
+            }
+          : { type: "BANK_TRANSFER" as const };
+
+      navigate(`/transaction/${listing.id}`, {
+        state: {
+          orderId: order.id,
+          listingId: listing.id,
+          plan,
+          method,
+          expiresAt: order.expiresAt ? new Date(order.expiresAt).getTime() : Date.now() + 24 * 60 * 60 * 1000,
+          ship,
+          depositPaid: deposit,
+          totalPrice: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
+          paymentMethod,
+          totals: {
+            itemPrice,
+            shipping,
+            deposit,
+            totalNow: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
+            dueOnDelivery: plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0,
+          },
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create order. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const img =
@@ -144,6 +197,12 @@ export default function CheckoutPage() {
           Complete your deposit to secure your ride.
         </p>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
@@ -205,7 +264,7 @@ export default function CheckoutPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-3">
-                {(["CARD", "MOMO", "BANK"] as Method[]).map((m) => {
+                {(["CARD", "BANK"] as Method[]).map((m) => {
                   const config = METHOD_CONFIG[m];
                   const Icon = config.icon;
                   return (
@@ -267,57 +326,112 @@ export default function CheckoutPage() {
           {method === "CARD" && (
             <Card>
               <CardHeader>
-                <span className="text-sm font-semibold">Card Details</span>
+                <span className="text-sm font-semibold">Card Details (Visa / Mastercard)</span>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  As required by card issuers. Test cards: 4242 4242 4242 4242, 5555 5555 5555 4444
+                </p>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label>Card number</Label>
+                  <Label>Card number *</Label>
                   <Input
-                    className="mt-1"
+                    className="mt-1 font-mono"
                     placeholder="4242 4242 4242 4242"
                     value={card.number}
-                    onChange={(e) => setCard((c) => ({ ...c, number: e.target.value }))}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "");
+                      const formatted = v.replace(/(.{4})/g, "$1 ").trim();
+                      setCard((c) => ({ ...c, number: formatted }));
+                    }}
+                    maxLength={19}
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Cardholder name</Label>
+                  <Label>Cardholder name *</Label>
                   <Input
                     className="mt-1"
-                    placeholder="John Doe"
+                    placeholder="John Doe (as on card)"
                     value={card.name}
                     onChange={(e) => setCard((c) => ({ ...c, name: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <Label>MM/YY</Label>
+                  <Label>Expiry (MM/YY) *</Label>
                   <Input
                     className="mt-1"
-                    placeholder="12/25"
+                    placeholder="12/28"
                     value={card.exp}
-                    onChange={(e) => setCard((c) => ({ ...c, exp: e.target.value }))}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/\D/g, "");
+                      if (v.length >= 2) v = v.slice(0, 2) + "/" + v.slice(2, 4);
+                      setCard((c) => ({ ...c, exp: v }));
+                    }}
+                    maxLength={5}
                   />
                 </div>
                 <div>
-                  <Label>CVC</Label>
+                  <Label>CVC (3 digits) *</Label>
                   <Input
                     className="mt-1"
                     placeholder="123"
                     value={card.cvc}
-                    onChange={(e) => setCard((c) => ({ ...c, cvc: e.target.value }))}
+                    onChange={(e) =>
+                      setCard((c) => ({
+                        ...c,
+                        cvc: e.target.value.replace(/\D/g, "").slice(0, 4),
+                      }))
+                    }
+                    maxLength={4}
                   />
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {method !== "CARD" && (
-            <div className="rounded-lg border bg-primary/5 p-3 text-xs text-primary">
-              Bạn đang chọn{" "}
-              <span className="font-semibold">
-                {method === "MOMO" ? "MoMo" : "Bank Transfer"}
-              </span>
-              . (Chưa map API)
-            </div>
+          {method === "BANK" && (
+            <Card>
+              <CardHeader>
+                <span className="text-sm font-semibold">Bank Transfer Details</span>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Required by bank regulations. Min 8 digits for account number.
+                </p>
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Label>Account number</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="e.g. 123456789012"
+                    value={bank.accountNumber}
+                    onChange={(e) =>
+                      setBank((b) => ({
+                        ...b,
+                        accountNumber: e.target.value.replace(/\D/g, ""),
+                      }))
+                    }
+                    maxLength={24}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Bank name *</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="e.g. Vietcombank"
+                    value={bank.bankName}
+                    onChange={(e) => setBank((b) => ({ ...b, bankName: e.target.value }))}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Account holder name (optional)</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="John Doe"
+                    value={bank.accountHolderName}
+                    onChange={(e) => setBank((b) => ({ ...b, accountHolderName: e.target.value }))}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           <div className="flex flex-col gap-2">
@@ -343,8 +457,8 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <Button onClick={onSubmit} className="w-full" size="lg">
-            {plan === "DEPOSIT" ? "Pay Deposit & Reserve →" : "Pay Full Amount →"}
+          <Button onClick={onSubmit} className="w-full" size="lg" disabled={submitting}>
+            {submitting ? "Creating order..." : plan === "DEPOSIT" ? "Pay Deposit & Reserve →" : "Pay Full Amount →"}
           </Button>
         </div>
 
@@ -401,7 +515,7 @@ export default function CheckoutPage() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                UI hoàn thiện. Tích hợp API khi Backend sẵn sàng.
+                UI complete. API integration when Backend is ready.
               </p>
             </CardContent>
           </Card>

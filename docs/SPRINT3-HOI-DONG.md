@@ -133,7 +133,7 @@
 | Công nghệ dùng? | React, Spring Boot, … (theo tech stack thực tế) |
 | Bảo mật? | JWT, CORS, validation, password hashing |
 | Còn hạn chế gì? | Chưa tích hợp payment thật, Shipping có thể đơn giản |
-| Hướng phát triển? | Tích hợp MoMo/VNPay, tối ưu UX, mobile app |
+| Hướng phát triển? | Tích hợp payment gateway thật, tối ưu UX, mobile app |
 
 ---
 
