@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    // Truy vấn trực tiếp vào bảng 'orders' và 'sellers' để tìm theo username
-    @Query(value = "SELECT o.* FROM orders o JOIN sellers s ON o.buyer_id = s.id WHERE s.username = :username", nativeQuery = true)
+    // Sửa s.id thành s.seller_id ở đây:
+    @Query(value = "SELECT o.* FROM orders o JOIN sellers s ON o.buyer_id = s.seller_id WHERE s.username = :username", nativeQuery = true)
     List<Order> findByBuyerUsername(@Param("username") String username);
 }
