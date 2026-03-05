@@ -44,6 +44,7 @@ Chi tiết: `docs/STRUCTURE.md`
 | File | Nội dung |
 |------|----------|
 | `docs/STRUCTURE.md` | Cấu trúc, quy ước import |
+| `docs/RUN-FULL-PROJECT.md` | Cách chạy toàn bộ dự án (FE + BE) |
 | `docs/HUONG-DAN-BACKEND.md` | Contract API |
 | `docs/API-SETUP.md` | Kết nối Backend |
 | `docs/HUONG-DAN-DEMO.md` | Demo |
