@@ -51,6 +51,17 @@ export default function CheckoutPage() {
   const [agree, setAgree] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const CITY_OPTIONS = [
+    "Ho Chi Minh City",
+    "Ha Noi",
+    "Da Nang",
+    "Hai Phong",
+    "Can Tho",
+    "Nha Trang",
+    "Hue",
+    "Da Lat",
+  ] as const;
+
   const [ship, setShip] = useState({ street: "", city: "", postalCode: "" });
   const [card, setCard] = useState({ number: "", name: "", exp: "", cvc: "" });
   const [bank, setBank] = useState({
@@ -120,14 +131,15 @@ export default function CheckoutPage() {
     if (!ship.city.trim()) errs.shipCity = "City is required";
     if (method === "CARD") {
       const n = card.number.replace(/\D/g, "");
-      if (n.length < 13 || n.length > 19)
-        errs.cardNumber = "Enter a valid card number (13–19 digits)";
+      if (n.length < 12 || n.length > 19)
+        errs.cardNumber = "Enter a valid card number (12–19 digits)";
       if (!card.name.trim()) errs.cardName = "Cardholder name is required";
       if (!card.exp.trim()) errs.cardExp = "Expiry date (MM/YY) is required";
       else if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim()))
         errs.cardExp = "Expiry format: MM/YY";
-      if (card.cvc.replace(/\D/g, "").length < 3)
-        errs.cardCvc = "CVC must be 3 digits";
+      const cvcDigits = card.cvc.replace(/\D/g, "");
+      if (cvcDigits.length !== 3)
+        errs.cardCvc = "CVC must be exactly 3 digits";
     } else {
       if (bank.accountNumber.replace(/\D/g, "").length < 8)
         errs.bankAccount = "Account number must be at least 8 digits";
@@ -352,15 +364,25 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <Label>City *</Label>
-                <Input
-                  className={cn("mt-1", fieldErrors.shipCity && "border-destructive")}
-                  placeholder="City"
+                <select
+                  className={cn(
+                    "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    fieldErrors.shipCity && "border-destructive",
+                  )}
                   value={ship.city}
                   onChange={(e) => {
                     setShip((s) => ({ ...s, city: e.target.value }));
-                    if (fieldErrors.shipCity) setFieldErrors((prev) => ({ ...prev, shipCity: "" }));
+                    if (fieldErrors.shipCity)
+                      setFieldErrors((prev) => ({ ...prev, shipCity: "" }));
                   }}
-                />
+                >
+                  <option value="">Select city</option>
+                  {CITY_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
                 {fieldErrors.shipCity && (
                   <p className="mt-1 text-xs text-destructive">{fieldErrors.shipCity}</p>
                 )}
@@ -394,16 +416,21 @@ export default function CheckoutPage() {
                 <div className="sm:col-span-2">
                   <Label>Card number *</Label>
                   <Input
-                    className={cn("mt-1 font-mono", fieldErrors.cardNumber && "border-destructive")}
+                    className={cn(
+                      "mt-1 font-mono",
+                      fieldErrors.cardNumber && "border-destructive",
+                    )}
                     placeholder="4242 4242 4242 4242"
                     value={card.number}
                     onChange={(e) => {
-                      const v = e.target.value.replace(/\D/g, "");
-                      const formatted = v.replace(/(.{4})/g, "$1 ").trim();
+                      let digits = e.target.value.replace(/\D/g, "");
+                      // allow 12–19 digits, hard cap at 19 digits
+                      digits = digits.slice(0, 19);
+                      const formatted = digits.replace(/(.{4})/g, "$1 ").trim();
                       setCard((c) => ({ ...c, number: formatted }));
-                      if (fieldErrors.cardNumber) setFieldErrors((prev) => ({ ...prev, cardNumber: "" }));
+                      if (fieldErrors.cardNumber)
+                        setFieldErrors((prev) => ({ ...prev, cardNumber: "" }));
                     }}
-                    maxLength={19}
                   />
                   {fieldErrors.cardNumber && (
                     <p className="mt-1 text-xs text-destructive">{fieldErrors.cardNumber}</p>
@@ -416,8 +443,12 @@ export default function CheckoutPage() {
                     placeholder="John Doe (as on card)"
                     value={card.name}
                     onChange={(e) => {
-                      setCard((c) => ({ ...c, name: e.target.value }));
-                      if (fieldErrors.cardName) setFieldErrors((prev) => ({ ...prev, cardName: "" }));
+                      const cleaned = e.target.value
+                        .replace(/[^\p{L}\s']/gu, "")
+                        .replace(/\s{2,}/g, " ");
+                      setCard((c) => ({ ...c, name: cleaned }));
+                      if (fieldErrors.cardName)
+                        setFieldErrors((prev) => ({ ...prev, cardName: "" }));
                     }}
                   />
                   {fieldErrors.cardName && (
@@ -450,13 +481,15 @@ export default function CheckoutPage() {
                     placeholder="123"
                     value={card.cvc}
                     onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 3);
                       setCard((c) => ({
                         ...c,
-                        cvc: e.target.value.replace(/\D/g, "").slice(0, 4),
+                        cvc: v,
                       }));
-                      if (fieldErrors.cardCvc) setFieldErrors((prev) => ({ ...prev, cardCvc: "" }));
+                      if (fieldErrors.cardCvc)
+                        setFieldErrors((prev) => ({ ...prev, cardCvc: "" }));
                     }}
-                    maxLength={4}
+                    maxLength={3}
                   />
                   {fieldErrors.cardCvc && (
                     <p className="mt-1 text-xs text-destructive">{fieldErrors.cardCvc}</p>

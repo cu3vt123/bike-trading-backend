@@ -10,6 +10,30 @@ import {
 type Condition = "MINT_USED" | "GOOD_USED" | "FAIR_USED";
 type Step = "DRAFT" | "PENDING_INSPECTION";
 
+const BRAND_OPTIONS = [
+  "Giant",
+  "Trek",
+  "Specialized",
+  "Cannondale",
+  "Scott",
+  "Bianchi",
+  "Canyon",
+  "Santa Cruz",
+  "Merida",
+  "Other",
+] as const;
+
+const CITY_OPTIONS = [
+  "Ho Chi Minh City",
+  "Ha Noi",
+  "Da Nang",
+  "Hai Phong",
+  "Can Tho",
+  "Nha Trang",
+  "Hue",
+  "Da Lat",
+] as const;
+
 export default function SellerListingEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -209,13 +233,19 @@ export default function SellerListingEditorPage() {
                 className="sm:col-span-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
                 placeholder="Listing title"
               />
-              <input
+              <select
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 disabled={locked}
                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
-                placeholder="Brand"
-              />
+              >
+                <option value="">Select brand</option>
+                {BRAND_OPTIONS.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
+              </select>
               <input
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
@@ -223,13 +253,19 @@ export default function SellerListingEditorPage() {
                 className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
                 placeholder="Price (USD)"
               />
-              <input
+              <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 disabled={locked}
                 className="sm:col-span-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
-                placeholder="Location"
-              />
+              >
+                <option value="">Select city</option>
+                {CITY_OPTIONS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
 
               <select
                 value={condition}
