@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient";
+import { API_PATHS } from "@/lib/apiConfig";
 import type {
   BikeDetail,
   Listing,
@@ -87,7 +88,7 @@ function toDetail(dto: BikeDto): BikeDetail {
 
 export const bikeApi = {
   async getAll(): Promise<Listing[]> {
-    const res = await apiClient.get("/bikes");
+    const res = await apiClient.get(API_PATHS.BIKES.LIST);
     const raw = Array.isArray(res.data)
       ? res.data
       : (res.data?.content ?? res.data?.data ?? []);
@@ -95,7 +96,7 @@ export const bikeApi = {
   },
 
   async getById(id: string): Promise<BikeDetail> {
-    const res = await apiClient.get(`/bikes/${id}`);
+    const res = await apiClient.get(API_PATHS.BIKES.BY_ID(id));
     const dto = (res.data?.data ?? res.data) as BikeDto;
     return toDetail(dto);
   },

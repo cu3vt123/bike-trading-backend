@@ -23,16 +23,16 @@ const PASSWORD_SPECIAL = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
 
 function validatePassword(password: string): string | null {
   if (password.length < PASSWORD_MIN) {
-    return `Mật khẩu phải từ ${PASSWORD_MIN}–${PASSWORD_MAX} ký tự.`;
+    return `Password must be ${PASSWORD_MIN}–${PASSWORD_MAX} characters.`;
   }
   if (password.length > PASSWORD_MAX) {
-    return `Mật khẩu tối đa ${PASSWORD_MAX} ký tự.`;
+    return `Password must be at most ${PASSWORD_MAX} characters.`;
   }
   if (!PASSWORD_UPPERCASE.test(password)) {
-    return "Mật khẩu phải có ít nhất 1 chữ in hoa.";
+    return "Password must have at least 1 uppercase letter.";
   }
   if (!PASSWORD_SPECIAL.test(password)) {
-    return "Mật khẩu phải có ít nhất 1 ký tự đặc biệt.";
+    return "Password must have at least 1 special character.";
   }
   return null;
 }
@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
 
     const token = tokenFromUrl?.trim();
     if (!token) {
-      setError("Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+      setError("Reset link is invalid or expired.");
       return;
     }
 
@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
       return;
     }
     if (password !== confirmPassword) {
-      setError("Xác nhận mật khẩu không khớp.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
       setSuccess(true);
     } catch (err) {
       const msg =
-        err instanceof Error ? err.message : "Link có thể đã hết hạn. Vui lòng yêu cầu link mới.";
+        err instanceof Error ? err.message : "Link may have expired. Please request a new one.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -109,12 +109,12 @@ export default function ResetPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <KeyRound className="h-6 w-6" />
               </div>
-              <CardTitle>Đặt mật khẩu mới thành công</CardTitle>
-              <CardDescription>Bạn có thể đăng nhập bằng mật khẩu mới.</CardDescription>
+              <CardTitle>Password set successfully</CardTitle>
+              <CardDescription>You can now log in with your new password.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => navigate("/login", { replace: true })}>
-                Đăng nhập ngay
+                Log in now
               </Button>
             </CardContent>
           </Card>
@@ -143,15 +143,15 @@ export default function ResetPasswordPage() {
         <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <CardTitle>Link không hợp lệ</CardTitle>
+              <CardTitle>Invalid link</CardTitle>
               <CardDescription>
-                Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới từ
-                trang Quên mật khẩu.
+                The reset link is invalid or expired. Please request a new link from
+                the Forgot password page.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" className="w-full" asChild>
-                <Link to="/forgot-password">Yêu cầu link mới</Link>
+                <Link to="/forgot-password">Request new link</Link>
               </Button>
             </CardContent>
           </Card>
@@ -175,7 +175,7 @@ export default function ResetPasswordPage() {
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
-              Đăng nhập
+              Log in
             </Link>
           </nav>
         </div>
@@ -185,10 +185,9 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Đặt mật khẩu mới</CardTitle>
+              <CardTitle>Set new password</CardTitle>
               <CardDescription>
-                Nhập mật khẩu mới cho tài khoản của bạn. Mật khẩu cần 8–64 ký tự, có ít nhất 1 chữ
-                in hoa và 1 ký tự đặc biệt.
+                Enter a new password for your account. Password must be 8–64 characters with at least 1 uppercase letter and 1 special character.
               </CardDescription>
             </CardHeader>
 
@@ -201,7 +200,7 @@ export default function ResetPasswordPage() {
 
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mật khẩu mới</Label>
+                  <Label htmlFor="password">New password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -212,7 +211,7 @@ export default function ResetPasswordPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm">Xác nhận mật khẩu</Label>
+                  <Label htmlFor="confirm">Confirm password</Label>
                   <Input
                     id="confirm"
                     type="password"
@@ -224,13 +223,13 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Đang xử lý..." : "Đặt mật khẩu mới"}
+                  {submitting ? "Processing..." : "Set new password"}
                 </Button>
 
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Quay lại đăng nhập
+                    Back to login
                   </Link>
                 </Button>
               </form>

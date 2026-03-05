@@ -1,10 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { inspectorApi } from "@/apis/inspectorApi";
+import {
+  fetchPendingListings,
+  approveListing,
+  rejectListing,
+  needUpdateListing,
+} from "@/services/inspectorService";
 import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,35 +20,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Listing } from "@/types/shopbike";
+import type { InspectionReport } from "@/services/inspectorService";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
-
-// Mock: tin chờ kiểm định (Sprint 3 – sẽ đổi sang inspectorApi khi BE sẵn sàng)
-const MOCK_PENDING: Listing[] = [
-  {
-    id: "S-102",
-    title: "Trek Domane SL — submitted for review",
-    brand: "Trek",
-    price: 3100,
-    location: "Da Nang",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1518655048521-f130df041f66?auto=format&fit=crop&w=1400&q=60",
-    state: "PENDING_INSPECTION",
-    inspectionResult: null,
-  },
-  {
-    id: "S-105",
-    title: "Giant TCR Advanced — awaiting inspection",
-    brand: "Giant",
-    price: 2800,
-    location: "Ho Chi Minh City",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1400&q=60",
-    state: "PENDING_INSPECTION",
-    inspectionResult: null,
-  },
-];
+const INSPECTION_OPTIONS = [
+  { label: "Excellent", score: 4.8 },
+  { label: "Great", score: 4.2 },
+  { label: "Good", score: 3.5 },
+  { label: "Fair", score: 2.5 },
+  { label: "Poor", score: 1 },
+] as const;
 
 function formatMoney(value: number, currency = "USD") {
   return new Intl.NumberFormat(undefined, {
@@ -54,44 +49,54 @@ function formatMoney(value: number, currency = "USD") {
 export default function InspectorDashboardPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [actionTarget, setActionTarget] = useState<{ id: string; action: "approve" | "reject" | "needUpdate" } | null>(null);
   const [needUpdateReason, setNeedUpdateReason] = useState("");
+  const [inspectionReport, setInspectionReport] = useState<InspectionReport>({
+    frameIntegrity: { score: 4.2, label: "Great" },
+    drivetrainHealth: { score: 4.2, label: "Great" },
+    brakingSystem: { score: 4.2, label: "Great" },
+  });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadListings = useCallback(() => {
-    if (USE_MOCK) {
-      setListings(MOCK_PENDING);
-      setLoading(false);
-      return;
-    }
-    inspectorApi
-      .getPendingListings()
+    setLoading(true);
+    setError(null);
+    fetchPendingListings()
       .then(setListings)
-      .catch(() => setListings(MOCK_PENDING))
+      .catch(() => setError("Failed to load pending listings."))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     loadListings();
   }, [loadListings]);
 
   async function handleAction() {
     if (!actionTarget) return;
     const { id, action } = actionTarget;
+    setActionError(null);
+    setActionLoading(true);
     try {
-      if (action === "approve") {
-        if (!USE_MOCK) await inspectorApi.approve(id);
-      } else if (action === "reject") {
-        if (!USE_MOCK) await inspectorApi.reject(id);
-      } else {
-        if (!USE_MOCK) await inspectorApi.needUpdate(id, needUpdateReason);
-      }
+      if (action === "approve") await approveListing(id, inspectionReport);
+      else if (action === "reject") await rejectListing(id);
+      else await needUpdateListing(id, needUpdateReason);
       setListings((prev) => prev.filter((l) => l.id !== id));
-    } catch {
-      // Giữ nguyên danh sách, có thể toast lỗi
+      setActionTarget(null);
+      setNeedUpdateReason("");
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Action failed. Please try again.");
+    } finally {
+      setActionLoading(false);
     }
-    setActionTarget(null);
-    setNeedUpdateReason("");
+  }
+
+  function setReportField(
+    key: keyof InspectionReport,
+    value: { score: number; label: string },
+  ) {
+    setInspectionReport((prev) => ({ ...prev, [key]: value }));
   }
 
   return (
@@ -99,25 +104,34 @@ export default function InspectorDashboardPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Inspector Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Kiểm định và duyệt các tin đăng chờ xử lý.
+          Inspect and approve listings pending review.
         </p>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+          <Button variant="link" size="sm" className="ml-2" onClick={loadListings}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">Loading...</p>
+          <p className="mt-3 text-sm text-muted-foreground">Loading pending listings...</p>
         </div>
       ) : (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <span className="text-sm font-semibold">Tin chờ kiểm định</span>
+            <span className="text-sm font-semibold">Listings pending inspection</span>
             <Badge variant="secondary">{listings.length} pending</Badge>
           </CardHeader>
           <CardContent>
             {listings.length === 0 ? (
               <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
-                Không có tin nào chờ kiểm định.
+                No listings pending inspection.
               </div>
             ) : (
               <div className="space-y-4">
@@ -153,7 +167,7 @@ export default function InspectorDashboardPage() {
                         onClick={() => setActionTarget({ id: item.id, action: "approve" })}
                       >
                         <CheckCircle className="mr-1 h-4 w-4" />
-                        Duyệt
+                        Approve
                       </Button>
                       <Button
                         size="sm"
@@ -161,7 +175,7 @@ export default function InspectorDashboardPage() {
                         onClick={() => setActionTarget({ id: item.id, action: "reject" })}
                       >
                         <XCircle className="mr-1 h-4 w-4" />
-                        Từ chối
+                        Reject
                       </Button>
                       <Button
                         size="sm"
@@ -170,10 +184,10 @@ export default function InspectorDashboardPage() {
                         onClick={() => setActionTarget({ id: item.id, action: "needUpdate" })}
                       >
                         <AlertCircle className="mr-1 h-4 w-4" />
-                        Cần cập nhật
+                        Need update
                       </Button>
                       <Button size="sm" variant="ghost" asChild>
-                        <Link to={`/bikes/${item.id}`}>Xem chi tiết</Link>
+                        <Link to={`/bikes/${item.id}`}>View details</Link>
                       </Button>
                     </div>
                   </div>
@@ -181,7 +195,7 @@ export default function InspectorDashboardPage() {
               </div>
             )}
             <p className="mt-4 text-xs text-muted-foreground">
-              Inspector Dashboard. Mock khi chưa có API.
+              Approve → Published. Reject → Closed. Need update → Seller must resubmit.
             </p>
           </CardContent>
         </Card>
@@ -189,7 +203,7 @@ export default function InspectorDashboardPage() {
 
       <div className="mt-6 flex gap-4">
         <Button asChild variant="outline">
-          <Link to="/">← Về trang chủ</Link>
+          <Link to="/">← Back to home</Link>
         </Button>
       </div>
 
@@ -198,33 +212,75 @@ export default function InspectorDashboardPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionTarget?.action === "approve" && "Duyệt tin đăng"}
-              {actionTarget?.action === "reject" && "Từ chối tin đăng"}
-              {actionTarget?.action === "needUpdate" && "Yêu cầu cập nhật"}
+              {actionTarget?.action === "approve" && "Approve listing"}
+              {actionTarget?.action === "reject" && "Reject listing"}
+              {actionTarget?.action === "needUpdate" && "Request update"}
             </DialogTitle>
             <DialogDescription>
-              {actionTarget?.action === "approve" && "Tin sẽ được xuất bản lên marketplace."}
-              {actionTarget?.action === "reject" && "Tin sẽ bị từ chối, seller không thể gửi lại."}
-              {actionTarget?.action === "needUpdate" && "Seller cần cập nhật theo góp ý trước khi gửi lại."}
+              {actionTarget?.action === "approve" && "Fill in the inspection report. This will be shown to buyers."}
+              {actionTarget?.action === "reject" && "Listing will be rejected, seller cannot resubmit."}
+              {actionTarget?.action === "needUpdate" && "Seller must update per feedback before resubmitting."}
             </DialogDescription>
           </DialogHeader>
+          {actionTarget?.action === "approve" && (
+            <div className="space-y-4 py-4">
+              <p className="text-sm font-medium">Inspection report (required)</p>
+              {(["frameIntegrity", "drivetrainHealth", "brakingSystem"] as const).map((key) => {
+                const labels: Record<typeof key, string> = {
+                  frameIntegrity: "Frame integrity",
+                  drivetrainHealth: "Drivetrain health",
+                  brakingSystem: "Braking system",
+                };
+                const val = inspectionReport[key];
+                return (
+                  <div key={key} className="flex items-center gap-4">
+                    <Label className="w-32 shrink-0">{labels[key]}</Label>
+                    <Select
+                      value={val.label}
+                      onValueChange={(v) => {
+                        const opt = INSPECTION_OPTIONS.find((o) => o.label === v);
+                        if (opt) setReportField(key, { label: opt.label, score: opt.score });
+                      }}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INSPECTION_OPTIONS.map((o) => (
+                          <SelectItem key={o.label} value={o.label}>
+                            {o.label} ({(o.score).toFixed(1)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {actionTarget?.action === "needUpdate" && (
-            <div className="py-2">
-              <label className="text-sm font-medium">Lý do (tùy chọn)</label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
-                placeholder="Ví dụ: Cần thêm ảnh góc toàn xe"
+            <div className="space-y-2 py-2">
+              <Label htmlFor="need-update-reason">Reason (optional)</Label>
+              <Input
+                id="need-update-reason"
+                placeholder="E.g.: Need full bike angle photo, clearer drivetrain shot"
                 value={needUpdateReason}
                 onChange={(e) => setNeedUpdateReason(e.target.value)}
               />
             </div>
           )}
+          {actionError && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+              {actionError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionTarget(null)}>
-              Hủy
+            <Button variant="outline" onClick={() => { setActionTarget(null); setActionError(null); }} disabled={actionLoading}>
+              Cancel
             </Button>
-            <Button onClick={handleAction}>Xác nhận</Button>
+            <Button onClick={handleAction} disabled={actionLoading}>
+              {actionLoading ? "Processing..." : "Confirm"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

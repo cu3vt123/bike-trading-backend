@@ -4,6 +4,40 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2025-03] Tái cấu trúc + dọn dẹp docs
+
+### Thay đổi code
+
+- Tái cấu trúc theo `main-course-project-clone`: `app/`, `features/`, `shared/`
+- Router: `createBrowserRouter` thay `BrowserRouter`
+- Guards: `GuestRoute`, `ProtectedRoute`, `RequireAuth`, `RequireBuyer`, `RequireSeller`, `RequireInspector` trong `shared/components/common`
+
+### Thay đổi docs
+
+#### Xóa
+
+| File / thư mục | Lý do |
+|----------------|-------|
+| `API-CONTRACT.md` | Trùng HUONG-DAN-BACKEND |
+| `API-INTEGRATION.md` | Lỗi thời |
+| `BACKEND-API-CON-THIEU.md` | Task list cũ |
+| `docs/sheets/` | Requirements CSV – không dùng trong dev |
+
+#### Cập nhật
+
+| File | Nội dung |
+|------|----------|
+| `PROJECT-SUMMARY.md` | Cấu trúc mới, danh sách docs |
+| `CHANGELOG.md` | Entry này |
+
+#### Mới
+
+| File | Nội dung |
+|------|----------|
+| `docs/STRUCTURE.md` | Cấu trúc feature-based |
+
+---
+
 ## [Sprint 3 – 2025-02] Chuẩn bị hội đồng
 
 ### Thay đổi code (FE)

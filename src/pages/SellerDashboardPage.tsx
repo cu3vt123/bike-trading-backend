@@ -4,7 +4,7 @@ import { Package, Star } from "lucide-react";
 import type { Listing, ListingState } from "@/types/shopbike";
 import { fetchSellerDashboard } from "@/services/sellerService";
 
-// Mock: đơn đặt mua / đặt cọc
+// Mock: orders / deposits
 const MOCK_ORDERS = [
   { id: "ORD-101", bike: "Trek Domane SL", buyer: "buyer_01", amount: 3100, deposit: 248, status: "RESERVED" },
   { id: "ORD-102", bike: "Cervelo S5", buyer: "rider_99", amount: 6900, deposit: 552, status: "PAID" },
@@ -72,7 +72,7 @@ function StatCard({
 }
 
 export default function SellerDashboardPage() {
-  const [stats, setStats] = useState({ total: 0, active: 0, inReview: 0, needUpdate: 0 });
+  const [stats, setStats] = useState({ total: 0, published: 0, inReview: 0, needUpdate: 0 });
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,7 +85,7 @@ export default function SellerDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const { total, active, inReview, needUpdate } = stats;
+  const { total, published, inReview, needUpdate } = stats;
 
   if (loading) {
     return (
@@ -122,7 +122,7 @@ export default function SellerDashboardPage() {
         <StatCard label="Total Listings" value={total} />
         <StatCard
           label="Active Listings"
-          value={active}
+          value={published}
           hint="PUBLISHED + APPROVE only"
         />
         <StatCard label="In Review" value={inReview} />
@@ -215,7 +215,7 @@ export default function SellerDashboardPage() {
           </div>
 
           <div className="mt-3 text-xs text-slate-500">
-            Draft/Need Update có thể sửa. Pending Inspection khóa sửa. Published hạn chế sửa nội dung cốt lõi.
+            Draft/Need Update can be edited. Pending Inspection locks editing. Published limits core content changes.
           </div>
         </div>
 
@@ -265,9 +265,9 @@ export default function SellerDashboardPage() {
         <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-emerald-600" />
-            <span className="text-sm font-semibold text-slate-900">Đơn đặt mua / đặt cọc</span>
+            <span className="text-sm font-semibold text-slate-900">Orders / Deposits</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Quản lý đơn hàng và tiền cọc.</p>
+          <p className="mt-1 text-xs text-slate-500">Manage orders and deposits.</p>
           <div className="mt-4 space-y-3">
             {MOCK_ORDERS.map((o) => (
               <div
@@ -277,7 +277,7 @@ export default function SellerDashboardPage() {
                 <div>
                   <div className="text-sm font-semibold">{o.bike}</div>
                   <div className="text-xs text-slate-500">
-                    {o.id} • {o.buyer} • {formatMoney(o.deposit)} cọc
+                    {o.id} • {o.buyer} • {formatMoney(o.deposit)} deposit
                   </div>
                 </div>
                 <span
@@ -285,32 +285,32 @@ export default function SellerDashboardPage() {
                     o.status === "PAID" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
                   }`}
                 >
-                  {o.status === "PAID" ? "Đã thanh toán" : "Đang chờ"}
+                  {o.status === "PAID" ? "Paid" : "Pending"}
                 </span>
               </div>
             ))}
             {MOCK_ORDERS.length === 0 && (
-              <p className="py-4 text-center text-sm text-slate-500">Chưa có đơn nào.</p>
+              <p className="py-4 text-center text-sm text-slate-500">No orders yet.</p>
             )}
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Sẽ tích hợp API khi Backend có endpoint quản lý đơn.
+            Will integrate API when Backend provides order management endpoint.
           </p>
         </div>
 
         <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 text-amber-500" />
-            <span className="text-sm font-semibold text-slate-900">Đánh giá & uy tín</span>
+            <span className="text-sm font-semibold text-slate-900">Ratings & reputation</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Mức độ uy tín từ người mua.</p>
+          <p className="mt-1 text-xs text-slate-500">Trust level from buyers.</p>
           <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-black/10 bg-slate-50/50 py-6">
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-bold text-slate-900">4.8</span>
               <span className="text-amber-500">★★★★★</span>
             </div>
-            <p className="mt-2 text-sm text-slate-600">12 đánh giá</p>
-            <p className="mt-1 text-xs text-slate-500">97% phản hồi tích cực</p>
+            <p className="mt-2 text-sm text-slate-600">12 reviews</p>
+            <p className="mt-1 text-xs text-slate-500">97% positive feedback</p>
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between text-xs">
@@ -323,7 +323,7 @@ export default function SellerDashboardPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Đánh giá từ giao dịch thành công. Sẽ sync API khi có.
+            Ratings from successful transactions. Will sync API when available.
           </p>
         </div>
       </div>

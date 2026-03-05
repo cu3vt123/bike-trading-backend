@@ -83,7 +83,6 @@ export function Header() {
             Support
           </Link>
 
-          {/* ✅ Login rồi thì hiện Profile (Buyer/Seller đều có) */}
           {!!accessToken && (
             <button
               onClick={onProfile}
@@ -93,7 +92,6 @@ export function Header() {
             </button>
           )}
 
-          {/* ✅ SELLER mới thấy Dashboard */}
           {!!accessToken && role === "SELLER" && (
             <button
               onClick={onSellerDashboard}
@@ -103,7 +101,6 @@ export function Header() {
             </button>
           )}
 
-          {/* ✅ INSPECTOR / ADMIN thấy Inspector Dashboard */}
           {!!accessToken && (role === "INSPECTOR" || role === "ADMIN") && (
             <button
               onClick={onInspectorDashboard}

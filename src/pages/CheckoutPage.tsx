@@ -7,7 +7,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { fetchListingById, createOrder, validatePayment } from "@/services/buyerService";
+import {
+  fetchListingById,
+  createOrder,
+  validatePayment,
+} from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +26,10 @@ function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
   }).format(value);
 }
 
-const METHOD_CONFIG: Record<Method, { label: string; icon: React.ElementType }> = {
+const METHOD_CONFIG: Record<
+  Method,
+  { label: string; icon: React.ElementType }
+> = {
   CARD: { label: "Card (Visa/Mastercard)", icon: CreditCard },
   BANK: { label: "Bank Transfer", icon: Building2 },
 };
@@ -42,7 +49,11 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [ship, setShip] = useState({ street: "", city: "", postalCode: "" });
   const [card, setCard] = useState({ number: "", name: "", exp: "", cvc: "" });
-  const [bank, setBank] = useState({ accountNumber: "", bankName: "", accountHolderName: "" });
+  const [bank, setBank] = useState({
+    accountNumber: "",
+    bankName: "",
+    accountHolderName: "",
+  });
 
   useEffect(() => {
     if (!id) {
@@ -106,7 +117,8 @@ export default function CheckoutPage() {
       if (n.length < 13) return "Enter a valid card number (13–19 digits)";
       if (!card.name.trim()) return "Cardholder name is required";
       if (!card.exp.trim()) return "Expiry date (MM/YY) is required";
-      if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim())) return "Expiry format: MM/YY";
+      if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim()))
+        return "Expiry format: MM/YY";
       if (card.cvc.replace(/\D/g, "").length < 3) return "CVC must be 3 digits";
     } else {
       if (bank.accountNumber.replace(/\D/g, "").length < 8)
@@ -136,7 +148,10 @@ export default function CheckoutPage() {
         bankDetails: method === "BANK" ? bank : undefined,
       });
       if (!validation.ok) {
-        setError(validation.error ?? "Payment validation failed. Use test card 4242 4242 4242 4242.");
+        setError(
+          validation.error ??
+            "Payment validation failed. Use test card 4242 4242 4242 4242.",
+        );
         setSubmitting(false);
         return;
       }
@@ -154,8 +169,12 @@ export default function CheckoutPage() {
         validation.paymentMethod?.type === "CARD"
           ? {
               type: "CARD" as const,
-              brand: (validation.paymentMethod.brand ?? "Visa") as "Visa" | "Mastercard",
-              last4: String(validation.paymentMethod.last4 ?? card.number.slice(-4)).slice(-4),
+              brand: (validation.paymentMethod.brand ?? "Visa") as
+                | "Visa"
+                | "Mastercard",
+              last4: String(
+                validation.paymentMethod.last4 ?? card.number.slice(-4),
+              ).slice(-4),
             }
           : { type: "BANK_TRANSFER" as const };
 
@@ -165,7 +184,9 @@ export default function CheckoutPage() {
           listingId: listing.id,
           plan,
           method,
-          expiresAt: order.expiresAt ? new Date(order.expiresAt).getTime() : Date.now() + 24 * 60 * 60 * 1000,
+          expiresAt: order.expiresAt
+            ? new Date(order.expiresAt).getTime()
+            : Date.now() + 24 * 60 * 60 * 1000,
           ship,
           depositPaid: deposit,
           totalPrice: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
@@ -180,14 +201,20 @@ export default function CheckoutPage() {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create order. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create order. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
   const img =
-    listing.imageUrls?.[0] ?? listing.thumbnailUrl ?? "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=800&q=60";
+    listing.imageUrls?.[0] ??
+    listing.thumbnailUrl ??
+    "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=800&q=60";
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -247,7 +274,9 @@ export default function CheckoutPage() {
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {desc}
+                      </p>
                     </div>
                     <span className="text-sm font-semibold">
                       {formatMoney(price, currency)}
@@ -299,7 +328,9 @@ export default function CheckoutPage() {
                   className="mt-1"
                   placeholder="Street address"
                   value={ship.street}
-                  onChange={(e) => setShip((s) => ({ ...s, street: e.target.value }))}
+                  onChange={(e) =>
+                    setShip((s) => ({ ...s, street: e.target.value }))
+                  }
                 />
               </div>
               <div>
@@ -308,7 +339,9 @@ export default function CheckoutPage() {
                   className="mt-1"
                   placeholder="City"
                   value={ship.city}
-                  onChange={(e) => setShip((s) => ({ ...s, city: e.target.value }))}
+                  onChange={(e) =>
+                    setShip((s) => ({ ...s, city: e.target.value }))
+                  }
                 />
               </div>
               <div>
@@ -317,7 +350,9 @@ export default function CheckoutPage() {
                   className="mt-1"
                   placeholder="Postal code"
                   value={ship.postalCode}
-                  onChange={(e) => setShip((s) => ({ ...s, postalCode: e.target.value }))}
+                  onChange={(e) =>
+                    setShip((s) => ({ ...s, postalCode: e.target.value }))
+                  }
                 />
               </div>
             </CardContent>
@@ -326,9 +361,12 @@ export default function CheckoutPage() {
           {method === "CARD" && (
             <Card>
               <CardHeader>
-                <span className="text-sm font-semibold">Card Details (Visa / Mastercard)</span>
+                <span className="text-sm font-semibold">
+                  Card Details (Visa / Mastercard)
+                </span>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  As required by card issuers. Test cards: 4242 4242 4242 4242, 5555 5555 5555 4444
+                  As required by card issuers. Test cards: 4242 4242 4242 4242,
+                  5555 5555 5555 4444
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -352,7 +390,9 @@ export default function CheckoutPage() {
                     className="mt-1"
                     placeholder="John Doe (as on card)"
                     value={card.name}
-                    onChange={(e) => setCard((c) => ({ ...c, name: e.target.value }))}
+                    onChange={(e) =>
+                      setCard((c) => ({ ...c, name: e.target.value }))
+                    }
                   />
                 </div>
                 <div>
@@ -363,7 +403,8 @@ export default function CheckoutPage() {
                     value={card.exp}
                     onChange={(e) => {
                       let v = e.target.value.replace(/\D/g, "");
-                      if (v.length >= 2) v = v.slice(0, 2) + "/" + v.slice(2, 4);
+                      if (v.length >= 2)
+                        v = v.slice(0, 2) + "/" + v.slice(2, 4);
                       setCard((c) => ({ ...c, exp: v }));
                     }}
                     maxLength={5}
@@ -391,7 +432,9 @@ export default function CheckoutPage() {
           {method === "BANK" && (
             <Card>
               <CardHeader>
-                <span className="text-sm font-semibold">Bank Transfer Details</span>
+                <span className="text-sm font-semibold">
+                  Bank Transfer Details
+                </span>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Required by bank regulations. Min 8 digits for account number.
                 </p>
@@ -418,7 +461,9 @@ export default function CheckoutPage() {
                     className="mt-1"
                     placeholder="e.g. Vietcombank"
                     value={bank.bankName}
-                    onChange={(e) => setBank((b) => ({ ...b, bankName: e.target.value }))}
+                    onChange={(e) =>
+                      setBank((b) => ({ ...b, bankName: e.target.value }))
+                    }
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -427,7 +472,12 @@ export default function CheckoutPage() {
                     className="mt-1"
                     placeholder="John Doe"
                     value={bank.accountHolderName}
-                    onChange={(e) => setBank((b) => ({ ...b, accountHolderName: e.target.value }))}
+                    onChange={(e) =>
+                      setBank((b) => ({
+                        ...b,
+                        accountHolderName: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </CardContent>
@@ -445,9 +495,15 @@ export default function CheckoutPage() {
                 }}
                 className="mt-0.5"
               />
-              <Label htmlFor="agree" className="text-xs text-muted-foreground cursor-pointer">
+              <Label
+                htmlFor="agree"
+                className="text-xs text-muted-foreground cursor-pointer"
+              >
                 I agree to the{" "}
-                <span className="text-primary underline">cancellation & refund policy</span>.
+                <span className="text-primary underline">
+                  cancellation & refund policy
+                </span>
+                .
               </Label>
             </div>
             {agreeError && (
@@ -457,8 +513,17 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <Button onClick={onSubmit} className="w-full" size="lg" disabled={submitting}>
-            {submitting ? "Creating order..." : plan === "DEPOSIT" ? "Pay Deposit & Reserve →" : "Pay Full Amount →"}
+          <Button
+            onClick={onSubmit}
+            className="w-full"
+            size="lg"
+            disabled={submitting}
+          >
+            {submitting
+              ? "Creating order..."
+              : plan === "DEPOSIT"
+                ? "Pay Deposit & Reserve →"
+                : "Pay Full Amount →"}
           </Button>
         </div>
 
@@ -467,7 +532,11 @@ export default function CheckoutPage() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 overflow-hidden rounded-xl bg-muted">
-                  <img src={img} alt={listing.title} className="h-full w-full object-cover" />
+                  <img
+                    src={img}
+                    alt={listing.title}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold">
@@ -508,7 +577,10 @@ export default function CheckoutPage() {
                   <div className="mt-1 flex justify-between text-xs text-primary/80">
                     <span>Due on delivery</span>
                     <span>
-                      {formatMoney(plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0, currency)}
+                      {formatMoney(
+                        plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0,
+                        currency,
+                      )}
                     </span>
                   </div>
                 </div>

@@ -1,0 +1,75 @@
+import { z } from "zod";
+import { Listing } from "../models/Listing.js";
+import { ok, notFound, badRequest } from "../utils/http.js";
+
+function normalize(doc) {
+  return doc.toJSON();
+}
+
+export async function pendingListings(_req, res) {
+  const listings = await Listing.find({ state: "PENDING_INSPECTION" })
+    .sort({ updatedAt: -1 })
+    .limit(200);
+  return res.status(200).json({ content: listings.map(normalize) });
+}
+
+export async function getListing(req, res) {
+  const { id } = req.params;
+  const listing = await Listing.findById(id);
+  if (!listing) return notFound(res, "Listing not found");
+  return ok(res, normalize(listing));
+}
+
+export async function approve(req, res) {
+  const { id } = req.params;
+  const listing = await Listing.findById(id);
+  if (!listing) return notFound(res, "Listing not found");
+
+  if (listing.state !== "PENDING_INSPECTION") {
+    return badRequest(res, "Listing is not pending inspection");
+  }
+
+  listing.inspectionResult = "APPROVE";
+  listing.inspectionScore = listing.inspectionScore ?? 4.5;
+  listing.state = "PUBLISHED";
+  listing.inspectionNeedUpdateReason = "";
+  await listing.save();
+  return ok(res, normalize(listing));
+}
+
+export async function reject(req, res) {
+  const { id } = req.params;
+  const listing = await Listing.findById(id);
+  if (!listing) return notFound(res, "Listing not found");
+
+  if (listing.state !== "PENDING_INSPECTION") {
+    return badRequest(res, "Listing is not pending inspection");
+  }
+
+  listing.inspectionResult = "REJECT";
+  listing.state = "REJECTED";
+  listing.inspectionNeedUpdateReason = "";
+  await listing.save();
+  return ok(res, normalize(listing));
+}
+
+export async function needUpdate(req, res) {
+  const schema = z.object({ reason: z.string().optional() });
+  const parsed = schema.safeParse(req.body ?? {});
+  if (!parsed.success) return badRequest(res, "Invalid payload");
+
+  const { id } = req.params;
+  const listing = await Listing.findById(id);
+  if (!listing) return notFound(res, "Listing not found");
+
+  if (listing.state !== "PENDING_INSPECTION") {
+    return badRequest(res, "Listing is not pending inspection");
+  }
+
+  listing.inspectionResult = "NEED_UPDATE";
+  listing.state = "NEED_UPDATE";
+  listing.inspectionNeedUpdateReason = parsed.data.reason ?? "";
+  await listing.save();
+  return ok(res, normalize(listing));
+}
+

@@ -203,38 +203,36 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 
 ```
 src/
-├── apis/           # authApi, buyerApi, bikeApi, sellerApi, inspectorApi
-├── components/
-│   ├── common/     # Header
-│   ├── listing/    # ListingCard
-│   └── ui/         # shadcn components
-├── layouts/        # MainLayout
-├── lib/            # apiClient, utils, cn
-├── mocks/          # bikeApi.mock, listings.mock
-├── pages/          # Các trang (Home, Detail, Checkout, ...)
-├── routes/         # AppRouter, Guards (RequireAuth, RequireBuyer, RequireSeller, RequireInspector)
-├── services/       # buyerService, sellerService
-├── stores/         # useAuthStore
-└── types/          # auth, shopbike, order, listing
+├── app/                    # App root, router, providers (createBrowserRouter)
+├── features/               # auth, landing, bikes, buyer, seller, inspector, support
+├── shared/                 # components/common, ui, layouts, constants
+├── lib/                    # env, apiClient, apiConfig, utils
+├── apis/                   # authApi, buyerApi, bikeApi, sellerApi, inspectorApi
+├── services/               # buyerService, sellerService
+├── pages/                  # Các trang – features re-export
+├── components/             # Header, ListingCard, ui
+├── layouts/                # MainLayout
+├── stores/                 # useAuthStore
+├── types/                  # auth, shopbike, order
+└── mocks/                  # Mock data
 ```
+
+Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
 ## 6. Các tài liệu liên quan
 
-| File                  | Nội dung                                |
-|-----------------------|-----------------------------------------|
-| `docs/CHANGELOG.md`           | Tóm tắt thay đổi theo phiên bản        |
-| `docs/HUONG-DAN-FE2-JOIN-GIT.md` | Hướng dẫn FE2 clone, setup, join Git   |
-| `docs/HUONG-DAN-DEMO.md`         | Hướng dẫn demo từng bước – luồng mua hoàn chỉnh |
-| `docs/API-SETUP.md`              | API config, kết nối Backend, chuẩn bị Swagger   |
-| `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ theo ticket   |
-| `docs/API-INTEGRATION.md`    | Hướng dẫn gắn API thật khi BE sẵn sàng |
-| `docs/HUONG-DAN-BACKEND.md`  | Hướng dẫn gửi cho Backend – các API cần implement  |
-| `docs/BACKEND-API-CON-THIEU.md` | Chi tiết API Backend còn thiếu – task cho team     |
-| `docs/SPRINT3-HOI-DONG.md`          | Sprint 3 – Chuẩn bị đem dự án ra hội đồng          |
-| `.kiro/steering/project-standards.md` | Chuẩn dự án, business rules      |
-| `.kiro/steering/product.md`  | Mô tả sản phẩm                         |
+| File | Nội dung |
+|------|----------|
+| `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
+| `docs/HUONG-DAN-BACKEND.md` | Contract API cho Backend |
+| `docs/API-SETUP.md` | Kết nối API, Swagger |
+| `docs/HUONG-DAN-DEMO.md` | Hướng dẫn demo |
+| `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ |
+| `docs/HUONG-DAN-FE2-JOIN-GIT.md` | Git cho FE2 |
+| `docs/SPRINT3-HOI-DONG.md` | Sprint 3 – Chuẩn bị hội đồng |
+| `docs/CHANGELOG.md` | Tóm tắt thay đổi |
 
 ---
 

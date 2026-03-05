@@ -13,9 +13,9 @@ export default function SupportPage() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Hỗ trợ & FAQ</h1>
+        <h1 className="text-2xl font-bold">Support & FAQ</h1>
         <p className="mt-1 text-muted-foreground">
-          Tìm câu trả lời hoặc liên hệ đội ngũ hỗ trợ ShopBike.
+          Find answers or contact the ShopBike support team.
         </p>
       </div>
 
@@ -25,26 +25,26 @@ export default function SupportPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <HelpCircle className="h-5 w-5" />
             </div>
-            <CardTitle className="text-lg">Câu hỏi thường gặp</CardTitle>
-            <CardDescription>Giải đáp các thắc mắc về mua bán xe đạp thể thao.</CardDescription>
+            <CardTitle className="text-lg">Frequently asked questions</CardTitle>
+            <CardDescription>Answers about buying and selling sport bikes.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border bg-muted/50 p-4">
-              <div className="font-semibold">Làm sao để mua xe an toàn?</div>
+              <div className="font-semibold">How to buy safely?</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Tất cả tin đăng trên ShopBike đều được kiểm định (Inspection) trước khi xuất bản. Bạn có thể xem báo cáo kiểm định chi tiết trên trang sản phẩm.
+                All listings on ShopBike are inspected before publication. You can view the detailed inspection report on the product page.
               </p>
             </div>
             <div className="rounded-lg border bg-muted/50 p-4">
-              <div className="font-semibold">Quy trình đặt cọc và thanh toán?</div>
+              <div className="font-semibold">Deposit and payment process?</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Chọn xe → Checkout → Thanh toán cọc → Giao dịch được xác nhận trong 24h → Thanh toán số dư và nhận xe.
+                Choose a bike → Checkout → Pay deposit → Transaction confirmed within 24h → Pay balance and receive bike.
               </p>
             </div>
             <div className="rounded-lg border bg-muted/50 p-4">
-              <div className="font-semibold">Người bán cần làm gì để đăng tin?</div>
+              <div className="font-semibold">What do sellers need to do to list?</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Đăng ký tài khoản Seller → Tạo tin đăng với ảnh và mô tả → Gửi kiểm định → Inspector duyệt → Tin xuất hiện trên marketplace.
+                Register a Seller account → Create listing with photos and description → Submit for inspection → Inspector approves → Listing appears on marketplace.
               </p>
             </div>
           </CardContent>
@@ -55,8 +55,8 @@ export default function SupportPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <MessageCircle className="h-5 w-5" />
             </div>
-            <CardTitle className="text-lg">Liên hệ hỗ trợ</CardTitle>
-            <CardDescription>Chat trực tiếp sẽ có khi tích hợp Backend.</CardDescription>
+            <CardTitle className="text-lg">Contact support</CardTitle>
+            <CardDescription>Live chat will be available when Backend is integrated.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3 rounded-lg border p-4">
@@ -70,17 +70,17 @@ export default function SupportPage() {
                   support@shopbike.example.com
                 </a>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Phản hồi trong 24–48 giờ làm việc.
+                  Response within 24–48 business hours.
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-lg border p-4">
               <FileText className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
               <div>
-                <div className="font-semibold">Tài liệu</div>
+                <div className="font-semibold">Documentation</div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Xem <Link to="/" className="text-primary hover:underline">trang chủ</Link> và{" "}
-                  <Link to="/profile" className="text-primary hover:underline">Profile</Link> để biết thêm về quy trình.
+                  Visit the <Link to="/" className="text-primary hover:underline">home page</Link> and{" "}
+                  <Link to="/profile" className="text-primary hover:underline">Profile</Link> for more on the process.
                 </p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function SupportPage() {
 
       <div className="flex justify-center">
         <Button asChild variant="outline">
-          <Link to="/">← Về trang chủ</Link>
+          <Link to="/">← Back to home</Link>
         </Button>
       </div>
     </div>

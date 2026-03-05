@@ -1,14 +1,15 @@
 /**
- * Inspector API – scaffold cho luồng kiểm định.
- * Khi Backend có API, gọi thật. Hiện pages dùng mock.
+ * Inspector API – maps to backend endpoints.
+ * Update API_PATHS in apiConfig.ts when Swagger spec is available.
  */
 import apiClient from "@/lib/apiClient";
+import { API_PATHS } from "@/lib/apiConfig";
 import type { Listing, BikeDetail } from "@/types/shopbike";
 
 export const inspectorApi = {
   getPendingListings: (): Promise<Listing[]> =>
     apiClient
-      .get("/inspector/pending-listings")
+      .get(API_PATHS.INSPECTOR.PENDING_LISTINGS)
       .then((r) => {
         const raw = r.data?.content ?? r.data?.data ?? r.data;
         return Array.isArray(raw) ? raw : [];
@@ -16,21 +17,24 @@ export const inspectorApi = {
 
   getListingById: (id: string): Promise<BikeDetail> =>
     apiClient
-      .get(`/inspector/listings/${id}`)
+      .get(API_PATHS.INSPECTOR.LISTING_BY_ID(id))
       .then((r) => r.data?.data ?? r.data),
 
-  approve: (id: string): Promise<{ ok: boolean }> =>
-    apiClient
-      .put(`/inspector/listings/${id}/approve`)
-      .then(() => ({ ok: true })),
+  approve: (
+    id: string,
+    inspectionReport: {
+      frameIntegrity: { score: number; label: string };
+      drivetrainHealth: { score: number; label: string };
+      brakingSystem: { score: number; label: string };
+    },
+  ): Promise<{ ok: boolean }> =>
+    apiClient.put(API_PATHS.INSPECTOR.LISTING_APPROVE(id), { inspectionReport }).then(() => ({ ok: true })),
 
   reject: (id: string): Promise<{ ok: boolean }> =>
-    apiClient
-      .put(`/inspector/listings/${id}/reject`)
-      .then(() => ({ ok: true })),
+    apiClient.put(API_PATHS.INSPECTOR.LISTING_REJECT(id)).then(() => ({ ok: true })),
 
   needUpdate: (id: string, reason?: string): Promise<{ ok: boolean }> =>
     apiClient
-      .put(`/inspector/listings/${id}/need-update`, { reason })
+      .put(API_PATHS.INSPECTOR.LISTING_NEED_UPDATE(id), { reason })
       .then(() => ({ ok: true })),
 };

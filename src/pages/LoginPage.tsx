@@ -62,10 +62,10 @@ const ROLE_CONFIG: Record<
   Role,
   { label: string; icon: React.ElementType; short: string }
 > = {
-  BUYER: { label: "Buyer", icon: ShoppingBag, short: "Mua xe" },
-  SELLER: { label: "Seller", icon: Store, short: "Bán xe" },
-  INSPECTOR: { label: "Inspector", icon: ClipboardCheck, short: "Kiểm định" },
-  ADMIN: { label: "Admin", icon: Shield, short: "Quản trị" },
+  BUYER: { label: "Buyer", icon: ShoppingBag, short: "Buy" },
+  SELLER: { label: "Seller", icon: Store, short: "Sell" },
+  INSPECTOR: { label: "Inspector", icon: ClipboardCheck, short: "Inspect" },
+  ADMIN: { label: "Admin", icon: Shield, short: "Admin" },
 };
 
 export default function LoginPage() {
@@ -217,7 +217,7 @@ export default function LoginPage() {
                       to="/forgot-password"
                       className="text-xs text-primary hover:underline"
                     >
-                      Quên mật khẩu?
+                      Forgot password?
                     </Link>
                   </div>
                   <Input

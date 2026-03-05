@@ -164,7 +164,7 @@ Tech FE: React + Vite + TypeScript + Tailwind + shadcn/ui + React Router + Zusta
 - **CORS** cho FE dev server (`http://localhost:5173`)
 - **Seed data**: sample Buyer/Seller accounts + vài listing published + approve
 
-Hướng dẫn đổi mock → API thật: xem `docs/API-INTEGRATION.md`.
+Hướng dẫn kết nối API: xem `docs/API-SETUP.md`, `docs/HUONG-DAN-BACKEND.md`.
 
 ---
 

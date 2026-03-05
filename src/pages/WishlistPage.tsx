@@ -35,12 +35,12 @@ export default function WishlistPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <Heart className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold">Chưa có xe yêu thích</h2>
+            <h2 className="mt-4 text-lg font-semibold">No saved bikes yet</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Bấm biểu tượng trái tim trên trang chi tiết xe để lưu vào wishlist.
+              Click the heart icon on a bike detail page to add to wishlist.
             </p>
             <Button asChild className="mt-6">
-              <Link to="/">Khám phá xe</Link>
+              <Link to="/">Explore bikes</Link>
             </Button>
           </CardContent>
         </Card>
@@ -51,24 +51,24 @@ export default function WishlistPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Xe yêu thích</h1>
+        <h1 className="text-2xl font-bold">Saved bikes</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {listings.length} xe đã lưu
+          {listings.length} bikes saved
         </p>
       </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">Đang tải...</p>
+          <p className="mt-3 text-sm text-muted-foreground">Loading...</p>
         </div>
       ) : listings.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center py-12">
             <Bike className="h-12 w-12 text-muted-foreground" />
-            <p className="mt-3 text-sm">Một số xe có thể không còn khả dụng.</p>
+            <p className="mt-3 text-sm">Some bikes may no longer be available.</p>
             <Button asChild variant="outline" className="mt-4">
-              <Link to="/">Về trang chủ</Link>
+              <Link to="/">Back to home</Link>
             </Button>
           </CardContent>
         </Card>

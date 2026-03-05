@@ -1,16 +1,51 @@
-# React + Vite
+# ShopBike Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend cho **Bike Trading** – mua bán xe đạp thể thao cũ.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Chạy nhanh
 
-## React Compiler
+```bash
+copy .env.example .env
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Mở `http://localhost:5173`.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Cấu trúc (feature-based)
+
+```
+src/
+├── app/          # Router, providers
+├── features/     # auth, landing, bikes, buyer, seller, inspector, support
+├── shared/       # components, layouts, constants
+└── lib/          # env, apiClient, utils
+```
+
+Chi tiết: `docs/STRUCTURE.md`
+
+---
+
+## Chế độ chạy
+
+| Chế độ | VITE_USE_MOCK_API | Cần Backend? |
+|--------|-------------------|--------------|
+| Mock | `true` | ❌ Không |
+| API thật | `false` | ✅ Có |
+
+---
+
+## Tài liệu
+
+| File | Nội dung |
+|------|----------|
+| `docs/STRUCTURE.md` | Cấu trúc, quy ước import |
+| `docs/HUONG-DAN-BACKEND.md` | Contract API |
+| `docs/API-SETUP.md` | Kết nối Backend |
+| `docs/HUONG-DAN-DEMO.md` | Demo |
+| `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ |
+| `docs/CHANGELOG.md` | Lịch sử thay đổi |

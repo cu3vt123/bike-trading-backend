@@ -28,12 +28,12 @@ export default function ForgotPasswordPage() {
 
     const trimmed = email.trim();
     if (!trimmed) {
-      setError("Vui lòng nhập email đăng ký.");
+      setError("Please enter your registered email.");
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
-      setError("Email không hợp lệ.");
+      setError("Invalid email.");
       return;
     }
 
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
       await authApi.forgotPassword(trimmed);
       setSuccess(true);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại sau.";
+      const msg = err instanceof Error ? err.message : "An error occurred. Please try again.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -77,20 +77,20 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <Mail className="h-6 w-6" />
               </div>
-              <CardTitle>Kiểm tra email của bạn</CardTitle>
+              <CardTitle>Check your email</CardTitle>
               <CardDescription>
-                Nếu tài khoản với email <strong>{email}</strong> tồn tại, bạn sẽ nhận được
-                hướng dẫn đặt lại mật khẩu.
+                If an account with email <strong>{email}</strong> exists, you will receive
+                password reset instructions.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                Chưa nhận được email? Kiểm tra thư mục spam hoặc thử lại sau vài phút.
+                Didn't receive the email? Check spam folder or try again in a few minutes.
               </p>
               <Button variant="outline" className="w-full" asChild>
                 <Link to="/login">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Quay lại đăng nhập
+                  Back to login
                 </Link>
               </Button>
             </CardContent>
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
               Explore
             </Link>
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
-              Đăng nhập
+              Log in
             </Link>
           </nav>
         </div>
@@ -128,9 +128,9 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Quên mật khẩu</CardTitle>
+              <CardTitle>Forgot password</CardTitle>
               <CardDescription>
-                Nhập email đăng ký tài khoản. Chúng tôi sẽ gửi link đặt lại mật khẩu.
+                Enter your registered email. We will send a password reset link.
               </CardDescription>
             </CardHeader>
 
@@ -155,13 +155,13 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Đang gửi..." : "Gửi link đặt lại mật khẩu"}
+                  {submitting ? "Sending..." : "Send reset link"}
                 </Button>
 
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Quay lại đăng nhập
+                    Back to login
                   </Link>
                 </Button>
               </form>

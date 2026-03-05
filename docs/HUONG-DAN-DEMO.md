@@ -6,29 +6,28 @@ This document describes how to run and demo the complete buyer purchase flow fro
 
 ## 1. Environment Setup
 
-### Step 1.1: Install & start Backend
+### Step 1.1: Install & start Backend (nếu dùng backend Node trong `backend/`)
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
+copy .env.example .env
 npm run dev
 ```
 
-- API runs at: `http://localhost:8081/api`
-- First run may download MongoDB binary ~600MB (in-memory)
-- When you see log `[seed] demo data loaded` → Backend is ready
+- API: `http://localhost:8081/api` (hoặc port trong .env)
+- Khi thấy log backend ready → Backend sẵn sàng
 
-### Step 1.2: Configure Frontend
+### Step 1.2: Cấu hình Frontend
 
-Create or edit `.env` in the `frontend` folder:
+Tạo/sửa `.env` ở root frontend (copy từ `.env.example`):
 
 ```
 VITE_API_BASE_URL=http://localhost:8081/api
 VITE_USE_MOCK_API=false
 ```
 
-### Step 1.3: Start Frontend
+### Step 1.3: Chạy Frontend
 
 ```bash
 cd ..
@@ -41,12 +40,12 @@ npm run dev
 
 ## 2. Demo accounts
 
-| Role    | Email              | Password   |
-|--------|--------------------|------------|
-| Buyer  | `buyer@demo.com`   | `Password!1` |
-| Seller | `seller@demo.com`  | `Password!1` |
+| Role      | Email                | Password     |
+| --------- | -------------------- | ------------ |
+| Buyer     | `buyer@demo.com`     | `Password!1` |
+| Seller    | `seller@demo.com`    | ` `          |
 | Inspector | `inspector@demo.com` | `Password!1` |
-| Admin  | `admin@demo.com`   | `Password!1` |
+| Admin     | `admin@demo.com`     | `Password!1` |
 
 **Note:** Password has capital **P**, exclamation `!` and number `1`.
 
@@ -157,20 +156,46 @@ Login → Home → Bike detail → Checkout → Transaction → Finalize → Suc
 
 ## 5. Troubleshooting
 
-| Symptom | Solution |
-|---------|----------|
-| 401 Invalid credentials on login | Ensure Backend is running and has log `[seed] demo data loaded` |
-| Empty page, no listings | Check `VITE_USE_MOCK_API=false` and restart Frontend |
-| Cannot create order | Verify logged in as Buyer, Backend is running |
-| Error when completing order | Ensure `orderId` is passed from Transaction → Finalize (do not refresh mid-flow) |
+| Symptom                          | Solution                                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| 401 Invalid credentials on login | Ensure Backend is running and has log `[seed] demo data loaded`                  |
+| Empty page, no listings          | Check `VITE_USE_MOCK_API=false` and restart Frontend                             |
+| Cannot create order              | Verify logged in as Buyer, Backend is running                                    |
+| Error when completing order      | Ensure `orderId` is passed from Transaction → Finalize (do not refresh mid-flow) |
 
 ---
 
-## 6. Other flows (optional)
+## 6. Inspector flow (optional)
 
-- **Seller:** Login `seller@demo.com` → Dashboard → Create listing → Submit inspection
-- **Inspector:** Login `inspector@demo.com` → Inspector Dashboard → Approve/Reject listings
+### Step 6.1: Login Inspector
+
+1. Open `/login`
+2. Select role **Inspector**
+3. Enter: `inspector@demo.com` / `Password!1`
+4. Click **Log in**
+
+### Step 6.2: Inspector Dashboard
+
+1. Click **Inspector** in header → `/inspector`
+2. View **listings pending inspection** (from seed: Giant TCR, Scott Addict RC)
+3. For each listing you can:
+   - **View details** → opens `/bikes/:id` (shows "Pending inspection", no Buy button)
+   - **Approve** → listing becomes PUBLISHED, appears on marketplace
+   - **Reject** → listing closed (REJECTED)
+   - **Need update** → add reason (optional), seller must resubmit after editing
+
+### Step 6.3: Demo actions
+
+1. Click **Approve** on Giant TCR → confirm → listing removed from pending, now on Home
+2. Or click **Need update** → enter "Need clearer drivetrain photo" → confirm
 
 ---
 
-*Updated: full buyer flow with API backend.*
+## 7. Seller flow (optional)
+
+- **Seller:** Login `seller@demo.com` → Dashboard → Create listing → Add photos → Submit for inspection
+- After submit: listing appears in Inspector Dashboard for approval
+
+---
+
+_Updated: full buyer flow with API backend._

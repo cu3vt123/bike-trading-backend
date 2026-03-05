@@ -133,7 +133,12 @@ export default function TransactionPage() {
   }
 
   const currency = (listing?.currency ?? "USD") as "VND" | "USD";
-  const score = listing?.inspectionScore ?? 4.6;
+  const score = listing?.inspectionScore ?? 0;
+  const inspectionReport = listing?.inspectionReport;
+  const hasInspectionReport =
+    inspectionReport?.frameIntegrity &&
+    inspectionReport?.drivetrainHealth &&
+    inspectionReport?.brakingSystem;
   const totalPrice =
     state.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
   const depositPaid =
@@ -358,13 +363,15 @@ export default function TransactionPage() {
                   </span>
                 </div>
 
-                <Button
-                  variant="outline"
-                  className="mt-4 w-full"
-                  onClick={() => setReportOpen(true)}
-                >
-                  View inspection report
-                </Button>
+                {hasInspectionReport && (
+                  <Button
+                    variant="outline"
+                    className="mt-4 w-full"
+                    onClick={() => setReportOpen(true)}
+                  >
+                    View inspection report
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -404,30 +411,39 @@ export default function TransactionPage() {
       </Dialog>
 
       {/* Inspection Report Dialog */}
-      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Inspection Report</DialogTitle>
-            <DialogDescription>{listing?.brand} {listing?.model ?? ""}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {[
-              { label: "Frame integrity", value: "Excellent", s: score },
-              { label: "Drivetrain health", value: "Great", s: Math.max(4.2, score - 0.2) },
-              { label: "Braking system", value: "Great", s: Math.max(4.0, score - 0.3) },
-            ].map(({ label, value, s }) => (
-              <div key={label} className="flex items-center justify-between rounded-lg border px-4 py-3">
-                <span className="text-sm text-muted-foreground">{label}</span>
+      {hasInspectionReport && (
+        <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Inspection Report</DialogTitle>
+              <DialogDescription>{listing?.brand} {listing?.model ?? ""}</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {[
+                { rowLabel: "Frame integrity", ...inspectionReport!.frameIntegrity },
+                { rowLabel: "Drivetrain health", ...inspectionReport!.drivetrainHealth },
+                { rowLabel: "Braking system", ...inspectionReport!.brakingSystem },
+              ].map(({ rowLabel, label: value, score: s }) => (
+                <div key={rowLabel} className="flex items-center justify-between rounded-lg border px-4 py-3">
+                  <span className="text-sm text-muted-foreground">{rowLabel}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{value}</span>
+                    <Stars value={s ?? 0} />
+                    <span className="text-xs text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between rounded-lg border px-4 py-3 bg-muted/30">
+                <span className="text-sm text-muted-foreground">Overall score</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">{value}</span>
-                  <Stars value={s} />
-                  <span className="text-xs text-muted-foreground">({s.toFixed(1)})</span>
+                  <Stars value={score} />
+                  <span className="text-sm font-semibold">({score.toFixed(1)})</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Support Chat Dialog */}
       <Dialog open={supportOpen} onOpenChange={setSupportOpen}>

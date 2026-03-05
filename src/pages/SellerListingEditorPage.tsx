@@ -54,7 +54,8 @@ export default function SellerListingEditorPage() {
       price: priceNum,
       location,
       condition,
-      imageUrls: [], // TODO: upload photos → URLs khi BE có API
+      // Demo: gửi object URLs để BE nhận được ảnh list (chưa upload thật)
+      imageUrls: photoItems.map((p) => p.url).filter(Boolean),
     };
   }
 
@@ -72,7 +73,7 @@ export default function SellerListingEditorPage() {
         navigate(`/seller/listings/${created.id}/edit`, { replace: true });
       }
     } catch {
-      setError("Không thể lưu draft. Thử lại sau.");
+      setError("Could not save draft. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -98,7 +99,7 @@ export default function SellerListingEditorPage() {
       setStep("PENDING_INSPECTION");
       navigate("/seller", { replace: true });
     } catch {
-      setError("Không thể gửi kiểm định. Thử lại sau.");
+      setError("Could not submit for inspection. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -172,7 +173,7 @@ export default function SellerListingEditorPage() {
 
       {locked && (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Tin này đang <b>chờ kiểm định</b>. Không thể chỉnh sửa cho đến khi có kết quả.
+          This listing is <b>pending inspection</b>. Editing is disabled until a result is available.
         </div>
       )}
 
@@ -317,7 +318,7 @@ export default function SellerListingEditorPage() {
               disabled={locked || submitting}
               className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
             >
-              {submitting ? "Đang lưu..." : "Save draft"}
+              {submitting ? "Saving..." : "Save draft"}
             </button>
 
             <button
@@ -325,7 +326,7 @@ export default function SellerListingEditorPage() {
               disabled={locked || submitting}
               className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-200"
             >
-              {submitting ? "Đang gửi..." : "Submit for inspection →"}
+              {submitting ? "Submitting..." : "Submit for inspection →"}
             </button>
 
             <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">

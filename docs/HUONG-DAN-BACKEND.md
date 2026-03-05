@@ -320,4 +320,4 @@ Dùng các giá trị sau để FE hiển thị đúng:
 | /api/bikes | GET | Không | Danh sách xe |
 | /api/bikes/:id | GET | Không | Chi tiết xe |
 
-Nếu có thắc mắc về format request/response, có thể hỏi team FE hoặc tham khảo `docs/API-CONTRACT.md`.
+Nếu có thắc mắc về format request/response, có thể hỏi team FE.

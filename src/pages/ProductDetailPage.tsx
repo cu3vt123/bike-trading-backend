@@ -127,9 +127,16 @@ export default function ProductDetailPage() {
   const currency = (listing.currency ?? "USD") as "VND" | "USD";
   const price = listing.price;
   const msrp = listing.msrp;
-  const score = listing.inspectionScore ?? 4.6;
+  const score = listing.inspectionScore ?? 0;
+  const inspectionReport = listing.inspectionReport;
+  const hasInspectionReport =
+    inspectionReport?.frameIntegrity &&
+    inspectionReport?.drivetrainHealth &&
+    inspectionReport?.brakingSystem;
   const isVerified =
     listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
+  const canBuy = isVerified;
+  const isPendingInspection = listing.state === "PENDING_INSPECTION";
 
   return (
     <div className="mx-auto w-full max-w-6xl">
@@ -206,33 +213,53 @@ export default function ProductDetailPage() {
             <p className="mt-2 text-sm text-muted-foreground">{listing.title}</p>
           </div>
 
-          {/* Inspection report */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <span className="text-sm font-semibold">Inspection Report</span>
-              <Button variant="link" size="sm" className="text-primary" onClick={() => setReportOpen(true)}>
-                View full report
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  { label: "Frame integrity", value: "Excellent", score },
-                  { label: "Drivetrain health", value: "Great", score: Math.max(4.2, score - 0.2) },
-                  { label: "Braking system", value: "Great", score: Math.max(4.0, score - 0.3) },
-                ].map(({ label, value, score: s }) => (
-                  <div key={label} className="rounded-lg border bg-muted/50 p-4">
-                    <div className="text-xs text-muted-foreground">{label}</div>
-                    <div className="mt-2 text-sm font-semibold">{value}</div>
-                    <div className="mt-1 text-xs">
-                      <Stars value={s} />{" "}
-                      <span className="text-muted-foreground">({s.toFixed(1)})</span>
+          {/* Inspection report – only when inspector has filled it in */}
+          {hasInspectionReport ? (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <span className="text-sm font-semibold">Inspection Report</span>
+                <Button variant="link" size="sm" className="text-primary" onClick={() => setReportOpen(true)}>
+                  View full report
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    { rowLabel: "Frame integrity", ...inspectionReport.frameIntegrity },
+                    { rowLabel: "Drivetrain health", ...inspectionReport.drivetrainHealth },
+                    { rowLabel: "Braking system", ...inspectionReport.brakingSystem },
+                  ].map(({ rowLabel, label: value, score: s }) => (
+                    <div key={rowLabel} className="rounded-lg border bg-muted/50 p-4">
+                      <div className="text-xs text-muted-foreground">{rowLabel}</div>
+                      <div className="mt-2 text-sm font-semibold">{value}</div>
+                      <div className="mt-1 text-xs">
+                        <Stars value={s ?? 0} />{" "}
+                        <span className="text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : isPendingInspection ? (
+            <Card>
+              <CardContent className="py-6">
+                <div className="text-sm font-semibold">Inspection Report</div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Pending inspection. An inspector will review this listing and add the report.
+                </p>
+              </CardContent>
+            </Card>
+          ) : !isVerified ? (
+            <Card>
+              <CardContent className="py-6">
+                <div className="text-sm font-semibold">Inspection Report</div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No inspection report available.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {/* Specs */}
           <Card>
@@ -255,31 +282,38 @@ export default function ProductDetailPage() {
           </Card>
 
           {/* Full Report Dialog */}
-          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Inspection Report</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {[
-                  { label: "Frame integrity", value: "Excellent", s: score },
-                  { label: "Drivetrain health", value: "Great", s: Math.max(4.2, score - 0.2) },
-                  { label: "Braking system", value: "Great", s: Math.max(4.0, score - 0.3) },
-                  { label: "Wheels & tires", value: "Good", s: Math.max(3.8, score - 0.4) },
-                  { label: "Overall condition", value: "Great", s: score },
-                ].map(({ label, value, s }) => (
-                  <div key={label} className="flex items-center justify-between rounded-lg border px-4 py-3">
-                    <span className="text-sm text-muted-foreground">{label}</span>
+          {hasInspectionReport && (
+            <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Inspection Report</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  {[
+                    { rowLabel: "Frame integrity", ...inspectionReport!.frameIntegrity },
+                    { rowLabel: "Drivetrain health", ...inspectionReport!.drivetrainHealth },
+                    { rowLabel: "Braking system", ...inspectionReport!.brakingSystem },
+                  ].map(({ rowLabel, label: value, score: s }) => (
+                    <div key={rowLabel} className="flex items-center justify-between rounded-lg border px-4 py-3">
+                      <span className="text-sm text-muted-foreground">{rowLabel}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{value}</span>
+                        <Stars value={s ?? 0} />
+                        <span className="text-xs text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between rounded-lg border px-4 py-3 bg-muted/30">
+                    <span className="text-sm text-muted-foreground">Overall score</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{value}</span>
-                      <Stars value={s} />
-                      <span className="text-xs text-muted-foreground">({s.toFixed(1)})</span>
+                      <Stars value={score} />
+                      <span className="text-sm font-semibold">({score.toFixed(1)})</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         {/* RIGHT: Price / actions */}
@@ -298,45 +332,65 @@ export default function ProductDetailPage() {
                     )}
                     <p className="mt-2 text-xs text-primary">Service fee included</p>
                   </div>
-                  <div className="rounded-lg bg-primary/10 px-3 py-2 text-center">
-                    <div className="text-[10px] font-semibold text-primary">INSPECTED</div>
-                    <div className="mt-1 text-xs">
-                      <Stars value={score} />
+                  <div className={`rounded-lg px-3 py-2 text-center ${isVerified ? "bg-primary/10" : isPendingInspection ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"}`}>
+                    <div className="text-[10px] font-semibold">
+                      {isVerified ? "INSPECTED" : isPendingInspection ? "PENDING" : "UNAVAILABLE"}
                     </div>
+                    {isVerified && (
+                      <div className="mt-1 text-xs">
+                        <Stars value={score} />
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0"
-                    onClick={() => toggleWishlist(listing.id)}
-                    aria-label={inWishlist(listing.id) ? "Remove from wishlist" : "Add to wishlist"}
-                  >
-                    <Heart
-                      className={`h-4 w-4 ${inWishlist(listing.id) ? "fill-primary text-primary" : ""}`}
-                    />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setChatOpen(true)}
-                  >
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Chat với người bán
-                  </Button>
+                  {canBuy && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() => toggleWishlist(listing.id)}
+                      aria-label={inWishlist(listing.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart
+                        className={`h-4 w-4 ${inWishlist(listing.id) ? "fill-primary text-primary" : ""}`}
+                      />
+                    </Button>
+                  )}
+                  {canBuy && (
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setChatOpen(true)}
+                    >
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Chat with seller
+                    </Button>
+                  )}
                 </div>
-                <Button
-                  className="mt-3 w-full"
-                  onClick={() => navigate(`/checkout/${listing.id}`)}
-                >
-                  Buy now →
-                </Button>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Reservation is created after <span className="font-semibold">deposit payment</span>{" "}
-                  in checkout and is held for <span className="font-semibold">24 hours</span>.
-                </p>
+                {canBuy ? (
+                  <>
+                    <Button
+                      className="mt-3 w-full"
+                      onClick={() => navigate(`/checkout/${listing.id}`)}
+                    >
+                      Buy now →
+                    </Button>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Reservation is created after <span className="font-semibold">deposit payment</span>{" "}
+                      in checkout and is held for <span className="font-semibold">24 hours</span>.
+                    </p>
+                  </>
+                ) : isPendingInspection ? (
+                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <span className="font-semibold">Pending inspection.</span> This listing is under review and not yet available for purchase.
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-lg border border-muted bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+                    This listing is not available for purchase.
+                  </div>
+                )}
 
                 <div className="mt-4 space-y-2 text-xs">
                   <InfoLine title="Secure Payment" desc="Protected marketplace escrow flow" />
@@ -358,7 +412,7 @@ export default function ProductDetailPage() {
                   onClick={() => setChatOpen(true)}
                 >
                   <MessageCircle className="mr-2 h-3.5 w-3.5" />
-                  Nhắn tin
+                  Message
                 </Button>
               </CardContent>
             </Card>
@@ -367,10 +421,10 @@ export default function ProductDetailPage() {
             <Dialog open={chatOpen} onOpenChange={setChatOpen}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Chat với người bán</DialogTitle>
+                  <DialogTitle>Chat with seller</DialogTitle>
                 </DialogHeader>
                 <div className="py-6 text-center text-sm text-muted-foreground">
-                  Tính năng chat trực tiếp sẽ có khi tích hợp Backend. Hiện tại bạn có thể liên hệ qua email
+                  Live chat will be available when Backend is integrated. For now you can contact via email
                   <a href="mailto:support@shopbike.example.com" className="ml-1 text-primary hover:underline">
                     support@shopbike.example.com
                   </a>.
