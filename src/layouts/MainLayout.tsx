@@ -1,5 +1,5 @@
 // src/layouts/MainLayout.tsx
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Header } from "@/components/common/Header";
 
@@ -29,16 +29,26 @@ export default function MainLayout() {
   }, [location.pathname, location.state, navigate]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header />
 
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-6">
+      <main className="mx-auto flex-1 w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
       </main>
 
-      <footer className="border-t border-black/5 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-black/50">
-          © {new Date().getFullYear()} ShopBike
+      <footer className="border-t border-slate-200/80 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6">
+          <span className="text-sm text-slate-500">
+            © {new Date().getFullYear()} ShopBike — Verified &amp; Inspected Marketplace
+          </span>
+          <div className="flex gap-6 text-sm">
+            <Link to="/support" className="text-slate-500 transition-colors hover:text-primary">
+              Support
+            </Link>
+            <Link to="/#listings" className="text-slate-500 transition-colors hover:text-primary">
+              Browse Bikes
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

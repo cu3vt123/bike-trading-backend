@@ -45,24 +45,27 @@ export function Header() {
   }, [navigate]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <Link
+          to="/"
+          className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
+        >
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground text-base font-bold shadow-sm transition-transform group-hover:scale-105">
             S
           </span>
           <div className="leading-tight">
-            <div className="text-sm font-semibold text-slate-900">ShopBike</div>
+            <div className="text-sm font-bold text-slate-900">ShopBike</div>
             <div className="text-xs text-slate-500">
               Verified &amp; Inspected
             </div>
           </div>
         </Link>
 
-        <nav className="flex items-center gap-3">
+        <nav className="flex flex-wrap items-center gap-1 sm:gap-2">
           <button
             onClick={onExplore}
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
           >
             Explore
           </button>
@@ -70,7 +73,7 @@ export function Header() {
           {!!accessToken && role === "BUYER" && (
             <Link
               to="/wishlist"
-              className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               Wishlist
             </Link>
@@ -78,7 +81,7 @@ export function Header() {
 
           <Link
             to="/support"
-            className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
           >
             Support
           </Link>
@@ -86,7 +89,7 @@ export function Header() {
           {!!accessToken && (
             <button
               onClick={onProfile}
-              className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
             >
               Profile
             </button>
@@ -95,7 +98,7 @@ export function Header() {
           {!!accessToken && role === "SELLER" && (
             <button
               onClick={onSellerDashboard}
-              className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
             >
               Seller dashboard
             </button>
@@ -104,7 +107,7 @@ export function Header() {
           {!!accessToken && (role === "INSPECTOR" || role === "ADMIN") && (
             <button
               onClick={onInspectorDashboard}
-              className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
             >
               Inspector
             </button>
@@ -114,13 +117,13 @@ export function Header() {
             <>
               <Link
                 to="/register"
-                className="rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
               >
                 Sign up
               </Link>
               <button
                 onClick={onLogin}
-                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow"
               >
                 Login
               </button>
@@ -128,7 +131,7 @@ export function Header() {
           ) : (
             <button
               onClick={onLogout}
-              className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
             >
               Logout
             </button>

@@ -125,16 +125,16 @@ export default function LoginPage() {
   const roles: Role[] = ["BUYER", "SELLER", "INSPECTOR", "ADMIN"];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-slate-50 text-foreground">
       {/* Top bar - no MainLayout to avoid double header */}
-      <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+      <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-sm">
               S
             </span>
             <div className="leading-tight">
-              <div className="text-sm font-semibold">ShopBike</div>
+              <div className="text-sm font-bold">ShopBike</div>
               <div className="text-xs text-muted-foreground">
                 Verified &amp; Inspected
               </div>
@@ -144,13 +144,13 @@ export default function LoginPage() {
           <nav className="flex items-center gap-4 text-sm">
             <Link
               to="/#listings"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               Explore
             </Link>
             <Link
               to="/support"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground transition-colors hover:text-foreground"
             >
               Support
             </Link>
@@ -158,12 +158,12 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
+      <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Card>
+          <Card className="border-slate-200 shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle>Welcome back</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl">Welcome back</CardTitle>
+              <CardDescription className="mt-1">
                 Log in to continue your verified marketplace experience.
               </CardDescription>
             </CardHeader>
@@ -189,10 +189,10 @@ export default function LoginPage() {
                         type="button"
                         onClick={() => setRole(r)}
                         className={cn(
-                          "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors",
+                          "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all",
                           isSelected
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-input hover:bg-accent hover:text-accent-foreground",
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50",
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />

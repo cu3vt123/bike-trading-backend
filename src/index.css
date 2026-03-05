@@ -67,9 +67,23 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   html,
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     min-height: 100%;
+  }
+
+  /* Smooth transitions for interactive elements */
+  button, a, [role="button"] {
+    @apply transition-colors duration-200;
+  }
+
+  /* Focus ring for accessibility */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
   }
 }

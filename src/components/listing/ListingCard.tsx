@@ -37,20 +37,20 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
     <Link
       to={`/bikes/${listing.id}`}
       state={{ listing }}
-      className="group block overflow-hidden rounded-xl border bg-card shadow-sm transition hover:shadow-md"
+      className="group block overflow-hidden rounded-xl border border-slate-200 bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
     >
       <div className="relative overflow-hidden rounded-t-xl">
         <div className="aspect-[4/3] w-full bg-slate-100">
           <img
             src={img}
             alt={listing.title}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
         </div>
 
         {isVerified && (
-          <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">
+          <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
             Verified
           </div>
         )}
@@ -59,7 +59,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
             <Button
               variant="secondary"
               size="icon"
-              className="h-8 w-8 rounded-full shadow-sm"
+              className="h-8 w-8 rounded-full shadow-md transition-transform hover:scale-110"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -68,7 +68,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
               aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
             >
               <Heart
-                className={`h-4 w-4 ${inWishlist ? "fill-primary text-primary" : ""}`}
+                className={`h-4 w-4 transition-colors ${inWishlist ? "fill-primary text-primary" : ""}`}
               />
             </Button>
           </div>
@@ -77,16 +77,16 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold text-foreground">
               {listing.brand} {listing.model ?? ""}
             </div>
-            <div className="truncate text-xs text-muted-foreground">
+            <div className="mt-0.5 truncate text-xs text-muted-foreground">
               {listing.title}
             </div>
           </div>
 
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <div className="text-sm font-bold text-primary">
               {formatMoney(listing.price, listing.currency ?? "VND")}
             </div>

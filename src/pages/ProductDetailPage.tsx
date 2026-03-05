@@ -102,22 +102,22 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Loading listing...</p>
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 py-28">
+        <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-sm font-medium text-muted-foreground">Loading listing...</p>
       </div>
     );
   }
 
   if (error || !listing) {
     return (
-      <Card className="mx-auto max-w-6xl">
-        <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Listing not found</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <Card className="mx-auto max-w-6xl border-slate-200">
+        <CardContent className="py-16 text-center">
+          <h1 className="text-xl font-bold">Listing not found</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             {error ?? "The bike listing you're looking for doesn't exist."}
           </p>
-          <Button asChild variant="link" className="mt-4">
+          <Button asChild variant="outline" className="mt-6">
             <Link to="/">Back to Home</Link>
           </Button>
         </CardContent>
@@ -142,12 +142,12 @@ export default function ProductDetailPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       {/* breadcrumb */}
-      <div className="mb-4 flex items-center gap-1 text-xs text-muted-foreground">
-        <Link to="/" className="hover:underline">
+      <div className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Link to="/" className="transition-colors hover:text-foreground">
           Home
         </Link>
-        <ChevronRight className="h-3 w-3" />
-        <span className="text-foreground">
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="font-medium text-foreground">
           {listing.brand} {listing.model}
         </span>
       </div>
@@ -156,16 +156,16 @@ export default function ProductDetailPage() {
         {/* LEFT: Gallery + content */}
         <div className="lg:col-span-8 space-y-6">
           {/* Gallery */}
-          <Card>
+          <Card className="border-slate-200 shadow-sm">
             <CardContent className="p-4">
               <div className="grid gap-4 md:grid-cols-12">
                 <div className="md:col-span-8">
-                  <div className="overflow-hidden rounded-xl border bg-muted">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                     <div className="aspect-[4/3] w-full">
                       <img
                         src={images[Math.min(active, images.length - 1)]}
                         alt={listing.title}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-300"
                       />
                     </div>
                   </div>
@@ -178,11 +178,11 @@ export default function ProductDetailPage() {
                         key={`${src}-${idx}`}
                         type="button"
                         onClick={() => setActive(idx)}
-                        className={`overflow-hidden rounded-lg border-2 transition ${
+                        className={`overflow-hidden rounded-xl border-2 transition-all ${
                           idx === active
-                            ? "border-primary ring-2 ring-primary/20"
-                            : "border-input hover:border-primary/50"
-                        } bg-muted`}
+                            ? "border-primary ring-2 ring-primary/20 shadow-sm"
+                            : "border-slate-200 hover:border-slate-300"
+                        } bg-slate-50`}
                       >
                         <div className="aspect-square">
                           <img src={src} alt="" className="h-full w-full object-cover" />
@@ -216,7 +216,7 @@ export default function ProductDetailPage() {
 
           {/* Inspection report – only when inspector has filled it in */}
           {hasInspectionReport ? (
-            <Card>
+            <Card className="border-slate-200">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <span className="text-sm font-semibold">Inspection Report</span>
                 <Button variant="link" size="sm" className="text-primary" onClick={() => setReportOpen(true)}>
@@ -230,7 +230,7 @@ export default function ProductDetailPage() {
                     { rowLabel: "Drivetrain health", ...inspectionReport.drivetrainHealth },
                     { rowLabel: "Braking system", ...inspectionReport.brakingSystem },
                   ].map(({ rowLabel, label: value, score: s }) => (
-                    <div key={rowLabel} className="rounded-lg border bg-muted/50 p-4">
+                    <div key={rowLabel} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
                       <div className="text-xs text-muted-foreground">{rowLabel}</div>
                       <div className="mt-2 text-sm font-semibold">{value}</div>
                       <div className="mt-1 text-xs">
@@ -320,7 +320,7 @@ export default function ProductDetailPage() {
         {/* RIGHT: Price / actions */}
         <div className="lg:col-span-4">
           <div className="sticky top-24 space-y-4">
-            <Card>
+            <Card className="border-slate-200 shadow-md">
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
