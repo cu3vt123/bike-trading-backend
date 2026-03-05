@@ -6,9 +6,9 @@ export default {
   	extend: {
   		colors: {
   			brand: {
-  				DEFAULT: '#2563EB',
-  				soft: '#E0EDFF',
-  				dark: '#1D4ED8'
+  				DEFAULT: '#22c55e',
+  				soft: '#E7F9EF',
+  				dark: '#15803d'
   			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
