@@ -13,7 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { fetchListingById, fetchOrderById } from "@/services/buyerService";
+import {
+  fetchListingById,
+  fetchOrderById,
+  cancelOrder,
+} from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 
 function Stars({ value }: { value: number }) {
@@ -119,6 +123,7 @@ export default function TransactionPage() {
 
   const [now, setNow] = useState(() => Date.now());
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
 
@@ -127,9 +132,25 @@ export default function TransactionPage() {
     return () => clearInterval(t);
   }, []);
 
-  function handleCancelReservation() {
-    setCancelOpen(false);
-    navigate(`/bikes/${id}`, { replace: true });
+  async function handleCancelReservation() {
+    if (!state.orderId) {
+      setCancelOpen(false);
+      navigate(`/bikes/${id}`, { replace: true });
+      return;
+    }
+    setCancelling(true);
+    try {
+      await cancelOrder(state.orderId);
+      setCancelOpen(false);
+      navigate(`/bikes/${id}`, {
+        replace: true,
+        state: { cancelledOrderId: state.orderId },
+      });
+    } catch {
+      setCancelOpen(false);
+    } finally {
+      setCancelling(false);
+    }
   }
 
   const currency = (listing?.currency ?? "USD") as "VND" | "USD";
@@ -404,8 +425,16 @@ export default function TransactionPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelOpen(false)}>Keep Reservation</Button>
-            <Button variant="destructive" onClick={handleCancelReservation}>Cancel & Refund</Button>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+              Keep Reservation
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelReservation}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelling..." : "Cancel & Refund"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -40,7 +40,11 @@ export default function CheckoutPage() {
 
   const [listing, setListing] = useState<BikeDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<
+    Record<string, string>
+  >({});
 
   const [plan, setPlan] = useState<Plan>("DEPOSIT");
   const [method, setMethod] = useState<Method>("CARD");
@@ -66,7 +70,8 @@ export default function CheckoutPage() {
         if (!cancelled) setListing(data ?? null);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? "Failed to load listing.");
+        if (!cancelled)
+          setFetchError(err?.message ?? "Failed to load listing.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -85,13 +90,13 @@ export default function CheckoutPage() {
     );
   }
 
-  if (error || !listing) {
+  if (!listing) {
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="py-12">
           <h1 className="text-lg font-semibold">Listing not found</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {error ?? "Checkout can't load because listing id is invalid."}
+            {fetchError ?? "Checkout can't load because listing id is invalid."}
           </p>
           <Button asChild variant="link" className="mt-4">
             <Link to="/">Back to Home</Link>
@@ -109,23 +114,26 @@ export default function CheckoutPage() {
   const totalNowFull = itemPrice + shipping;
   const dueOnDeliveryDeposit = Math.max(0, itemPrice + shipping - deposit);
 
-  function validatePaymentFields(): string | null {
-    if (!ship.street.trim()) return "Shipping street address is required";
-    if (!ship.city.trim()) return "Shipping city is required";
+  function validatePaymentFields(): Record<string, string> {
+    const errs: Record<string, string> = {};
+    if (!ship.street.trim()) errs.shipStreet = "Street address is required";
+    if (!ship.city.trim()) errs.shipCity = "City is required";
     if (method === "CARD") {
       const n = card.number.replace(/\D/g, "");
-      if (n.length < 13) return "Enter a valid card number (13–19 digits)";
-      if (!card.name.trim()) return "Cardholder name is required";
-      if (!card.exp.trim()) return "Expiry date (MM/YY) is required";
-      if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim()))
-        return "Expiry format: MM/YY";
-      if (card.cvc.replace(/\D/g, "").length < 3) return "CVC must be 3 digits";
+      if (n.length < 13 || n.length > 19)
+        errs.cardNumber = "Enter a valid card number (13–19 digits)";
+      if (!card.name.trim()) errs.cardName = "Cardholder name is required";
+      if (!card.exp.trim()) errs.cardExp = "Expiry date (MM/YY) is required";
+      else if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim()))
+        errs.cardExp = "Expiry format: MM/YY";
+      if (card.cvc.replace(/\D/g, "").length < 3)
+        errs.cardCvc = "CVC must be 3 digits";
     } else {
       if (bank.accountNumber.replace(/\D/g, "").length < 8)
-        return "Account number must be at least 8 digits";
-      if (!bank.bankName.trim()) return "Bank name is required";
+        errs.bankAccount = "Account number must be at least 8 digits";
+      if (!bank.bankName.trim()) errs.bankName = "Bank name is required";
     }
-    return null;
+    return errs;
   }
 
   async function onSubmit() {
@@ -134,12 +142,13 @@ export default function CheckoutPage() {
       return;
     }
     setAgreeError(false);
-    setError(null);
-    const fieldError = validatePaymentFields();
-    if (fieldError) {
-      setError(fieldError);
+    setApiError(null);
+    const errs = validatePaymentFields();
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
       return;
     }
+    setFieldErrors({});
     setSubmitting(true);
     try {
       const validation = await validatePayment({
@@ -148,7 +157,7 @@ export default function CheckoutPage() {
         bankDetails: method === "BANK" ? bank : undefined,
       });
       if (!validation.ok) {
-        setError(
+        setApiError(
           validation.error ??
             "Payment validation failed. Use test card 4242 4242 4242 4242.",
         );
@@ -201,7 +210,7 @@ export default function CheckoutPage() {
         },
       });
     } catch (err) {
-      setError(
+      setApiError(
         err instanceof Error
           ? err.message
           : "Failed to create order. Please try again.",
@@ -225,9 +234,9 @@ export default function CheckoutPage() {
         </p>
       </div>
 
-      {error && (
+      {apiError && (
         <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
+          {apiError}
         </div>
       )}
 
@@ -300,7 +309,11 @@ export default function CheckoutPage() {
                     <button
                       key={m}
                       type="button"
-                      onClick={() => setMethod(m)}
+                      onClick={() => {
+                        setMethod(m);
+                        setFieldErrors({});
+                        setApiError(null);
+                      }}
                       className={cn(
                         "flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold transition",
                         method === m
@@ -323,26 +336,34 @@ export default function CheckoutPage() {
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <Label>Street address</Label>
+                <Label>Street address *</Label>
                 <Input
-                  className="mt-1"
+                  className={cn("mt-1", fieldErrors.shipStreet && "border-destructive")}
                   placeholder="Street address"
                   value={ship.street}
-                  onChange={(e) =>
-                    setShip((s) => ({ ...s, street: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setShip((s) => ({ ...s, street: e.target.value }));
+                    if (fieldErrors.shipStreet) setFieldErrors((prev) => ({ ...prev, shipStreet: "" }));
+                  }}
                 />
+                {fieldErrors.shipStreet && (
+                  <p className="mt-1 text-xs text-destructive">{fieldErrors.shipStreet}</p>
+                )}
               </div>
               <div>
-                <Label>City</Label>
+                <Label>City *</Label>
                 <Input
-                  className="mt-1"
+                  className={cn("mt-1", fieldErrors.shipCity && "border-destructive")}
                   placeholder="City"
                   value={ship.city}
-                  onChange={(e) =>
-                    setShip((s) => ({ ...s, city: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setShip((s) => ({ ...s, city: e.target.value }));
+                    if (fieldErrors.shipCity) setFieldErrors((prev) => ({ ...prev, shipCity: "" }));
+                  }}
                 />
+                {fieldErrors.shipCity && (
+                  <p className="mt-1 text-xs text-destructive">{fieldErrors.shipCity}</p>
+                )}
               </div>
               <div>
                 <Label>Postal code</Label>
@@ -373,32 +394,40 @@ export default function CheckoutPage() {
                 <div className="sm:col-span-2">
                   <Label>Card number *</Label>
                   <Input
-                    className="mt-1 font-mono"
+                    className={cn("mt-1 font-mono", fieldErrors.cardNumber && "border-destructive")}
                     placeholder="4242 4242 4242 4242"
                     value={card.number}
                     onChange={(e) => {
                       const v = e.target.value.replace(/\D/g, "");
                       const formatted = v.replace(/(.{4})/g, "$1 ").trim();
                       setCard((c) => ({ ...c, number: formatted }));
+                      if (fieldErrors.cardNumber) setFieldErrors((prev) => ({ ...prev, cardNumber: "" }));
                     }}
                     maxLength={19}
                   />
+                  {fieldErrors.cardNumber && (
+                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardNumber}</p>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Cardholder name *</Label>
                   <Input
-                    className="mt-1"
+                    className={cn("mt-1", fieldErrors.cardName && "border-destructive")}
                     placeholder="John Doe (as on card)"
                     value={card.name}
-                    onChange={(e) =>
-                      setCard((c) => ({ ...c, name: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      setCard((c) => ({ ...c, name: e.target.value }));
+                      if (fieldErrors.cardName) setFieldErrors((prev) => ({ ...prev, cardName: "" }));
+                    }}
                   />
+                  {fieldErrors.cardName && (
+                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardName}</p>
+                  )}
                 </div>
                 <div>
                   <Label>Expiry (MM/YY) *</Label>
                   <Input
-                    className="mt-1"
+                    className={cn("mt-1", fieldErrors.cardExp && "border-destructive")}
                     placeholder="12/28"
                     value={card.exp}
                     onChange={(e) => {
@@ -406,24 +435,32 @@ export default function CheckoutPage() {
                       if (v.length >= 2)
                         v = v.slice(0, 2) + "/" + v.slice(2, 4);
                       setCard((c) => ({ ...c, exp: v }));
+                      if (fieldErrors.cardExp) setFieldErrors((prev) => ({ ...prev, cardExp: "" }));
                     }}
                     maxLength={5}
                   />
+                  {fieldErrors.cardExp && (
+                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardExp}</p>
+                  )}
                 </div>
                 <div>
                   <Label>CVC (3 digits) *</Label>
                   <Input
-                    className="mt-1"
+                    className={cn("mt-1", fieldErrors.cardCvc && "border-destructive")}
                     placeholder="123"
                     value={card.cvc}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setCard((c) => ({
                         ...c,
                         cvc: e.target.value.replace(/\D/g, "").slice(0, 4),
-                      }))
-                    }
+                      }));
+                      if (fieldErrors.cardCvc) setFieldErrors((prev) => ({ ...prev, cardCvc: "" }));
+                    }}
                     maxLength={4}
                   />
+                  {fieldErrors.cardCvc && (
+                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardCvc}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

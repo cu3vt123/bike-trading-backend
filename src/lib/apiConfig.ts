@@ -40,6 +40,7 @@ export const API_PATHS = {
     ORDERS: "/buyer/orders",
     ORDER_BY_ID: (id: string) => `/buyer/orders/${id}`,
     ORDER_COMPLETE: (id: string) => `/buyer/orders/${id}/complete`,
+    ORDER_CANCEL: (id: string) => `/buyer/orders/${id}/cancel`,
     PAYMENTS_INITIATE: "/buyer/payments/initiate",
     PAYMENTS_CONFIRM: (orderId: string) => `/buyer/payments/confirm/${orderId}`,
     TRANSACTIONS: (orderId: string) => `/buyer/transactions/${orderId}`,

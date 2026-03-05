@@ -81,7 +81,14 @@ export default function InspectorDashboardPage() {
     try {
       if (action === "approve") await approveListing(id, inspectionReport);
       else if (action === "reject") await rejectListing(id);
-      else await needUpdateListing(id, needUpdateReason);
+      else {
+        if (!needUpdateReason.trim() || needUpdateReason.trim().length < 5) {
+          setActionError("Please enter a clear reason (at least 5 characters) for the seller.");
+          setActionLoading(false);
+          return;
+        }
+        await needUpdateListing(id, needUpdateReason.trim());
+      }
       setListings((prev) => prev.filter((l) => l.id !== id));
       setActionTarget(null);
       setNeedUpdateReason("");
@@ -260,13 +267,16 @@ export default function InspectorDashboardPage() {
           )}
           {actionTarget?.action === "needUpdate" && (
             <div className="space-y-2 py-2">
-              <Label htmlFor="need-update-reason">Reason (optional)</Label>
+              <Label htmlFor="need-update-reason">Reason for update (required)</Label>
               <Input
                 id="need-update-reason"
-                placeholder="E.g.: Need full bike angle photo, clearer drivetrain shot"
+                placeholder="E.g.: Add full bike photo, clearer drivetrain shot, fix size in title…"
                 value={needUpdateReason}
                 onChange={(e) => setNeedUpdateReason(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                This note will be shown to the seller on their dashboard and editor.
+              </p>
             </div>
           )}
           {actionError && (

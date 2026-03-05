@@ -193,7 +193,7 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | Seller Profile  | Set as Default, validation Edit Profile & Add Payment         |
 | Seller Profile  | Remove confirm, quy tắc DEFAULT khi xóa                         |
 | Transaction     | Cancel dialog ghi rõ: refund 7 ngày, giới hạn 3 lần/kỳ        |
-| Buyer Profile   | Nav scroll (Personal Info, My Orders), View All Orders link     |
+| Buyer Profile   | Nav: Personal Info, Wishlist (link), Settings; Recent Orders trong nội dung |
 | Seller Dashboard| View all → Link thay vì button                                 |
 | Checkout        | Validation policy → inline error thay alert                    |
 

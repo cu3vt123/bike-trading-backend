@@ -85,7 +85,8 @@ export default function ProductDetailPage() {
   const [active, setActive] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const { has: inWishlist, toggle: toggleWishlist } = useWishlistStore();
+  const inWishlist = useWishlistStore((s) => s.ids.has(listing?.id ?? ""));
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
 
   const specs = useMemo(() => {
     const s = listing?.specs;
@@ -351,10 +352,10 @@ export default function ProductDetailPage() {
                       size="icon"
                       className="shrink-0"
                       onClick={() => toggleWishlist(listing.id)}
-                      aria-label={inWishlist(listing.id) ? "Remove from wishlist" : "Add to wishlist"}
+                      aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       <Heart
-                        className={`h-4 w-4 ${inWishlist(listing.id) ? "fill-primary text-primary" : ""}`}
+                        className={`h-4 w-4 ${inWishlist ? "fill-primary text-primary" : ""}`}
                       />
                     </Button>
                   )}

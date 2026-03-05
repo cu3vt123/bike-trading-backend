@@ -75,24 +75,8 @@ export default function BuyerProfilePage() {
                 >
                   Personal Info
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  size="sm"
-                  onClick={() =>
-                    document
-                      .getElementById("orders-section")
-                      ?.scrollIntoView({ behavior: "smooth" })
-                  }
-                >
-                  My Orders
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  size="sm"
-                >
-                  Saved Bikes
+                <Button variant="outline" className="w-full justify-start" size="sm" asChild>
+                  <Link to="/wishlist">Wishlist</Link>
                 </Button>
                 <Button
                   variant="outline"

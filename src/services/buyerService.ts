@@ -102,6 +102,13 @@ export async function completeOrder(orderId: string): Promise<Order> {
   return await buyerApi.orderApi.complete(orderId);
 }
 
+export async function cancelOrder(orderId: string): Promise<Order> {
+  if (USE_MOCK) {
+    return { id: orderId, listingId: "", status: "CANCELLED" } as Order;
+  }
+  return await buyerApi.orderApi.cancel(orderId);
+}
+
 /** Validate payment (Visa/Bank) via backend sandbox before order creation */
 export async function validatePayment(data: {
   method: "CARD" | "BANK_TRANSFER";

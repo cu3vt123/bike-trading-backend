@@ -9,8 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { BikeDetail } from "@/types/shopbike";
 
 export default function WishlistPage() {
-  const ids = useWishlistStore((s) => Array.from(s.ids));
-  const toggle = useWishlistStore((s) => s.toggle);
+  const idsStr = useWishlistStore((s) => Array.from(s.ids).sort().join(","));
+  const ids = idsStr ? idsStr.split(",").filter(Boolean) : [];
   const [listings, setListings] = useState<BikeDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +25,7 @@ export default function WishlistPage() {
       .then((results) => results.filter((x): x is BikeDetail => x != null))
       .then(setListings)
       .finally(() => setLoading(false));
-  }, [ids.join(",")]);
+  }, [idsStr]);
 
   if (ids.length === 0) {
     return (
@@ -35,9 +35,9 @@ export default function WishlistPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <Heart className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold">No saved bikes yet</h2>
+            <h2 className="mt-4 text-lg font-semibold">Your wishlist is empty</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Click the heart icon on a bike detail page to add to wishlist.
+              Click the heart icon on a bike to add it to your wishlist.
             </p>
             <Button asChild className="mt-6">
               <Link to="/">Explore bikes</Link>
@@ -51,9 +51,9 @@ export default function WishlistPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Saved bikes</h1>
+        <h1 className="text-2xl font-bold">Wishlist</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {listings.length} bikes saved
+          {listings.length} {listings.length === 1 ? "item" : "items"} in your wishlist
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default function WishlistPage() {
         <Card>
           <CardContent className="flex flex-col items-center py-12">
             <Bike className="h-12 w-12 text-muted-foreground" />
-            <p className="mt-3 text-sm">Some bikes may no longer be available.</p>
+            <p className="mt-3 text-sm">Some listings may no longer be available.</p>
             <Button asChild variant="outline" className="mt-4">
               <Link to="/">Back to home</Link>
             </Button>
@@ -75,20 +75,7 @@ export default function WishlistPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((listing) => (
-            <div key={listing.id} className="relative">
-              <div className="absolute right-2 top-2 z-10">
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => toggle(listing.id)}
-                  aria-label="Remove from wishlist"
-                >
-                  <Heart className="h-4 w-4 fill-primary text-primary" />
-                </Button>
-              </div>
-              <ListingCard listing={listing} />
-            </div>
+            <ListingCard key={listing.id} listing={listing} />
           ))}
         </div>
       )}

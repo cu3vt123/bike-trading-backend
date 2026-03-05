@@ -37,6 +37,11 @@ export const orderApi = {
     apiClient
       .put(API_PATHS.BUYER.ORDER_COMPLETE(orderId))
       .then((r) => r.data?.data ?? r.data),
+
+  cancel: (orderId: string): Promise<Order> =>
+    apiClient
+      .put(API_PATHS.BUYER.ORDER_CANCEL(orderId))
+      .then((r) => r.data?.data ?? r.data),
 };
 
 export const paymentApi = {

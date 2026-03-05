@@ -27,6 +27,7 @@ export default function SellerListingEditorPage() {
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needUpdateReason, setNeedUpdateReason] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const isEdit = useMemo(() => !!id || !!savedId, [id, savedId]);
@@ -42,6 +43,11 @@ export default function SellerListingEditorPage() {
         setLocation(listing.location ?? "");
         setCondition((listing.condition as Condition) ?? "MINT_USED");
         if (listing.state === "PENDING_INSPECTION") setStep("PENDING_INSPECTION");
+        else setStep("DRAFT");
+        const reason = (listing as any).inspectionNeedUpdateReason;
+        if (typeof reason === "string" && reason.trim()) {
+          setNeedUpdateReason(reason.trim());
+        }
       }
     });
   }, [listingId]);
@@ -174,6 +180,17 @@ export default function SellerListingEditorPage() {
       {locked && (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           This listing is <b>pending inspection</b>. Editing is disabled until a result is available.
+        </div>
+      )}
+      {!locked && needUpdateReason && (
+        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <div className="font-semibold">Inspector requested an update</div>
+          <p className="mt-1">
+            {needUpdateReason}
+          </p>
+          <p className="mt-1 text-xs text-rose-700">
+            Please fix the issues above, then save draft and submit for inspection again.
+          </p>
         </div>
       )}
 

@@ -142,3 +142,23 @@ export async function completeOrder(req, res) {
   const out = order.toJSON ? order.toJSON() : order;
   return ok(res, out);
 }
+
+export async function cancelOrder(req, res) {
+  const { id } = req.params;
+  const order = await Order.findById(id);
+  if (!order) return notFound(res, "Order not found");
+  if (order.buyerId.toString() !== req.user.id) {
+    return forbidden(res, "Not your order");
+  }
+  if (order.status !== "RESERVED" && order.status !== "IN_TRANSACTION") {
+    return badRequest(res, `Order cannot be cancelled (status: ${order.status})`);
+  }
+
+  order.status = "CANCELLED";
+  await order.save();
+
+  await Listing.findByIdAndUpdate(order.listingId, { state: "PUBLISHED" });
+
+  const out = order.toJSON ? order.toJSON() : order;
+  return ok(res, out);
+}

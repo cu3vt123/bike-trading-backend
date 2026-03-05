@@ -54,7 +54,9 @@ export async function reject(req, res) {
 }
 
 export async function needUpdate(req, res) {
-  const schema = z.object({ reason: z.string().optional() });
+  const schema = z.object({
+    reason: z.string().min(5, "Reason is required"),
+  });
   const parsed = schema.safeParse(req.body ?? {});
   if (!parsed.success) return badRequest(res, "Invalid payload");
 
@@ -68,7 +70,7 @@ export async function needUpdate(req, res) {
 
   listing.inspectionResult = "NEED_UPDATE";
   listing.state = "NEED_UPDATE";
-  listing.inspectionNeedUpdateReason = parsed.data.reason ?? "";
+  listing.inspectionNeedUpdateReason = parsed.data.reason;
   await listing.save();
   return ok(res, normalize(listing));
 }

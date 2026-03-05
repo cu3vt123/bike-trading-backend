@@ -49,6 +49,10 @@ API runs at `http://localhost:8081/api`.
 - `GET /api/buyer/orders` – my orders list
 - `GET /api/buyer/orders/:id` – order details
 - `PUT /api/buyer/orders/:id/complete` – complete order (RESERVED → COMPLETED), listing → SOLD
+- `PUT /api/buyer/orders/:id/cancel` – cancel reservation (RESERVED/IN_TRANSACTION → CANCELLED), listing → PUBLISHED
+
+### Buyer (payments – requires BUYER login)
+- `POST /api/buyer/payments/initiate` – validate card/bank details (demo sandbox), returns paymentMethod metadata
 
 ### Seller
 - `GET /api/seller/dashboard`

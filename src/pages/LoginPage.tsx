@@ -108,8 +108,14 @@ export default function LoginPage() {
 
       const target = resolvePostLoginPath(fromPath, resolvedRole);
       navigate(target, { replace: true });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Invalid credentials. Please check your info and try again.";
+    } catch (err: any) {
+      const backendMsg = err?.response?.data?.message;
+      const msg =
+        typeof backendMsg === "string"
+          ? backendMsg
+          : err instanceof Error
+            ? err.message
+            : "Invalid credentials. Please check your info and try again.";
       setError(msg);
     } finally {
       setSubmitting(false);

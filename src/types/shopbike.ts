@@ -46,6 +46,7 @@ export type Listing = {
   state: ListingState;
   inspectionResult?: InspectionResult | null;
   inspectionScore?: number;
+  inspectionNeedUpdateReason?: string;
   inspectionReport?: {
     frameIntegrity: { score: number; label: string };
     drivetrainHealth: { score: number; label: string };

@@ -43,7 +43,7 @@ npm run dev
 | Role      | Email                | Password     |
 | --------- | -------------------- | ------------ |
 | Buyer     | `buyer@demo.com`     | `Password!1` |
-| Seller    | `seller@demo.com`    | ` `          |
+| Seller    | `seller@demo.com`    | `Password!1` |
 | Inspector | `inspector@demo.com` | `Password!1` |
 | Admin     | `admin@demo.com`     | `Password!1` |
 
@@ -81,7 +81,7 @@ npm run dev
    - Inspection Report
    - Technical Specs
 3. Tùy chọn:
-   - **Thêm vào Wishlist** (trái tim)
+   - **Thêm vào Wishlist** (trái tim) – có thể thêm từ trang chi tiết hoặc từ thẻ xe trên Home
    - **Chat với người bán** (demo)
    - **Buy now** → chuyển sang Checkout
 
@@ -98,6 +98,25 @@ npm run dev
 5. Tick **agree** to cancellation & refund policy
 6. Click **Pay Deposit & Reserve**  
    → Order created on Backend, redirects to Transaction
+
+#### Test card / ngân hàng ảo để demo
+
+| Loại            | Số thẻ / Tài khoản    | Ghi chú               |
+| --------------- | --------------------- | --------------------- |
+| **Visa (test)** | `4242 4242 4242 4242` | Thẻ thành công        |
+| **Visa (test)** | `5555 5555 5555 4444` | Mastercard test       |
+| **Visa (test)** | `4111 1111 1111 1111` | Visa test             |
+| **Expiry**      | `12/28`               | Bất kỳ ngày tương lai |
+| **CVC**         | `123`                 | 3 chữ số              |
+
+**Bank Transfer (test):**
+
+| Trường         | Giá trị mẫu                |
+| -------------- | -------------------------- |
+| Account number | `123456789012` (8+ chữ số) |
+| Bank name      | `Vietcombank`              |
+
+**Lưu ý:** Nếu nhập sai hoặc thiếu trường, ô nhập sẽ hiển thị viền đỏ và thông báo lỗi ngay tại ô đó, không chuyển trang.
 
 ---
 
@@ -138,8 +157,15 @@ npm run dev
 ### Step 3.8: Profile – Confirm order completed
 
 1. Click **Profile** in header (or "View my orders" button)
-2. Scroll to **Recent Orders**
-3. The order just purchased will show with status **COMPLETED**
+2. Sidebar: **Personal Info**, **Wishlist** (link tới `/wishlist`), **Settings**
+3. Nội dung chính: **Recent Orders** – đơn hàng vừa mua sẽ hiển thị với status **COMPLETED**
+
+### Step 3.9: Wishlist
+
+1. Click **Wishlist** trong header hoặc từ Profile sidebar
+2. Xem danh sách xe đã lưu
+3. Thêm xe: click trái tim trên thẻ xe (Home) hoặc trang chi tiết
+4. Xóa: click trái tim đã fill trên thẻ xe
 
 ---
 
@@ -150,18 +176,21 @@ Login → Home → Bike detail → Checkout → Transaction → Finalize → Suc
          ↓           ↓           ↓           ↓            ↓
       View list   Buy now    Create order Finalize    Complete
       of bikes                (RESERVED)   (COMPLETE)  (COMPLETED)
+         ↓
+      Wishlist (trái tim trên thẻ / trang chi tiết)
 ```
 
 ---
 
 ## 5. Troubleshooting
 
-| Symptom                          | Solution                                                                         |
-| -------------------------------- | -------------------------------------------------------------------------------- |
-| 401 Invalid credentials on login | Ensure Backend is running and has log `[seed] demo data loaded`                  |
-| Empty page, no listings          | Check `VITE_USE_MOCK_API=false` and restart Frontend                             |
-| Cannot create order              | Verify logged in as Buyer, Backend is running                                    |
-| Error when completing order      | Ensure `orderId` is passed from Transaction → Finalize (do not refresh mid-flow) |
+| Symptom                          | Solution                                                                                         |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 401 Invalid credentials on login | Ensure Backend is running and has log `[seed] demo data loaded`                                  |
+| Empty page, no listings          | Check `VITE_USE_MOCK_API=false` and restart Frontend                                             |
+| Cannot create order              | Verify logged in as Buyer, Backend is running                                                    |
+| Error when completing order      | Ensure `orderId` is passed from Transaction → Finalize (do not refresh mid-flow)                 |
+| Ô nhập đỏ khi checkout           | Điền đủ các trường bắt buộc (Street, City, Card/Bank details). Dùng thẻ test 4242 4242 4242 4242 |
 
 ---
 
@@ -182,7 +211,7 @@ Login → Home → Bike detail → Checkout → Transaction → Finalize → Suc
    - **View details** → opens `/bikes/:id` (shows "Pending inspection", no Buy button)
    - **Approve** → listing becomes PUBLISHED, appears on marketplace
    - **Reject** → listing closed (REJECTED)
-   - **Need update** → add reason (optional), seller must resubmit after editing
+   - **Need update** → **reason bắt buộc** (feedback cụ thể cho seller), seller sẽ thấy message này ở Seller Dashboard + Editor và phải sửa rồi submit lại
 
 ### Step 6.3: Demo actions
 

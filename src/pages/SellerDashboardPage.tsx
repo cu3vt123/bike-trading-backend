@@ -154,6 +154,10 @@ export default function SellerDashboardPage() {
                 const badge = stateLabel(x.state);
                 const canEdit =
                   x.state === "DRAFT" || x.state === "NEED_UPDATE";
+                const needUpdateReason =
+                  x.state === "NEED_UPDATE"
+                    ? (x as any).inspectionNeedUpdateReason || ""
+                    : "";
 
                 return (
                   <div
@@ -176,6 +180,11 @@ export default function SellerDashboardPage() {
                         <div className="truncate text-xs text-slate-500">
                           {x.title}
                         </div>
+                        {needUpdateReason && (
+                          <div className="mt-1 text-xs text-rose-600">
+                            Inspector feedback: {needUpdateReason}
+                          </div>
+                        )}
                       </div>
                     </div>
 

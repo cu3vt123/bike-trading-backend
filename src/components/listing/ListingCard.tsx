@@ -1,5 +1,9 @@
 import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 import type { Listing } from "@/types/shopbike";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useWishlistStore } from "@/stores/useWishlistStore";
+import { Button } from "@/components/ui/button";
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
@@ -11,9 +15,16 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
 
 type Props = {
   listing: Listing;
+  /** Show wishlist heart (default: true when BUYER) */
+  showWishlist?: boolean;
 };
 
-export default function ListingCard({ listing }: Props) {
+export default function ListingCard({ listing, showWishlist = true }: Props) {
+  const role = useAuthStore((s) => s.role);
+  const inWishlist = useWishlistStore((s) => s.ids.has(listing.id));
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const canWishlist = showWishlist && role === "BUYER";
+
   const isVerified =
     listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
 
@@ -41,6 +52,25 @@ export default function ListingCard({ listing }: Props) {
         {isVerified && (
           <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">
             Verified
+          </div>
+        )}
+        {canWishlist && (
+          <div className="absolute right-3 top-3 z-10">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 rounded-full shadow-sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(listing.id);
+              }}
+              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            >
+              <Heart
+                className={`h-4 w-4 ${inWishlist ? "fill-primary text-primary" : ""}`}
+              />
+            </Button>
           </div>
         )}
       </div>
