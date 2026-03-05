@@ -69,15 +69,38 @@ Backend MERN demo được đặt trong thư mục `backend/`, dùng để phụ
   - `backend/README.md` – tóm tắt cách chạy + danh sách endpoint.
   - `docs/HUONG-DAN-BACKEND.md` – mô tả request/response chi tiết để BE Java Spring Boot implement theo.
 
-### Gợi ý cho AI / BE khi port sang Java Spring Boot
+---
 
-- Giữ nguyên **path API** và **payload JSON** như trong `docs/HUONG-DAN-BACKEND.md` (vd: `/api/auth/login`, `/api/bikes`, `/api/seller/listings`, `/api/inspector/pending-listings`, ...).
-- Map:
-  - `models/*.js` → `@Entity` + `JpaRepository` trong Spring (User, Listing, Order).
-  - `controllers/*.js` → `@RestController` + `@RequestMapping("/api/...")`.
-  - Middleware auth JWT → `OncePerRequestFilter` + `SecurityFilterChain` trong Spring Security.
-- Sau khi Spring Boot implement xong, chỉ cần đảm bảo:
-  - Base URL: `http://localhost:8081/api`
-  - Format JSON và enum giá trị (role, condition, listing state, ...) khớp với `docs/HUONG-DAN-BACKEND.md`
-  
-Khi đó Frontend (FE2) có thể chuyển từ Node/Express sang Java Spring Boot mà **không cần sửa code FE**, chỉ cần cập nhật `.env` (`VITE_API_BASE_URL`) cho đúng backend mới.
+## Gợi ý cho backend (Java Spring Boot) khi vào nhánh `ui-ux`
+
+Khi backend dev checkout nhánh `ui-ux`, thứ tự đọc khuyến nghị:
+
+1. **Đọc contract API** (biết FE cần gì):  
+   - `docs/HUONG-DAN-BACKEND.md`
+2. **Đọc cách chạy full dự án FE + BE** (nếu muốn tự demo cả 2):  
+   - `docs/RUN-FULL-PROJECT.md`
+3. **Nếu muốn tham khảo backend NodeJS demo** (không bắt buộc chạy, chỉ để nhìn logic):  
+   - `backend/README.md`  
+   - `backend/docs/DEMO-BACKEND-GUIDE.md`
+4. **Nếu muốn port hoàn toàn sang Java Spring Boot**:
+   - `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md` – phân tích model + API để map sang Spring Boot.
+   - `backend/docs/SPRING-BOOT-SKELETON.md` – skeleton project Spring Boot (pom, packages, controller mẫu, security).
+
+### Cách để backend Spring Boot tự demo với frontend này
+
+1. Backend tạo project Spring Boot (theo skeleton hoặc tự thiết kế), expose API với:
+   - Base URL: `http://localhost:8081/api` (hoặc URL khác, nhưng cần trỏ lại trong `.env` của FE).
+   - Đường dẫn + JSON giống `docs/HUONG-DAN-BACKEND.md` (auth, bikes, buyer, seller, inspector).
+2. Trong frontend, tạo/sửa file `.env`:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8081/api   # trỏ tới backend Spring Boot
+   VITE_USE_MOCK_API=false
+   ```
+3. Chạy FE:
+   ```bash
+   npm install
+   npm run dev
+   ```
+4. Mở `http://localhost:5173` để demo.  
+   Lúc này FE sẽ gọi trực tiếp backend Spring Boot của đội bạn, **không cần chạy backend NodeJS** trong thư mục `backend/`.
+
