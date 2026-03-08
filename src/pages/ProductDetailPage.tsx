@@ -145,6 +145,17 @@ export default function ProductDetailPage() {
     inspectionReport?.brakingSystem;
   const isVerified =
     listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
+  /** Luôn hiển thị đủ 3 hạng mục: có báo cáo thật thì dùng, không thì dùng điểm tổng thể cho cả 3 dòng */
+  const displayReport =
+    hasInspectionReport
+      ? inspectionReport!
+      : isVerified && score > 0
+        ? {
+            frameIntegrity: { score, label: "—" as const },
+            drivetrainHealth: { score, label: "—" as const },
+            brakingSystem: { score, label: "—" as const },
+          }
+        : undefined;
   /** Hiển thị badge "Đã kiểm định" chỉ khi đã có báo cáo hoặc điểm, tránh mâu thuẫn với "Chưa có điểm kiểm định" */
   const showVerifiedBadge = isVerified && (hasInspectionReport || (score > 0));
   const canBuy = isVerified;
@@ -253,35 +264,38 @@ export default function ProductDetailPage() {
               )}
             </CardHeader>
             <CardContent>
-              {hasInspectionReport ? (
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {(
-                    [
-                      { key: "frameIntegrity" as const, ...inspectionReport.frameIntegrity },
-                      { key: "drivetrainHealth" as const, ...inspectionReport.drivetrainHealth },
-                      { key: "brakingSystem" as const, ...inspectionReport.brakingSystem },
-                    ] as const
-                  ).map(({ key, label: value, score: s }) => (
-                    <div key={key} className="rounded-xl border border-border bg-muted/50 p-4">
-                      <div className="text-xs text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</div>
-                      <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
-                      <div className="mt-1 text-xs">
-                        <Stars value={s ?? 0} />{" "}
-                        <span className="text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
+              {displayReport ? (
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    {(
+                      [
+                        { key: "frameIntegrity" as const, ...displayReport.frameIntegrity },
+                        { key: "drivetrainHealth" as const, ...displayReport.drivetrainHealth },
+                        { key: "brakingSystem" as const, ...displayReport.brakingSystem },
+                      ] as const
+                    ).map(({ key, label: value, score: s }) => (
+                      <div key={key} className="rounded-xl border border-border bg-muted/50 p-4">
+                        <div className="text-xs text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</div>
+                        <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
+                        <div className="mt-1 text-xs">
+                          <Stars value={s ?? 0} />{" "}
+                          <span className="text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : isVerified && score > 0 ? (
-                <div className="rounded-xl border border-border bg-muted/50 p-4">
-                  <div className="text-xs text-muted-foreground">{INSPECTION_OVERALL_LABEL}</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <Stars value={score} />
-                    <span className="text-sm font-semibold">{score.toFixed(1)}/5</span>
+                    ))}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Tin đã được kiểm định. Báo cáo chi tiết từng hạng mục sẽ hiển thị khi kiểm định viên cập nhật.
-                  </p>
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3">
+                    <span className="text-sm text-muted-foreground">{INSPECTION_OVERALL_LABEL}</span>
+                    <div className="flex items-center gap-2">
+                      <Stars value={score} />
+                      <span className="text-sm font-semibold text-foreground">{score.toFixed(1)}/5</span>
+                    </div>
+                  </div>
+                  {!hasInspectionReport && isVerified && score > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Điểm từng hạng mục trên dùng tạm từ điểm tổng thể. Mô tả chi tiết (nhận xét kiểm định viên) sẽ hiển thị khi có báo cáo đầy đủ.
+                    </p>
+                  )}
                 </div>
               ) : isPendingInspection ? (
                 <p className="py-2 text-sm text-muted-foreground">

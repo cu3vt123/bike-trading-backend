@@ -53,11 +53,11 @@ export async function runSeed() {
       inspectionScore: 4.6,
       imageUrls: [
         "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=1600&q=60",
-        "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1600&q=60"
+        "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1600&q=60",
       ],
       specs: [
         { label: "Groupset", value: "Dura-Ace Di2 R9200" },
-        { label: "Frame Material", value: "Carbon Fiber" }
+        { label: "Frame Material", value: "Carbon Fiber" },
       ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
@@ -75,7 +75,7 @@ export async function runSeed() {
       inspectionResult: "APPROVE",
       inspectionScore: 4.2,
       imageUrls: [
-        "https://images.unsplash.com/photo-1518655048521-f130df041f66?auto=format&fit=crop&w=1600&q=60"
+        "https://images.unsplash.com/photo-1518655048521-f130df041f66?auto=format&fit=crop&w=1600&q=60",
       ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
@@ -92,7 +92,7 @@ export async function runSeed() {
       state: "PENDING_INSPECTION",
       inspectionResult: null,
       imageUrls: [
-        "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1600&q=60"
+        "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1600&q=60",
       ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
@@ -111,8 +111,13 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.8,
-      imageUrls: ["https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1600&q=60"],
-      specs: [{ label: "Groupset", value: "Shimano Ultegra Di2" }, { label: "Wheels", value: "Carbon 50mm" }],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1600&q=60",
+      ],
+      specs: [
+        { label: "Groupset", value: "Shimano Ultegra Di2" },
+        { label: "Wheels", value: "Carbon 50mm" },
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -128,7 +133,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.5,
-      imageUrls: ["https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -144,7 +151,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.3,
-      imageUrls: ["https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -161,7 +170,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.7,
-      imageUrls: ["https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -177,7 +188,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.9,
-      imageUrls: ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1600&q=60",
+      ],
       specs: [{ label: "Groupset", value: "Campagnolo Super Record" }],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
@@ -194,7 +207,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.1,
-      imageUrls: ["https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -210,7 +225,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.6,
-      imageUrls: ["https://images.unsplash.com/photo-1486299261210-3a99ffa9d8d5?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1486299261210-3a99ffa9d8d5?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -226,7 +243,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.4,
-      imageUrls: ["https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -242,7 +261,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.2,
-      imageUrls: ["https://images.unsplash.com/photo-1571333250630-f0230e7152f3?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1571333250630-f0230e7152f3?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
     {
@@ -259,7 +280,9 @@ export async function runSeed() {
       state: "PUBLISHED",
       inspectionResult: "APPROVE",
       inspectionScore: 4.7,
-      imageUrls: ["https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1600&q=60"],
+      imageUrls: [
+        "https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1600&q=60",
+      ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
   ]);
@@ -284,7 +307,9 @@ async function cliSeed() {
   await runSeed();
 }
 
-const isCli = process.argv[1]?.replace(/\\/g, "/").endsWith("seed.js") || process.env.RUN_SEED_CLI === "1";
+const isCli =
+  process.argv[1]?.replace(/\\/g, "/").endsWith("seed.js") ||
+  process.env.RUN_SEED_CLI === "1";
 if (isCli) {
   cliSeed()
     .catch((e) => {
