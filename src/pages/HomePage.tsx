@@ -21,6 +21,17 @@ import { Logo } from "@/components/common/Logo";
 
 const SECTION_LISTINGS_ID = "listings";
 
+/** Các ảnh hero slider (đường dẫn từ public) */
+const HERO_SLIDES = [
+  "/hero-shopbike.png",
+  "/1.webp",
+  "/360_F_120572328_HQqbtJPrTOD4WhE3Zr2BpxtLij1VMQST.jpg",
+  "/hq720.jpg",
+  "/woman-on-a-4k-mountain-bike-steep-trail-m5aa7q35ooqc2l0z.jpg",
+];
+
+const HERO_AUTO_SLIDE_MS = 5000;
+
 function scrollToListings() {
   document.getElementById(SECTION_LISTINGS_ID)?.scrollIntoView({
     behavior: "smooth",
@@ -36,6 +47,7 @@ export default function HomePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [heroIndex, setHeroIndex] = useState(0);
 
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState<string>("ALL");
@@ -106,6 +118,14 @@ export default function HomePage() {
     }
   }, [location.state, location.pathname, navigate]);
 
+  // Hero slider: auto-advance
+  useEffect(() => {
+    const t = setInterval(() => {
+      setHeroIndex((i) => (i + 1) % HERO_SLIDES.length);
+    }, HERO_AUTO_SLIDE_MS);
+    return () => clearInterval(t);
+  }, []);
+
   const brands = useMemo(() => {
     const set = new Set(listings.map((x) => x.brand).filter(Boolean));
     return ["ALL", ...Array.from(set).sort()];
@@ -135,16 +155,25 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero – tràn full màn hình đầu tiên (100vh), tifo + ShopBike, bù padding main để không chừa khoảng trắng */}
-      <section className="relative left-1/2 w-screen -translate-x-1/2 -mt-6 sm:-mt-8">
+      {/* Hero slider – full màn hình, tự chuyển ảnh */}
+      <section
+        className="relative left-1/2 w-screen -translate-x-1/2 -mt-6 sm:-mt-8 group/hero"
+        aria-label="Hero slider"
+      >
         <div className="relative flex h-screen min-h-[100dvh] w-full items-end justify-center overflow-hidden bg-slate-900 md:items-center md:justify-center">
-          <img
-            src="/hero-shopbike.png"
-            alt="ShopBike — Xe đạp thể thao đã kiểm định"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-            loading="eager"
-          />
-          <div className="absolute inset-0 bg-black/25 md:bg-gradient-to-t md:from-black/60 md:via-black/20 md:to-transparent" />
+          {HERO_SLIDES.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ease-out ${
+                i === heroIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none z-0"
+              }`}
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchPriority={i === 0 ? "high" : undefined}
+            />
+          ))}
+          <div className="absolute inset-0 z-[1] bg-black/25 md:bg-gradient-to-t md:from-black/60 md:via-black/20 md:to-transparent" />
           <div
             className="relative z-10 flex w-full max-w-6xl flex-col items-center px-6 pb-12 pt-8 text-center md:pb-16 md:pt-0"
           >
@@ -173,6 +202,22 @@ export default function HomePage() {
                 </Button>
               )}
             </div>
+          </div>
+          {/* Dots điều hướng */}
+          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2 md:bottom-8" aria-hidden>
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setHeroIndex(i)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === heroIndex
+                    ? "w-6 bg-white"
+                    : "w-2 bg-white/50 hover:bg-white/70"
+                }`}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
           </div>
         </div>
       </section>

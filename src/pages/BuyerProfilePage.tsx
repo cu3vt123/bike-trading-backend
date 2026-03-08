@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { fetchMyOrders } from "@/services/buyerService";
 import { authApi } from "@/apis/authApi";
 import type { Order } from "@/types/order";
+import { ORDER_STATUS_LABEL } from "@/types/order";
 
 export default function BuyerProfilePage() {
   const clearTokens = useAuthStore((s) => s.clearTokens);
@@ -52,8 +53,8 @@ export default function BuyerProfilePage() {
                     "B")[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">
-                    {profile?.displayName ?? "Buyer"}
+                  <div className="truncate text-sm font-semibold text-foreground">
+                    {profile?.displayName ?? "Người mua"}
                   </div>
                   <div className="truncate text-xs text-muted-foreground">
                     {profile?.email ?? "—"}
@@ -61,7 +62,7 @@ export default function BuyerProfilePage() {
                 </div>
               </div>
 
-              <Badge className="mt-4">Verified Buyer</Badge>
+              <Badge className="mt-4">Đã xác minh</Badge>
 
               <nav className="mt-5 space-y-2">
                 <Button
@@ -73,17 +74,17 @@ export default function BuyerProfilePage() {
                       ?.scrollIntoView({ behavior: "smooth" })
                   }
                 >
-                  Personal Info
+                  Thông tin cá nhân
                 </Button>
                 <Button variant="outline" className="w-full justify-start" size="sm" asChild>
-                  <Link to="/wishlist">Wishlist</Link>
+                  <Link to="/wishlist">Yêu thích</Link>
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full justify-start"
                   size="sm"
                 >
-                  Settings
+                  Cài đặt
                 </Button>
               </nav>
 
@@ -92,7 +93,7 @@ export default function BuyerProfilePage() {
                 className="mt-6 w-full"
                 onClick={() => clearTokens()}
               >
-                Logout
+                Đăng xuất
               </Button>
             </CardContent>
           </Card>
@@ -100,9 +101,9 @@ export default function BuyerProfilePage() {
 
         <section className="space-y-4 lg:col-span-9">
           <div>
-            <h1 className="text-2xl font-bold">Personal Information</h1>
+            <h1 className="text-2xl font-bold text-foreground">Thông tin cá nhân</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage your personal details and account settings.
+              Quản lý thông tin và cài đặt tài khoản.
             </p>
           </div>
 
@@ -110,18 +111,17 @@ export default function BuyerProfilePage() {
             <CardContent className="pt-6">
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <div className="text-sm font-semibold text-primary">
-                  Privacy Protection Active
+                  Bảo vệ quyền riêng tư
                 </div>
                 <p className="mt-1 text-xs text-primary/80">
-                  Your contact details are protected until the transaction is
-                  confirmed.
+                  Thông tin liên hệ được bảo vệ cho đến khi giao dịch được xác nhận.
                 </p>
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div>
                   <div className="text-xs font-semibold text-muted-foreground">
-                    Full Name
+                    Họ và tên
                   </div>
                   <div className="mt-1 rounded-lg border bg-muted/50 px-4 py-3 text-sm">
                     {profile?.displayName ?? "—"}
@@ -129,7 +129,7 @@ export default function BuyerProfilePage() {
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-muted-foreground">
-                    Email Address
+                    Email
                   </div>
                   <div className="mt-1 rounded-lg border bg-muted/50 px-4 py-3 text-sm">
                     {profile?.email ?? "—"}
@@ -137,7 +137,7 @@ export default function BuyerProfilePage() {
                 </div>
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold text-muted-foreground">
-                    Phone Number
+                    Số điện thoại
                   </div>
                   <div className="mt-1 rounded-lg border bg-muted/50 px-4 py-3 text-sm">
                     +84 9xx xxx xxx
@@ -149,33 +149,33 @@ export default function BuyerProfilePage() {
                 id="orders-section"
                 className="mt-6 flex items-center justify-between"
               >
-                <span className="text-sm font-semibold">Recent Orders</span>
+                <span className="text-sm font-semibold text-foreground">Đơn hàng gần đây</span>
                 <Button
                   variant="link"
                   size="sm"
                   className="text-primary"
                   asChild
                 >
-                  <a href="#orders-section">View All Orders</a>
+                  <a href="#orders-section">Xem tất cả</a>
                 </Button>
               </div>
 
               <div className="mt-3 overflow-hidden rounded-lg border">
                 <div className="grid grid-cols-12 bg-muted/50 px-4 py-3 text-xs font-semibold text-muted-foreground">
-                  <div className="col-span-4">Bike Details</div>
-                  <div className="col-span-2">Date</div>
-                  <div className="col-span-2">Amount</div>
-                  <div className="col-span-2 text-right">Status</div>
-                  <div className="col-span-2 text-right">Actions</div>
+                  <div className="col-span-4">Xe</div>
+                  <div className="col-span-2">Ngày</div>
+                  <div className="col-span-2">Số tiền</div>
+                  <div className="col-span-2 text-right">Trạng thái</div>
+                  <div className="col-span-2 text-right">Thao tác</div>
                 </div>
 
                 {loading ? (
                   <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    Loading orders...
+                    Đang tải đơn hàng...
                   </div>
                 ) : orders.length === 0 ? (
                   <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    No orders yet. Browse the marketplace to place an order.
+                    Chưa có đơn hàng. Xem sàn để đặt mua.
                   </div>
                 ) : (
                   orders.map((o) => {
@@ -221,7 +221,7 @@ export default function BuyerProfilePage() {
                         className="grid grid-cols-12 items-center border-t px-4 py-3 text-sm"
                       >
                         <div className="col-span-4">
-                          <div className="font-semibold">{bikeName}</div>
+                          <div className="font-semibold text-foreground">{bikeName}</div>
                           <div className="text-xs text-muted-foreground">
                             ID: {o.id}
                           </div>
@@ -229,7 +229,7 @@ export default function BuyerProfilePage() {
                         <div className="col-span-2 text-muted-foreground">
                           {dateStr}
                         </div>
-                        <div className="col-span-2 font-semibold">
+                        <div className="col-span-2 font-semibold text-foreground">
                           {typeof o.totalPrice === "number"
                             ? new Intl.NumberFormat(undefined, {
                                 style: "currency",
@@ -242,11 +242,7 @@ export default function BuyerProfilePage() {
                         </div>
                         <div className="col-span-2 flex justify-end">
                           <Badge variant={isPending ? "secondary" : "default"}>
-                            {o.status === "IN_TRANSACTION"
-                              ? "In Transaction"
-                              : o.status === "RESERVED"
-                                ? "Reserved"
-                                : o.status}
+                            {ORDER_STATUS_LABEL[o.status] ?? o.status}
                           </Badge>
                         </div>
                         <div className="col-span-2 flex justify-end">
@@ -256,12 +252,12 @@ export default function BuyerProfilePage() {
                                 to={`/transaction/${listingId}?orderId=${o.id}`}
                                 state={txState}
                               >
-                                Continue to pay
+                                Thanh toán tiếp
                               </Link>
                             </Button>
                           ) : o.status === "COMPLETED" ? (
                             <span className="text-xs text-muted-foreground">
-                              Completed
+                              Hoàn thành
                             </span>
                           ) : null}
                         </div>
@@ -273,7 +269,7 @@ export default function BuyerProfilePage() {
 
               {!loading && orders.length > 0 && (
                 <p className="mt-4 text-xs text-muted-foreground">
-                  Your order list (synced from Backend).
+                  Danh sách đơn hàng (đồng bộ từ hệ thống).
                 </p>
               )}
 

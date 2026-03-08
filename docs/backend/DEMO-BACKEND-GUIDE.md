@@ -64,7 +64,7 @@ FE đã cấu hình sẵn để login theo `role` tương ứng.
 
 ## 4. Kiến trúc tổng quan
 
-Cấu trúc chi tiết: `backend/docs/STRUCTURE.md`. Tóm tắt:
+Cấu trúc chi tiết: `docs/backend/STRUCTURE.md`. Tóm tắt:
 
 ```text
 backend/
@@ -78,11 +78,12 @@ backend/
 │   ├── models/                    # User, Listing, Order, Errors
 │   ├── routes/                    # authRoutes, bikesRoutes, buyerRoutes, sellerRoutes, inspectorRoutes
 │   └── utils/                     # wrapAsync handler, helper http
-└── docs/
-    ├── STRUCTURE.md               # Cấu trúc chi tiết
-    ├── PORTING-NODE-TO-SPRING-BOOT.md  # Hướng dẫn port sang Spring Boot
-    └── DEMO-BACKEND-GUIDE.md      # (file hiện tại)
+└── (tài liệu backend gộp trong docs/backend/)
 ```
+
+Toàn bộ tài liệu dự án nằm trong **một folder** `docs/`:
+- `docs/` – tài liệu chung (API contract, cấu trúc FE, chạy full project, demo, changelog).
+- `docs/backend/` – tài liệu backend (STRUCTURE, DEMO-BACKEND-GUIDE, PORTING-NODE-TO-SPRING-BOOT, SPRING-BOOT-SKELETON).
 
 ---
 
@@ -168,13 +169,12 @@ là FE không cần thay đổi code.
 
 ## 7. Khi muốn nâng cấp hoặc port sang Spring Boot
 
-- Đọc `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md` để xem:
+- Đọc `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md` để xem:
   - mapping model `User`, `Listing`, `Order` → Entity.
   - mapping routes Express → `@RestController` trong Spring.
   - gợi ý Spring Security + JWT.
 - Dựa vào hai file docs:
   - `docs/HUONG-DAN-BACKEND.md` (contract chi tiết FE–BE)
-  - `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md`
+  - `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md`
 
 => AI hoặc backend dev có thể tự sinh / viết backend Spring Boot tương thích hoàn toàn với FE mà không cần mở sâu code NodeJS.
-

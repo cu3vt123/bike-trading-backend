@@ -30,11 +30,48 @@ function toListing(dto: BikeDto): Listing {
     ["state", "status", "listingStatus"],
     "PUBLISHED",
   );
-  const inspectionResult = pick<InspectionResult | undefined>(
+  const rawResult = pick<string | undefined>(
     dto,
     ["inspectionResult", "inspectionStatus", "result"],
     undefined,
   );
+  const inspectionResult: InspectionResult | undefined =
+    typeof rawResult === "string"
+      ? (() => {
+          const u = rawResult.toUpperCase();
+          return ["APPROVE", "REJECT", "NEED_UPDATE"].includes(u) ? (u as InspectionResult) : undefined;
+        })()
+      : undefined;
+
+  const rawReport = dto.inspectionReport ?? dto.inspection_report ?? dto.inspection;
+  const inspectionReport =
+    rawReport &&
+    typeof rawReport === "object" &&
+    rawReport.frameIntegrity &&
+    rawReport.drivetrainHealth &&
+    rawReport.brakingSystem
+      ? {
+          frameIntegrity: {
+            score: Number(rawReport.frameIntegrity?.score ?? rawReport.frame_integrity?.score ?? 0),
+            label: String(rawReport.frameIntegrity?.label ?? rawReport.frame_integrity?.label ?? ""),
+          },
+          drivetrainHealth: {
+            score: Number(rawReport.drivetrainHealth?.score ?? rawReport.drivetrain_health?.score ?? 0),
+            label: String(rawReport.drivetrainHealth?.label ?? rawReport.drivetrain_health?.label ?? ""),
+          },
+          brakingSystem: {
+            score: Number(rawReport.brakingSystem?.score ?? rawReport.braking_system?.score ?? 0),
+            label: String(rawReport.brakingSystem?.label ?? rawReport.braking_system?.label ?? ""),
+          },
+        }
+      : undefined;
+
+  const inspectionScore =
+    typeof dto.inspectionScore === "number"
+      ? dto.inspectionScore
+      : typeof dto.inspection_score === "number"
+        ? dto.inspection_score
+        : undefined;
 
   return {
     id,
@@ -60,7 +97,20 @@ function toListing(dto: BikeDto): Listing {
     ),
     state,
     inspectionResult,
+    inspectionScore: inspectionScore ?? (inspectionReport ? averageReportScore(inspectionReport) : undefined),
+    inspectionReport,
   };
+}
+
+function averageReportScore(report: {
+  frameIntegrity: { score: number };
+  drivetrainHealth: { score: number };
+  brakingSystem: { score: number };
+}): number {
+  const a = report.frameIntegrity?.score ?? 0;
+  const b = report.drivetrainHealth?.score ?? 0;
+  const c = report.brakingSystem?.score ?? 0;
+  return (a + b + c) / 3;
 }
 
 function toDetail(dto: BikeDto): BikeDetail {

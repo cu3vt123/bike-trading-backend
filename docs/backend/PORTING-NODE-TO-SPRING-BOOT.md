@@ -16,7 +16,7 @@
   - Seller (CRUD listing, submit kiểm định)
   - Inspector (review listing, approve / reject / need-update)
 
-Chi tiết cấu trúc: `backend/docs/STRUCTURE.md`  
+Chi tiết cấu trúc: `docs/backend/STRUCTURE.md`  
 Contract FE–BE (request/response, enum, giá trị chuẩn): `docs/HUONG-DAN-BACKEND.md`
 
 ---
@@ -277,4 +277,3 @@ Khi port sang Spring Boot:
    - Chạy FE (`npm run dev`) và test login, danh sách xe, chi tiết xe, flow Seller + Inspector.
 
 Chỉ cần Spring Boot tuân theo API contract hiện có, FE2 sẽ dùng được backend Java **mà không phải sửa logic ở phía frontend**.
-

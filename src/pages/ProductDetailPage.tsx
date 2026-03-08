@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useWishlistStore } from "@/stores/useWishlistStore";
+import { INSPECTION_ROW_LABELS, INSPECTION_OVERALL_LABEL } from "@/constants/inspection";
 
 type NavState = { listing?: BikeDetail };
 
@@ -144,6 +145,8 @@ export default function ProductDetailPage() {
     inspectionReport?.brakingSystem;
   const isVerified =
     listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
+  /** Hiển thị badge "Đã kiểm định" chỉ khi đã có báo cáo hoặc điểm, tránh mâu thuẫn với "Chưa có điểm kiểm định" */
+  const showVerifiedBadge = isVerified && (hasInspectionReport || (score > 0));
   const canBuy = isVerified;
   const isPendingInspection = listing.state === "PENDING_INSPECTION";
 
@@ -211,13 +214,13 @@ export default function ProductDetailPage() {
           {/* Title block + báo cáo nhà kiểm định (luôn có ở đây) */}
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              {isVerified && (
+              {showVerifiedBadge && (
                 <Badge variant="default">
                   <Shield className="mr-1 h-3 w-3" />
                   Sàn đã xác minh • Đã kiểm định
                 </Badge>
               )}
-              <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${isVerified ? "bg-primary/10" : "bg-muted/80"}`}>
+              <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${showVerifiedBadge ? "bg-primary/10" : "bg-muted/80"}`}>
                 <Stars value={score} />
                 <span className="font-semibold text-foreground">
                   {score > 0 ? score.toFixed(1) : "0.0"}/5
@@ -252,14 +255,16 @@ export default function ProductDetailPage() {
             <CardContent>
               {hasInspectionReport ? (
                 <div className="grid gap-4 sm:grid-cols-3">
-                  {[
-                    { rowLabel: "Độ nguyên khung", ...inspectionReport.frameIntegrity },
-                    { rowLabel: "Tình trạng hệ truyền động", ...inspectionReport.drivetrainHealth },
-                    { rowLabel: "Hệ thống phanh", ...inspectionReport.brakingSystem },
-                  ].map(({ rowLabel, label: value, score: s }) => (
-                    <div key={rowLabel} className="rounded-xl border border-border bg-muted/50 p-4">
-                      <div className="text-xs text-muted-foreground">{rowLabel}</div>
-                      <div className="mt-2 text-sm font-semibold">{value}</div>
+                  {(
+                    [
+                      { key: "frameIntegrity" as const, ...inspectionReport.frameIntegrity },
+                      { key: "drivetrainHealth" as const, ...inspectionReport.drivetrainHealth },
+                      { key: "brakingSystem" as const, ...inspectionReport.brakingSystem },
+                    ] as const
+                  ).map(({ key, label: value, score: s }) => (
+                    <div key={key} className="rounded-xl border border-border bg-muted/50 p-4">
+                      <div className="text-xs text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</div>
+                      <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
                       <div className="mt-1 text-xs">
                         <Stars value={s ?? 0} />{" "}
                         <span className="text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
@@ -269,7 +274,7 @@ export default function ProductDetailPage() {
                 </div>
               ) : isVerified && score > 0 ? (
                 <div className="rounded-xl border border-border bg-muted/50 p-4">
-                  <div className="text-xs text-muted-foreground">Điểm tổng thể</div>
+                  <div className="text-xs text-muted-foreground">{INSPECTION_OVERALL_LABEL}</div>
                   <div className="mt-2 flex items-center gap-2">
                     <Stars value={score} />
                     <span className="text-sm font-semibold">{score.toFixed(1)}/5</span>
@@ -322,22 +327,24 @@ export default function ProductDetailPage() {
                   <DialogTitle>Báo cáo kiểm định</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  {[
-                    { rowLabel: "Độ nguyên khung", ...inspectionReport!.frameIntegrity },
-                    { rowLabel: "Tình trạng hệ truyền động", ...inspectionReport!.drivetrainHealth },
-                    { rowLabel: "Hệ thống phanh", ...inspectionReport!.brakingSystem },
-                  ].map(({ rowLabel, label: value, score: s }) => (
-                    <div key={rowLabel} className="flex items-center justify-between rounded-lg border px-4 py-3">
-                      <span className="text-sm text-muted-foreground">{rowLabel}</span>
+                  {(
+                    [
+                      { key: "frameIntegrity" as const, ...inspectionReport!.frameIntegrity },
+                      { key: "drivetrainHealth" as const, ...inspectionReport!.drivetrainHealth },
+                      { key: "brakingSystem" as const, ...inspectionReport!.brakingSystem },
+                    ] as const
+                  ).map(({ key, label: value, score: s }) => (
+                    <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+                      <span className="text-sm text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{value}</span>
+                        <span className="text-sm font-semibold text-foreground">{value}</span>
                         <Stars value={s ?? 0} />
                         <span className="text-xs text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center justify-between rounded-lg border px-4 py-3 bg-muted/30">
-                    <span className="text-sm text-muted-foreground">Điểm tổng thể</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
+                    <span className="text-sm text-muted-foreground">{INSPECTION_OVERALL_LABEL}</span>
                     <div className="flex items-center gap-2">
                       <Stars value={score} />
                       <span className="text-sm font-semibold">({score.toFixed(1)})</span>
@@ -365,7 +372,7 @@ export default function ProductDetailPage() {
                     )}
                     <p className="mt-2 text-xs text-primary">Đã bao gồm phí dịch vụ</p>
                   </div>
-                  <div className={`rounded-lg px-3 py-2 text-center ${isVerified ? "bg-primary/10" : isPendingInspection ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"}`}>
+                  <div className={`rounded-lg px-3 py-2 text-center ${isVerified ? "bg-primary/10 text-primary" : isPendingInspection ? "bg-warning/15 text-warning" : "bg-muted text-muted-foreground"}`}>
                     <div className="text-[10px] font-semibold">
                       {isVerified ? "ĐÃ KIỂM ĐỊNH" : isPendingInspection ? "ĐANG CHỜ" : "KHÔNG BÁN"}
                     </div>
@@ -416,7 +423,7 @@ export default function ProductDetailPage() {
                     </p>
                   </>
                 ) : isPendingInspection ? (
-                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <div className="mt-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
                     <span className="font-semibold">Đang chờ kiểm định.</span> Tin này đang được xem xét và chưa mở bán.
                   </div>
                 ) : (

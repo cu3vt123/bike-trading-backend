@@ -381,8 +381,8 @@ export default function SellerProfilePage() {
             <DialogDescription>
               Are you sure you want to remove {removeTarget?.label ?? "this payment method"}?
               {removeTarget?.tag === "DEFAULT" && paymentMethods.length >= 2 && (
-                <span className="mt-2 block text-amber-600 dark:text-amber-500">
-                  This is your default method. The first remaining method will become default.
+                <span className="mt-2 block text-warning">
+                  Đây là phương thức mặc định. Phương thức còn lại đầu tiên sẽ thành mặc định.
                 </span>
               )}
             </DialogDescription>

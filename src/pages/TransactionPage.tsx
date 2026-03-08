@@ -20,6 +20,7 @@ import {
 } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { ORDER_STATUS_LABEL, type OrderStatus } from "@/types/order";
+import { INSPECTION_ROW_LABELS, INSPECTION_OVERALL_LABEL } from "@/constants/inspection";
 
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
@@ -421,16 +422,16 @@ export default function TransactionPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold">Liên hệ hỗ trợ</div>
+                <div className="text-sm font-semibold text-foreground">Liên hệ hỗ trợ</div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  24/7 assistance
+                  Hỗ trợ 24/7
                 </p>
                 <Button
                   variant="outline"
                   className="mt-3 w-full"
                   onClick={() => setSupportOpen(true)}
                 >
-                  Chat with support
+                  Chat với hỗ trợ
                 </Button>
               </CardContent>
             </Card>
@@ -471,25 +472,27 @@ export default function TransactionPage() {
               <DialogDescription>{listing?.brand} {listing?.model ?? ""}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {[
-                { rowLabel: "Độ nguyên khung", ...inspectionReport!.frameIntegrity },
-                { rowLabel: "Tình trạng truyền động", ...inspectionReport!.drivetrainHealth },
-                { rowLabel: "Hệ thống phanh", ...inspectionReport!.brakingSystem },
-              ].map(({ rowLabel, label: value, score: s }) => (
-                <div key={rowLabel} className="flex items-center justify-between rounded-lg border px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{rowLabel}</span>
+              {(
+                [
+                  { key: "frameIntegrity" as const, ...inspectionReport!.frameIntegrity },
+                  { key: "drivetrainHealth" as const, ...inspectionReport!.drivetrainHealth },
+                  { key: "brakingSystem" as const, ...inspectionReport!.brakingSystem },
+                ] as const
+              ).map(({ key, label: value, score: s }) => (
+                <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+                  <span className="text-sm text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">{value}</span>
+                    <span className="text-sm font-semibold text-foreground">{value}</span>
                     <Stars value={s ?? 0} />
                     <span className="text-xs text-muted-foreground">({(s ?? 0).toFixed(1)})</span>
                   </div>
                 </div>
               ))}
-              <div className="flex items-center justify-between rounded-lg border px-4 py-3 bg-muted/30">
-                <span className="text-sm text-muted-foreground">Điểm tổng</span>
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <span className="text-sm text-muted-foreground">{INSPECTION_OVERALL_LABEL}</span>
                 <div className="flex items-center gap-2">
                   <Stars value={score} />
-                  <span className="text-sm font-semibold">({score.toFixed(1)})</span>
+                  <span className="text-sm font-semibold text-foreground">({score.toFixed(1)})</span>
                 </div>
               </div>
             </div>
@@ -503,7 +506,7 @@ export default function TransactionPage() {
           <DialogHeader>
             <DialogTitle>Liên hệ hỗ trợ</DialogTitle>
             <DialogDescription>
-              Live chat will be available when Backend is integrated. For now, please contact{" "}
+              Live chat sẽ có khi tích hợp Backend. Hiện tại vui lòng liên hệ{" "}
               <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
                 support@shopbike.example.com
               </a>.

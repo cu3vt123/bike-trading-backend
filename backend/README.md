@@ -2,7 +2,7 @@
 
 Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppingCartBE`.
 
-Chi tiết: `docs/STRUCTURE.md`
+**Tài liệu backend** (cấu trúc, hướng dẫn demo, port sang Spring Boot) nằm trong **một folder docs** ở root dự án: xem `docs/backend/` (từ thư mục gốc frontend). Chi tiết: `docs/backend/STRUCTURE.md`.
 
 ## Quick start (no Mongo install required)
 

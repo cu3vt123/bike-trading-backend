@@ -229,10 +229,9 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/HUONG-DAN-BACKEND.md` | Contract API cho Backend |
 | `docs/API-SETUP.md` | Kết nối API, Swagger |
 | `docs/HUONG-DAN-DEMO.md` | Hướng dẫn demo |
-| `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ, tiến độ |
-| `docs/HUONG-DAN-FE2-JOIN-GIT.md` | Git cho FE2 |
-| `docs/SPRINT3-HOI-DONG.md` | Sprint 3 – Chuẩn bị hội đồng |
+| `docs/README.md` | Mục lục toàn bộ tài liệu trong `docs/` |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |
+| `docs/backend/` | Tài liệu backend (STRUCTURE, DEMO-BACKEND-GUIDE, PORTING-NODE-TO-SPRING-BOOT, SPRING-BOOT-SKELETON) |
 
 ---
 

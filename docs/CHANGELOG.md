@@ -4,6 +4,19 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [Gần đây] Gộp toàn bộ docs vào một folder `docs/`
+
+### Thay đổi
+
+- **Một folder docs duy nhất**: Toàn bộ tài liệu nằm trong `docs/`.
+- **Backend docs chuyển vào `docs/backend/`**: Các file trước đây trong `backend/docs/` (STRUCTURE, DEMO-BACKEND-GUIDE, PORTING-NODE-TO-SPRING-BOOT, SPRING-BOOT-SKELETON) đã được chuyển vào `docs/backend/`. Các tham chiếu trong nội dung đã được cập nhật (`backend/docs/...` → `docs/backend/...`).
+- **Mục lục**: Thêm `docs/README.md` làm mục lục toàn bộ tài liệu (docs chung + docs/backend).
+- **Cập nhật tham chiếu**: README.md (root), PROJECT-SUMMARY.md, RUN-FULL-PROJECT.md, backend/README.md đã được cập nhật để trỏ đúng tới `docs/` và `docs/backend/`.
+
+Sau khi gộp, có thể xóa thư mục `backend/docs/` cũ (nội dung đã nằm trong `docs/backend/`).
+
+---
+
 ## [2025-03] Tái cấu trúc + dọn dẹp docs
 
 ### Thay đổi code

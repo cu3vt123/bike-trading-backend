@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import type { Listing } from "@/types/shopbike";
 import type { InspectionReport } from "@/services/inspectorService";
+import { INSPECTION_ROW_LABELS } from "@/constants/inspection";
 import { Package } from "lucide-react";
 
 const INSPECTION_OPTIONS = [
@@ -151,139 +152,141 @@ export default function InspectorDashboardPage() {
           <p className="mt-3 text-sm text-muted-foreground">Đang tải tin chờ kiểm định...</p>
         </div>
       ) : (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <span className="text-sm font-semibold">Tin đăng chờ kiểm định</span>
-            <Badge variant="secondary">{listings.length} chờ</Badge>
-          </CardHeader>
-          <CardContent>
-            {listings.length === 0 ? (
-              <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
-                Chưa có tin nào chờ kiểm định.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {listings.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex gap-4">
-                      <div className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-                        <img
-                          src={item.thumbnailUrl ?? ""}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+        <>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <span className="text-sm font-semibold">Tin đăng chờ kiểm định</span>
+              <Badge variant="secondary">{listings.length} chờ</Badge>
+            </CardHeader>
+            <CardContent>
+              {listings.length === 0 ? (
+                <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
+                  Chưa có tin nào chờ kiểm định.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {listings.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex gap-4">
+                        <div className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+                          <img
+                            src={item.thumbnailUrl ?? ""}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-semibold">
+                            {item.brand} {item.model ?? ""}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {item.title}
+                          </div>
+                          <div className="mt-1 text-sm">
+                            {formatMoney(item.price, item.currency ?? "VND")} • {item.location}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold">
-                          {item.brand} {item.model ?? ""}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {item.title}
-                        </div>
-                        <div className="mt-1 text-sm">
-                          {formatMoney(item.price, item.currency ?? "VND")} • {item.location}
-                        </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          onClick={() => setActionTarget({ id: item.id, action: "approve" })}
+                        >
+                          <CheckCircle className="mr-1 h-4 w-4" />
+                          Duyệt
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => setActionTarget({ id: item.id, action: "reject" })}
+                        >
+                          <XCircle className="mr-1 h-4 w-4" />
+                          Từ chối
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-warning/40 text-warning hover:bg-warning/10"
+                          onClick={() => setActionTarget({ id: item.id, action: "needUpdate" })}
+                        >
+                          <AlertCircle className="mr-1 h-4 w-4" />
+                          Yêu cầu cập nhật
+                        </Button>
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link to={`/bikes/${item.id}`}>Xem chi tiết</Link>
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                  ))}
+                </div>
+              )}
+              <p className="mt-4 text-xs text-muted-foreground">
+                Duyệt → Xuất bản. Từ chối → Đóng. Yêu cầu cập nhật → Người bán phải gửi lại.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Kiểm định lại tại kho (sau khi admin xác nhận xe tới kho) */}
+          <Card className="mt-6">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Package className="h-4 w-4" />
+                Kiểm định lại tại kho
+              </span>
+              <Badge variant="outline">{reInspectionOrders.length} đơn</Badge>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-xs text-muted-foreground">
+                Xe đã được admin xác nhận tới kho. Inspector kiểm tra lại đúng như seller mô tả thì bấm xác nhận → đơn chuyển &quot;Đang giao hàng&quot;.
+              </p>
+              {reInspectionLoading ? (
+                <div className="flex justify-center py-6">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : reInspectionOrders.length === 0 ? (
+                <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                  Không có đơn nào cần kiểm định lại.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {reInspectionOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
+                    >
+                      <div>
+                        <div className="font-medium">
+                          {order.listing?.brand} {order.listing?.model ?? order.listingId}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Đơn {order.id}</div>
+                      </div>
                       <Button
                         size="sm"
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                        onClick={() => setActionTarget({ id: item.id, action: "approve" })}
+                        onClick={async () => {
+                          setReInspectionSubmittingId(order.id);
+                          try {
+                            await submitReInspectionDone(order.id);
+                            loadReInspection();
+                          } finally {
+                            setReInspectionSubmittingId(null);
+                          }
+                        }}
+                        disabled={reInspectionSubmittingId === order.id}
                       >
                         <CheckCircle className="mr-1 h-4 w-4" />
-                        Duyệt
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setActionTarget({ id: item.id, action: "reject" })}
-                      >
-                        <XCircle className="mr-1 h-4 w-4" />
-                        Từ chối
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-amber-300 text-amber-700 hover:bg-amber-50"
-                        onClick={() => setActionTarget({ id: item.id, action: "needUpdate" })}
-                      >
-                        <AlertCircle className="mr-1 h-4 w-4" />
-                        Yêu cầu cập nhật
-                      </Button>
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link to={`/bikes/${item.id}`}>Xem chi tiết</Link>
+                        {reInspectionSubmittingId === order.id ? "Đang xử lý..." : "Xác nhận đúng như mô tả"}
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p className="mt-4 text-xs text-muted-foreground">
-              Duyệt → Xuất bản. Từ chối → Đóng. Yêu cầu cập nhật → Người bán phải gửi lại.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Kiểm định lại tại kho (sau khi admin xác nhận xe tới kho) */}
-        <Card className="mt-6">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <span className="flex items-center gap-2 text-sm font-semibold">
-              <Package className="h-4 w-4" />
-              Kiểm định lại tại kho
-            </span>
-            <Badge variant="outline">{reInspectionOrders.length} đơn</Badge>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-xs text-muted-foreground">
-              Xe đã được admin xác nhận tới kho. Inspector kiểm tra lại đúng như seller mô tả thì bấm xác nhận → đơn chuyển &quot;Đang giao hàng&quot;.
-            </p>
-            {reInspectionLoading ? (
-              <div className="flex justify-center py-6">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              </div>
-            ) : reInspectionOrders.length === 0 ? (
-              <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
-                Không có đơn nào cần kiểm định lại.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {reInspectionOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
-                  >
-                    <div>
-                      <div className="font-medium">
-                        {order.listing?.brand} {order.listing?.model ?? order.listingId}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Đơn {order.id}</div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        setReInspectionSubmittingId(order.id);
-                        try {
-                          await submitReInspectionDone(order.id);
-                          loadReInspection();
-                        } finally {
-                          setReInspectionSubmittingId(null);
-                        }
-                      }}
-                      disabled={reInspectionSubmittingId === order.id}
-                    >
-                      <CheckCircle className="mr-1 h-4 w-4" />
-                      {reInspectionSubmittingId === order.id ? "Đang xử lý..." : "Xác nhận đúng như mô tả"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <div className="mt-6 flex gap-4">
@@ -314,15 +317,10 @@ export default function InspectorDashboardPage() {
                 Sau khi bấm Xác nhận, nội dung báo cáo (Độ nguyên khung, Truyền động, Phanh) sẽ hiển thị trên trang chi tiết xe cho người mua.
               </p>
               {(["frameIntegrity", "drivetrainHealth", "brakingSystem"] as const).map((key) => {
-                const labels: Record<typeof key, string> = {
-                  frameIntegrity: "Độ nguyên khung",
-                  drivetrainHealth: "Tình trạng hệ truyền động",
-                  brakingSystem: "Hệ thống phanh",
-                };
                 const val = inspectionReport[key];
                 return (
                   <div key={key} className="flex items-center gap-4">
-                    <Label className="w-32 shrink-0">{labels[key]}</Label>
+                    <Label className="w-32 shrink-0 text-foreground">{INSPECTION_ROW_LABELS[key]}</Label>
                     <Select
                       value={val.label}
                       onValueChange={(v) => {

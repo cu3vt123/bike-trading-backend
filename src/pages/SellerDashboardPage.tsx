@@ -28,12 +28,12 @@ function stateLabel(state: ListingState) {
     case "PENDING_INSPECTION":
       return {
         text: "Đang duyệt",
-        cls: "bg-amber-50 text-amber-700 border-amber-200",
+        cls: "bg-warning/15 text-warning border-warning/30",
       };
     case "NEED_UPDATE":
       return {
         text: "Cần cập nhật",
-        cls: "bg-rose-50 text-rose-700 border-rose-200",
+        cls: "bg-destructive/10 text-destructive border-destructive/30",
       };
     case "PUBLISHED":
       return {
@@ -181,7 +181,7 @@ export default function SellerDashboardPage() {
                           {x.title}
                         </div>
                         {needUpdateReason && (
-                          <div className="mt-1 text-xs text-rose-600">
+                          <div className="mt-1 text-xs text-destructive">
                             Phản hồi kiểm định: {needUpdateReason}
                           </div>
                         )}
@@ -291,7 +291,7 @@ export default function SellerDashboardPage() {
                 </div>
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    o.status === "PAID" ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-700"
+                    o.status === "PAID" ? "bg-primary/10 text-primary" : "bg-warning/15 text-warning"
                   }`}
                 >
                   {o.status === "PAID" ? "Đã thanh toán" : "Chờ xử lý"}
@@ -309,14 +309,14 @@ export default function SellerDashboardPage() {
 
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-amber-500" />
+            <Star className="h-5 w-5 text-primary" />
             <span className="text-sm font-semibold text-foreground">Đánh giá & uy tín</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">Mức độ tin cậy từ người mua.</p>
           <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-border bg-muted/50 py-6">
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-bold text-foreground">4.8</span>
-              <span className="text-amber-500">★★★★★</span>
+              <span className="text-primary">★★★★★</span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">12 đánh giá</p>
             <p className="mt-1 text-xs text-muted-foreground">97% phản hồi tích cực</p>

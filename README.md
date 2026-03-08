@@ -48,7 +48,7 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/HUONG-DAN-BACKEND.md` | Contract API |
 | `docs/API-SETUP.md` | Kết nối Backend |
 | `docs/HUONG-DAN-DEMO.md` | Demo |
-| `docs/FLOWS-AND-PROGRESS.md` | Luồng nghiệp vụ |
+| `docs/README.md` | Mục lục toàn bộ tài liệu (docs + docs/backend) |
 | `docs/CHANGELOG.md` | Lịch sử thay đổi |
 
 ---
@@ -81,10 +81,10 @@ Khi backend dev checkout nhánh `ui-ux`, thứ tự đọc khuyến nghị:
    - `docs/RUN-FULL-PROJECT.md`
 3. **Nếu muốn tham khảo backend NodeJS demo** (không bắt buộc chạy, chỉ để nhìn logic):  
    - `backend/README.md`  
-   - `backend/docs/DEMO-BACKEND-GUIDE.md`
+   - `docs/backend/DEMO-BACKEND-GUIDE.md`
 4. **Nếu muốn port hoàn toàn sang Java Spring Boot**:
-   - `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md` – phân tích model + API để map sang Spring Boot.
-   - `backend/docs/SPRING-BOOT-SKELETON.md` – skeleton project Spring Boot (pom, packages, controller mẫu, security).
+   - `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md` – phân tích model + API để map sang Spring Boot.
+   - `docs/backend/SPRING-BOOT-SKELETON.md` – skeleton project Spring Boot (pom, packages, controller mẫu, security).
 
 ### Cách để backend Spring Boot tự demo với frontend này
 

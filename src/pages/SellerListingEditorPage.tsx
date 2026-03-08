@@ -219,23 +219,23 @@ export default function SellerListingEditorPage() {
       </div>
 
       {error && (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {locked && (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="mt-4 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
           Tin này <b>đang chờ kiểm định</b>. Không thể sửa cho đến khi có kết quả.
         </div>
       )}
       {!locked && needUpdateReason && (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+        <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           <div className="font-semibold">Kiểm định viên yêu cầu cập nhật</div>
           <p className="mt-1">
             {needUpdateReason}
           </p>
-          <p className="mt-1 text-xs text-rose-700">
+          <p className="mt-1 text-xs text-destructive/90">
             Vui lòng sửa theo nội dung trên, lưu nháp rồi gửi kiểm định lại.
           </p>
         </div>
@@ -323,7 +323,7 @@ export default function SellerListingEditorPage() {
             />
 
             {photoError && (
-              <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <div className="mt-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {photoError}
               </div>
             )}

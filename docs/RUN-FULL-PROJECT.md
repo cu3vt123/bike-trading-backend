@@ -34,8 +34,8 @@ frontend/                 # Thư mục gốc (nơi bạn đang đứng)
 Backend quan trọng cho BE/AI đọc:
 
 - `backend/README.md`
-- `backend/docs/DEMO-BACKEND-GUIDE.md`
-- `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md`
+- `docs/backend/DEMO-BACKEND-GUIDE.md`
+- `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md`
 - `docs/HUONG-DAN-BACKEND.md` (contract FE–BE)
 
 ---
@@ -99,7 +99,7 @@ Sau khi backend và frontend đều đang chạy:
    - FE gọi `GET /api/bikes/:id`.
 3. **Đăng nhập**
    - FE gọi `POST /api/auth/login` với `role` = `BUYER` / `SELLER` / `INSPECTOR` / `ADMIN`.
-   - Tài khoản demo: xem `backend/README.md` hoặc `backend/docs/DEMO-BACKEND-GUIDE.md`.
+   - Tài khoản demo: xem `backend/README.md` hoặc `docs/backend/DEMO-BACKEND-GUIDE.md`.
 4. **Seller flow**
    - Trang seller dashboard, tạo listing, submit kiểm định → dùng `/api/seller/...`.
 5. **Inspector flow**
@@ -117,7 +117,7 @@ Khi backend NodeJS đã chạy ổn và bạn muốn viết lại bằng Java Sp
 
 1. Đọc:
    - `docs/HUONG-DAN-BACKEND.md` – **contract FE–BE** (quan trọng nhất).
-   - `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md` – mapping model + controller.
+   - `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md` – mapping model + controller.
 2. Implement backend Spring Boot:
    - Giữ nguyên path (`/api/auth/...`, `/api/bikes`, `/api/seller/...`, `/api/inspector/...`). 
    - Trả JSON đúng như docs.

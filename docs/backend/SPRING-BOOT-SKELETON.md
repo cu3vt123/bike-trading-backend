@@ -3,7 +3,7 @@
 > Mục tiêu: cung cấp **khung dự án Spring Boot** và cấu trúc gợi ý để team Java import vào IntelliJ / IDE bất kỳ, rồi implement logic theo các tài liệu sau:
 >
 > - `docs/HUONG-DAN-BACKEND.md` – contract FE–BE (request/response, enum…)
-> - `backend/docs/PORTING-NODE-TO-SPRING-BOOT.md` – mapping model + API
+> - `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md` – mapping model + API
 
 ---
 
@@ -328,5 +328,4 @@ npm run dev
    - Inspector dashboard → `/api/inspector/...`
    - Checkout → `/api/buyer/...`
 
-Chỉ cần Spring Boot tuân theo contract trong `docs/HUONG-DAN-BACKEND.md`, FE sẽ hoạt động bình thường mà không cần sửa code. 
-
+Chỉ cần Spring Boot tuân theo contract trong `docs/HUONG-DAN-BACKEND.md`, FE sẽ hoạt động bình thường mà không cần sửa code.
