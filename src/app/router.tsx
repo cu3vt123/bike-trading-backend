@@ -7,6 +7,7 @@ import {
   RequireBuyer,
   RequireSeller,
   RequireInspector,
+  RequireAdmin,
 } from "@/shared/components/common";
 import { ForbiddenPage } from "@/shared/pages";
 
@@ -32,6 +33,7 @@ import {
 } from "@/features/seller";
 import { InspectorDashboardPage } from "@/features/inspector";
 import ProfilePage from "@/pages/ProfilePage";
+import AdminDashboardPage from "@/pages/AdminDashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +52,11 @@ export const router = createBrowserRouter([
       {
         element: <RequireInspector />,
         children: [{ path: "inspector", element: <InspectorDashboardPage /> }],
+      },
+
+      {
+        element: <RequireAdmin />,
+        children: [{ path: "admin", element: <AdminDashboardPage /> }],
       },
 
       {

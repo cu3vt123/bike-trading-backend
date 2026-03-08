@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { Logo } from "@/components/common/Logo";
 import type { Role } from "@/types/auth";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/apis/authApi";
@@ -62,10 +63,10 @@ const ROLE_CONFIG: Record<
   Role,
   { label: string; icon: React.ElementType; short: string }
 > = {
-  BUYER: { label: "Buyer", icon: ShoppingBag, short: "Buy" },
-  SELLER: { label: "Seller", icon: Store, short: "Sell" },
-  INSPECTOR: { label: "Inspector", icon: ClipboardCheck, short: "Inspect" },
-  ADMIN: { label: "Admin", icon: Shield, short: "Admin" },
+  BUYER: { label: "Người mua", icon: ShoppingBag, short: "Mua" },
+  SELLER: { label: "Người bán", icon: Store, short: "Bán" },
+  INSPECTOR: { label: "Kiểm định viên", icon: ClipboardCheck, short: "Kiểm định" },
+  ADMIN: { label: "Quản trị", icon: Shield, short: "Admin" },
 };
 
 export default function LoginPage() {
@@ -115,7 +116,7 @@ export default function LoginPage() {
           ? backendMsg
           : err instanceof Error
             ? err.message
-            : "Invalid credentials. Please check your info and try again.";
+            : "Sai thông tin đăng nhập. Vui lòng kiểm tra và thử lại.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -125,20 +126,12 @@ export default function LoginPage() {
   const roles: Role[] = ["BUYER", "SELLER", "INSPECTOR", "ADMIN"];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Top bar - no MainLayout to avoid double header */}
-      <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-border bg-card/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-sm">
-              S
-            </span>
-            <div className="leading-tight">
-              <div className="text-sm font-bold">ShopBike</div>
-              <div className="text-xs text-muted-foreground">
-                Verified &amp; Inspected
-              </div>
-            </div>
+            <Logo variant="auth" showLabel />
           </Link>
 
           <nav className="flex items-center gap-4 text-sm">
@@ -146,13 +139,13 @@ export default function LoginPage() {
               to="/#listings"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              Explore
+              Khám phá
             </Link>
             <Link
               to="/support"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              Support
+              Hỗ trợ
             </Link>
           </nav>
         </div>
@@ -160,11 +153,11 @@ export default function LoginPage() {
 
       <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Card className="border-slate-200 shadow-lg">
+          <Card className="border-border shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Welcome back</CardTitle>
+              <CardTitle className="text-2xl">Chào bạn trở lại</CardTitle>
               <CardDescription className="mt-1">
-                Log in to continue your verified marketplace experience.
+                Đăng nhập để tiếp tục trải nghiệm sàn đã xác minh.
               </CardDescription>
             </CardHeader>
 
@@ -177,7 +170,7 @@ export default function LoginPage() {
 
               {/* 4-role selector */}
               <div className="space-y-2">
-                <Label className="text-sm">Sign in as</Label>
+                <Label className="text-sm">Đăng nhập với vai trò</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {roles.map((r) => {
                     const config = ROLE_CONFIG[r];
@@ -192,7 +185,7 @@ export default function LoginPage() {
                           "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all",
                           isSelected
                             ? "border-primary bg-primary/10 text-primary shadow-sm"
-                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+                            : "border-border hover:border-primary/50 hover:bg-muted",
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
@@ -205,7 +198,7 @@ export default function LoginPage() {
 
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email / Username</Label>
+                  <Label htmlFor="email">Email / Tên đăng nhập</Label>
                   <Input
                     id="email"
                     type="text"
@@ -218,12 +211,12 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Mật khẩu</Label>
                     <Link
                       to="/forgot-password"
                       className="text-xs text-primary hover:underline"
                     >
-                      Forgot password?
+                      Quên mật khẩu?
                     </Link>
                   </div>
                   <Input
@@ -241,18 +234,18 @@ export default function LoginPage() {
                   className="w-full"
                   disabled={submitting}
                 >
-                  {submitting ? "Logging in..." : "Log in"}
+                  {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
 
                 <Button type="button" variant="outline" className="w-full" asChild>
-                  <Link to="/">Continue browsing</Link>
+                  <Link to="/">Tiếp tục xem</Link>
                 </Button>
               </form>
 
               <p className="text-center text-sm text-muted-foreground">
-                Don&apos;t have an account?{" "}
+                Chưa có tài khoản?{" "}
                 <Link to="/register" className="font-medium text-primary hover:underline">
-                  Sign up
+                  Đăng ký
                 </Link>
               </p>
             </CardContent>

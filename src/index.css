@@ -4,64 +4,63 @@
 
 @layer base {
   :root {
-    /* White + mint green theme */
-    --background: 150 40% 98%; /* very light mint-tinted background */
-    --foreground: 155 16% 15%; /* deep neutral green-ish text */
-    --card: 0 0% 100%;
-    --card-foreground: 155 16% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 155 16% 15%;
-    /* primary = mint green */
-    --primary: 150 60% 45%;
+    --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+    /* Cinematic: nền đen + teal-green (logo), chữ trắng trong */
+    --background: 0 0% 6%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 168 72% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 150 40% 96%;
-    --secondary-foreground: 155 16% 18%;
-    --muted: 150 30% 96%;
-    --muted-foreground: 155 12% 40%;
-    --accent: 150 70% 94%;
-    --accent-foreground: 155 30% 25%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 168 55% 18%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 150 20% 90%;
-    --input: 150 20% 90%;
-    --ring: 150 60% 45%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 168 72% 48%;
     --radius: 0.625rem;
-    --chart-1: 150 60% 45%;
-    --chart-2: 160 55% 48%;
-    --chart-3: 140 45% 52%;
-    --chart-4: 150 35% 60%;
-    --chart-5: 160 30% 65%;
-    /* brand tokens (legacy/compat) */
-    --brand: 150 60% 45%;
-    --brand-soft: 150 70% 94%;
-    --brand-dark: 150 60% 32%;
+    --chart-1: 168 72% 48%;
+    --chart-2: 168 65% 55%;
+    --chart-3: 168 60% 42%;
+    --chart-4: 168 50% 30%;
+    --chart-5: 168 45% 22%;
+    --brand: 168 72% 48%;
+    --brand-soft: 168 55% 18%;
+    --brand-dark: 168 65% 35%;
   }
 
   .dark {
-    --background: 155 20% 10%;
-    --foreground: 150 40% 96%;
-    --card: 155 20% 12%;
-    --card-foreground: 150 40% 96%;
-    --popover: 155 20% 12%;
-    --popover-foreground: 150 40% 96%;
-    --primary: 150 60% 55%;
-    --primary-foreground: 155 20% 10%;
-    --secondary: 155 18% 18%;
-    --secondary-foreground: 150 40% 96%;
-    --muted: 155 18% 18%;
-    --muted-foreground: 150 20% 80%;
-    --accent: 150 45% 26%;
-    --accent-foreground: 150 40% 96%;
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 168 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 168 55% 18%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 155 18% 22%;
-    --input: 155 18% 22%;
-    --ring: 150 60% 55%;
-    --chart-1: 150 60% 55%;
-    --chart-2: 160 55% 50%;
-    --chart-3: 140 45% 56%;
-    --chart-4: 150 35% 64%;
-    --chart-5: 160 30% 68%;
+    --border: 0 0% 17%;
+    --input: 0 0% 17%;
+    --ring: 168 70% 50%;
+    --chart-1: 168 70% 50%;
+    --chart-2: 168 65% 55%;
+    --chart-3: 168 60% 42%;
+    --chart-4: 168 50% 30%;
+    --chart-5: 168 45% 22%;
   }
 
   * {
@@ -72,19 +71,44 @@
     scroll-behavior: smooth;
   }
 
+  html {
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
   html,
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased font-sans;
+    font-size: 1rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
     min-height: 100%;
   }
 
-  /* Smooth transitions for interactive elements */
-  button, a, [role="button"] {
-    @apply transition-colors duration-200;
+  /* UI/UX Pro Max: smooth transitions 150–300ms, cursor on clickables */
+  button,
+  a,
+  [role="button"] {
+    @apply cursor-pointer transition-colors duration-normal;
   }
 
-  /* Focus ring for accessibility */
+  input,
+  select,
+  textarea {
+    @apply transition-colors duration-normal;
+  }
+
+  /* Focus ring for accessibility (WCAG) */
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

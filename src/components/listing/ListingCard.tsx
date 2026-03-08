@@ -1,12 +1,20 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
-import type { Listing } from "@/types/shopbike";
+import type { Listing, BikeCondition } from "@/types/shopbike";
+
+const CONDITION_VI: Partial<Record<BikeCondition, string>> = {
+  NEW: "Mới",
+  LIKE_NEW: "Như mới",
+  MINT_USED: "Rất tốt",
+  GOOD_USED: "Tốt",
+  FAIR_USED: "Khá",
+};
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
 import { Button } from "@/components/ui/button";
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(currency === "VND" ? "vi-VN" : undefined, {
     style: "currency",
     currency,
     maximumFractionDigits: currency === "VND" ? 0 : 2,
@@ -37,10 +45,10 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
     <Link
       to={`/bikes/${listing.id}`}
       state={{ listing }}
-      className="group block overflow-hidden rounded-xl border border-slate-200 bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg"
+      className="group block overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-slow hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg"
     >
       <div className="relative overflow-hidden rounded-t-xl">
-        <div className="aspect-[4/3] w-full bg-slate-100">
+        <div className="aspect-[4/3] w-full bg-muted">
           <img
             src={img}
             alt={listing.title}
@@ -51,7 +59,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
 
         {isVerified && (
           <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
-            Verified
+            Đã kiểm định
           </div>
         )}
         {canWishlist && (
@@ -65,7 +73,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
                 e.stopPropagation();
                 toggleWishlist(listing.id);
               }}
-              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              aria-label={inWishlist ? "Bỏ khỏi yêu thích" : "Thêm vào yêu thích"}
             >
               <Heart
                 className={`h-4 w-4 transition-colors ${inWishlist ? "fill-primary text-primary" : ""}`}
@@ -88,11 +96,11 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
 
           <div className="shrink-0 text-right">
             <div className="text-sm font-bold text-primary">
-              {formatMoney(listing.price, listing.currency ?? "VND")}
+              {formatMoney(listing.price, "VND")}
             </div>
             {!!listing.msrp && listing.msrp > listing.price && (
-              <div className="text-xs text-slate-400 line-through">
-                {formatMoney(listing.msrp, listing.currency ?? "VND")}
+              <div className="text-xs text-muted-foreground line-through">
+                {formatMoney(listing.msrp, "VND")}
               </div>
             )}
           </div>
@@ -100,8 +108,8 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {listing.year && <span>{listing.year}</span>}
-          {listing.frameSize && <span>Size {listing.frameSize}</span>}
-          {listing.condition && <span>{listing.condition}</span>}
+          {listing.frameSize && <span>Kích thước {listing.frameSize}</span>}
+          {listing.condition && <span>{CONDITION_VI[listing.condition] ?? listing.condition}</span>}
           {listing.location && (
             <span className="truncate">• {listing.location}</span>
           )}

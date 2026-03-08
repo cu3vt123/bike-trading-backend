@@ -16,7 +16,7 @@ import { useWishlistStore } from "@/stores/useWishlistStore";
 
 type NavState = { listing?: BikeDetail };
 
-function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
+function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
@@ -62,7 +62,7 @@ export default function ProductDetailPage() {
         if (!cancelled) setListing(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? "Failed to load listing.");
+        if (!cancelled) setError(err?.message ?? "Không tải được tin đăng.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -100,32 +100,40 @@ export default function ProductDetailPage() {
     return [];
   }, [listing]);
 
+  const CONDITION_VI: Record<string, string> = {
+    NEW: "Mới",
+    LIKE_NEW: "Như mới",
+    MINT_USED: "Rất tốt (đã dùng)",
+    GOOD_USED: "Tốt (đã dùng)",
+    FAIR_USED: "Khá (đã dùng)",
+  };
+
   if (loading) {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 py-28">
         <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm font-medium text-muted-foreground">Loading listing...</p>
+        <p className="text-sm font-medium text-muted-foreground">Đang tải tin đăng...</p>
       </div>
     );
   }
 
   if (error || !listing) {
     return (
-      <Card className="mx-auto max-w-6xl border-slate-200">
+      <Card className="mx-auto max-w-6xl border-border">
         <CardContent className="py-16 text-center">
-          <h1 className="text-xl font-bold">Listing not found</h1>
+          <h1 className="text-xl font-bold">Không tìm thấy tin đăng</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {error ?? "The bike listing you're looking for doesn't exist."}
+            {error ?? "Tin đăng xe bạn tìm không tồn tại."}
           </p>
           <Button asChild variant="outline" className="mt-6">
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về trang chủ</Link>
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const currency = (listing.currency ?? "USD") as "VND" | "USD";
+  const currency = (listing.currency ?? "VND") as "VND" | "USD";
   const price = listing.price;
   const msrp = listing.msrp;
   const score = listing.inspectionScore ?? 0;
@@ -144,7 +152,7 @@ export default function ProductDetailPage() {
       {/* breadcrumb */}
       <div className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to="/" className="transition-colors hover:text-foreground">
-          Home
+          Trang chủ
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="font-medium text-foreground">
@@ -156,11 +164,11 @@ export default function ProductDetailPage() {
         {/* LEFT: Gallery + content */}
         <div className="lg:col-span-8 space-y-6">
           {/* Gallery */}
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardContent className="p-4">
               <div className="grid gap-4 md:grid-cols-12">
                 <div className="md:col-span-8">
-                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                  <div className="overflow-hidden rounded-xl border border-border bg-muted">
                     <div className="aspect-[4/3] w-full">
                       <img
                         src={images[Math.min(active, images.length - 1)]}
@@ -181,8 +189,8 @@ export default function ProductDetailPage() {
                         className={`overflow-hidden rounded-xl border-2 transition-all ${
                           idx === active
                             ? "border-primary ring-2 ring-primary/20 shadow-sm"
-                            : "border-slate-200 hover:border-slate-300"
-                        } bg-slate-50`}
+                            : "border-border hover:border-primary/30"
+                        } bg-muted`}
                       >
                         <div className="aspect-square">
                           <img src={src} alt="" className="h-full w-full object-cover" />
@@ -192,7 +200,7 @@ export default function ProductDetailPage() {
                   </div>
                   {images.length > 4 && (
                     <p className="mt-3 text-xs text-muted-foreground">
-                      +{images.length - 4} more photos
+                      +{images.length - 4} ảnh khác
                     </p>
                   )}
                 </div>
@@ -200,37 +208,56 @@ export default function ProductDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Title block */}
+          {/* Title block + báo cáo nhà kiểm định (luôn có ở đây) */}
           <div>
-            {isVerified && (
-              <Badge variant="default" className="mb-3">
-                <Shield className="mr-1 h-3 w-3" />
-                Verified marketplace • Inspected
-              </Badge>
-            )}
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              {isVerified && (
+                <Badge variant="default">
+                  <Shield className="mr-1 h-3 w-3" />
+                  Sàn đã xác minh • Đã kiểm định
+                </Badge>
+              )}
+              <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${isVerified ? "bg-primary/10" : "bg-muted/80"}`}>
+                <Stars value={score} />
+                <span className="font-semibold text-foreground">
+                  {score > 0 ? score.toFixed(1) : "0.0"}/5
+                </span>
+                <span className="text-muted-foreground">báo cáo nhà kiểm định</span>
+                {!hasInspectionReport && !isVerified && (
+                  <span className="text-muted-foreground"> (Chưa có báo cáo)</span>
+                )}
+              </div>
+            </div>
             <h1 className="text-2xl font-bold text-foreground">
               {listing.brand} {listing.model}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">{listing.title}</p>
           </div>
 
-          {/* Inspection report – only when inspector has filled it in */}
-          {hasInspectionReport ? (
-            <Card className="border-slate-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <span className="text-sm font-semibold">Inspection Report</span>
-                <Button variant="link" size="sm" className="text-primary" onClick={() => setReportOpen(true)}>
-                  View full report
+          {/* Báo cáo kiểm định – luôn hiển thị trong thông tin xe cho buyer */}
+          <Card className="border-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <span className="text-sm font-semibold">Báo cáo kiểm định</span>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Nội dung do kiểm định viên điền khi duyệt tin, hiển thị cho người mua.
+                </p>
+              </div>
+              {hasInspectionReport && (
+                <Button variant="link" size="sm" className="text-primary shrink-0" onClick={() => setReportOpen(true)}>
+                  Xem báo cáo đầy đủ
                 </Button>
-              </CardHeader>
-              <CardContent>
+              )}
+            </CardHeader>
+            <CardContent>
+              {hasInspectionReport ? (
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
-                    { rowLabel: "Frame integrity", ...inspectionReport.frameIntegrity },
-                    { rowLabel: "Drivetrain health", ...inspectionReport.drivetrainHealth },
-                    { rowLabel: "Braking system", ...inspectionReport.brakingSystem },
+                    { rowLabel: "Độ nguyên khung", ...inspectionReport.frameIntegrity },
+                    { rowLabel: "Tình trạng hệ truyền động", ...inspectionReport.drivetrainHealth },
+                    { rowLabel: "Hệ thống phanh", ...inspectionReport.brakingSystem },
                   ].map(({ rowLabel, label: value, score: s }) => (
-                    <div key={rowLabel} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                    <div key={rowLabel} className="rounded-xl border border-border bg-muted/50 p-4">
                       <div className="text-xs text-muted-foreground">{rowLabel}</div>
                       <div className="mt-2 text-sm font-semibold">{value}</div>
                       <div className="mt-1 text-xs">
@@ -240,41 +267,46 @@ export default function ProductDetailPage() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          ) : isPendingInspection ? (
-            <Card>
-              <CardContent className="py-6">
-                <div className="text-sm font-semibold">Inspection Report</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Pending inspection. An inspector will review this listing and add the report.
+              ) : isVerified && score > 0 ? (
+                <div className="rounded-xl border border-border bg-muted/50 p-4">
+                  <div className="text-xs text-muted-foreground">Điểm tổng thể</div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Stars value={score} />
+                    <span className="text-sm font-semibold">{score.toFixed(1)}/5</span>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Tin đã được kiểm định. Báo cáo chi tiết từng hạng mục sẽ hiển thị khi kiểm định viên cập nhật.
+                  </p>
+                </div>
+              ) : isPendingInspection ? (
+                <p className="py-2 text-sm text-muted-foreground">
+                  Đang chờ kiểm định. Kiểm định viên sẽ xem xét tin này và thêm báo cáo.
                 </p>
-              </CardContent>
-            </Card>
-          ) : !isVerified ? (
-            <Card>
-              <CardContent className="py-6">
-                <div className="text-sm font-semibold">Inspection Report</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  No inspection report available.
+              ) : !isVerified ? (
+                <p className="py-2 text-sm text-muted-foreground">
+                  Chưa có báo cáo kiểm định.
                 </p>
-              </CardContent>
-            </Card>
-          ) : null}
+              ) : (
+                <p className="py-2 text-sm text-muted-foreground">
+                  Chưa có điểm kiểm định. Tin sẽ được cập nhật sau khi kiểm định viên duyệt.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Specs */}
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Technical Specifications</span>
+              <span className="text-sm font-semibold">Thông số kỹ thuật</span>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
-                <SpecRow label="Brand" value={listing.brand} />
-                <SpecRow label="Model" value={listing.model ?? "—"} />
-                <SpecRow label="Year" value={listing.year ? String(listing.year) : "—"} />
-                <SpecRow label="Frame size" value={listing.frameSize ?? "—"} />
-                <SpecRow label="Condition" value={listing.condition ?? "—"} />
-                <SpecRow label="Location" value={listing.location ?? "—"} />
+                <SpecRow label="Hãng" value={listing.brand} />
+                <SpecRow label="Dòng xe" value={listing.model ?? "—"} />
+                <SpecRow label="Năm" value={listing.year ? String(listing.year) : "—"} />
+                <SpecRow label="Kích thước khung" value={listing.frameSize ?? "—"} />
+                <SpecRow label="Tình trạng" value={listing.condition ? (CONDITION_VI[listing.condition] ?? listing.condition) : "—"} />
+                <SpecRow label="Khu vực" value={listing.location ?? "—"} />
                 {specs.map((s, idx) => (
                   <SpecRow key={`${s.label}-${idx}`} label={s.label} value={String(s.value)} />
                 ))}
@@ -287,13 +319,13 @@ export default function ProductDetailPage() {
             <Dialog open={reportOpen} onOpenChange={setReportOpen}>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Inspection Report</DialogTitle>
+                  <DialogTitle>Báo cáo kiểm định</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   {[
-                    { rowLabel: "Frame integrity", ...inspectionReport!.frameIntegrity },
-                    { rowLabel: "Drivetrain health", ...inspectionReport!.drivetrainHealth },
-                    { rowLabel: "Braking system", ...inspectionReport!.brakingSystem },
+                    { rowLabel: "Độ nguyên khung", ...inspectionReport!.frameIntegrity },
+                    { rowLabel: "Tình trạng hệ truyền động", ...inspectionReport!.drivetrainHealth },
+                    { rowLabel: "Hệ thống phanh", ...inspectionReport!.brakingSystem },
                   ].map(({ rowLabel, label: value, score: s }) => (
                     <div key={rowLabel} className="flex items-center justify-between rounded-lg border px-4 py-3">
                       <span className="text-sm text-muted-foreground">{rowLabel}</span>
@@ -305,7 +337,7 @@ export default function ProductDetailPage() {
                     </div>
                   ))}
                   <div className="flex items-center justify-between rounded-lg border px-4 py-3 bg-muted/30">
-                    <span className="text-sm text-muted-foreground">Overall score</span>
+                    <span className="text-sm text-muted-foreground">Điểm tổng thể</span>
                     <div className="flex items-center gap-2">
                       <Stars value={score} />
                       <span className="text-sm font-semibold">({score.toFixed(1)})</span>
@@ -320,22 +352,22 @@ export default function ProductDetailPage() {
         {/* RIGHT: Price / actions */}
         <div className="lg:col-span-4">
           <div className="sticky top-24 space-y-4">
-            <Card className="border-slate-200 shadow-md">
+            <Card className="border-border shadow-md">
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-xs text-muted-foreground">Total Price</div>
+                    <div className="text-xs text-muted-foreground">Tổng giá</div>
                     <div className="mt-1 text-2xl font-bold">{formatMoney(price, currency)}</div>
                     {msrp && msrp > price && (
                       <div className="mt-1 text-xs text-muted-foreground line-through">
                         {formatMoney(msrp, currency)}
                       </div>
                     )}
-                    <p className="mt-2 text-xs text-primary">Service fee included</p>
+                    <p className="mt-2 text-xs text-primary">Đã bao gồm phí dịch vụ</p>
                   </div>
                   <div className={`rounded-lg px-3 py-2 text-center ${isVerified ? "bg-primary/10" : isPendingInspection ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"}`}>
                     <div className="text-[10px] font-semibold">
-                      {isVerified ? "INSPECTED" : isPendingInspection ? "PENDING" : "UNAVAILABLE"}
+                      {isVerified ? "ĐÃ KIỂM ĐỊNH" : isPendingInspection ? "ĐANG CHỜ" : "KHÔNG BÁN"}
                     </div>
                     {isVerified && (
                       <div className="mt-1 text-xs">
@@ -352,7 +384,7 @@ export default function ProductDetailPage() {
                       size="icon"
                       className="shrink-0"
                       onClick={() => toggleWishlist(listing.id)}
-                      aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                      aria-label={inWishlist ? "Bỏ khỏi yêu thích" : "Thêm vào yêu thích"}
                     >
                       <Heart
                         className={`h-4 w-4 ${inWishlist ? "fill-primary text-primary" : ""}`}
@@ -366,7 +398,7 @@ export default function ProductDetailPage() {
                       onClick={() => setChatOpen(true)}
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
-                      Chat with seller
+                      Nhắn tin người bán
                     </Button>
                   )}
                 </div>
@@ -376,35 +408,35 @@ export default function ProductDetailPage() {
                       className="mt-3 w-full"
                       onClick={() => navigate(`/checkout/${listing.id}`)}
                     >
-                      Buy now →
+                      Mua ngay →
                     </Button>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      Reservation is created after <span className="font-semibold">deposit payment</span>{" "}
-                      in checkout and is held for <span className="font-semibold">24 hours</span>.
+                      Đặt chỗ có hiệu lực sau khi <span className="font-semibold">thanh toán đặt cọc</span>{" "}
+                      tại bước thanh toán và được giữ <span className="font-semibold">24 giờ</span>.
                     </p>
                   </>
                 ) : isPendingInspection ? (
                   <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                    <span className="font-semibold">Pending inspection.</span> This listing is under review and not yet available for purchase.
+                    <span className="font-semibold">Đang chờ kiểm định.</span> Tin này đang được xem xét và chưa mở bán.
                   </div>
                 ) : (
                   <div className="mt-3 rounded-lg border border-muted bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-                    This listing is not available for purchase.
+                    Tin này không khả dụng để mua.
                   </div>
                 )}
 
                 <div className="mt-4 space-y-2 text-xs">
-                  <InfoLine title="Secure Payment" desc="Protected marketplace escrow flow" />
-                  <InfoLine title="Insured Shipping" desc="Delivery & handling supported" />
+                  <InfoLine title="Thanh toán an toàn" desc="Giao dịch được bảo vệ qua sàn" />
+                  <InfoLine title="Giao hàng bảo hiểm" desc="Hỗ trợ vận chuyển & bàn giao" />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold">Seller</div>
+                <div className="text-sm font-semibold">Người bán</div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {listing.seller?.name ?? "ProCyclist SF"} • 97% response • Verified seller
+                  {listing.seller?.name ?? "ProCyclist SF"} • 97% phản hồi • Đã xác minh
                 </p>
                 <Button
                   variant="outline"
@@ -413,7 +445,7 @@ export default function ProductDetailPage() {
                   onClick={() => setChatOpen(true)}
                 >
                   <MessageCircle className="mr-2 h-3.5 w-3.5" />
-                  Message
+                  Nhắn tin
                 </Button>
               </CardContent>
             </Card>
@@ -422,10 +454,10 @@ export default function ProductDetailPage() {
             <Dialog open={chatOpen} onOpenChange={setChatOpen}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Chat with seller</DialogTitle>
+                  <DialogTitle>Nhắn tin với người bán</DialogTitle>
                 </DialogHeader>
                 <div className="py-6 text-center text-sm text-muted-foreground">
-                  Live chat will be available when Backend is integrated. For now you can contact via email
+                  Chat trực tuyến sẽ có khi tích hợp Backend. Hiện bạn có thể liên hệ qua email{" "}
                   <a href="mailto:support@shopbike.example.com" className="ml-1 text-primary hover:underline">
                     support@shopbike.example.com
                   </a>.

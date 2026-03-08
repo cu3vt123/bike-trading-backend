@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authApi } from "@/apis/authApi";
+import { Logo } from "@/components/common/Logo";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 
@@ -91,14 +92,8 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-                S
-              </span>
-              <div className="leading-tight">
-                <div className="text-sm font-semibold">ShopBike</div>
-                <div className="text-xs text-muted-foreground">Verified &amp; Inspected</div>
-              </div>
+            <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+              <Logo variant="auth" showLabel />
             </Link>
           </div>
         </header>
@@ -106,15 +101,15 @@ export default function ResetPasswordPage() {
         <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <KeyRound className="h-6 w-6" />
               </div>
-              <CardTitle>Password set successfully</CardTitle>
-              <CardDescription>You can now log in with your new password.</CardDescription>
+              <CardTitle>Đặt mật khẩu thành công</CardTitle>
+              <CardDescription>Bạn có thể đăng nhập bằng mật khẩu mới.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => navigate("/login", { replace: true })}>
-                Log in now
+                Đăng nhập ngay
               </Button>
             </CardContent>
           </Card>
@@ -128,14 +123,8 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-                S
-              </span>
-              <div className="leading-tight">
-                <div className="text-sm font-semibold">ShopBike</div>
-                <div className="text-xs text-muted-foreground">Verified &amp; Inspected</div>
-              </div>
+            <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+              <Logo variant="auth" showLabel />
             </Link>
           </div>
         </header>
@@ -143,15 +132,14 @@ export default function ResetPasswordPage() {
         <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <CardTitle>Invalid link</CardTitle>
+              <CardTitle>Link không hợp lệ</CardTitle>
               <CardDescription>
-                The reset link is invalid or expired. Please request a new link from
-                the Forgot password page.
+                Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới từ trang Quên mật khẩu.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" className="w-full" asChild>
-                <Link to="/forgot-password">Request new link</Link>
+                <Link to="/forgot-password">Yêu cầu link mới</Link>
               </Button>
             </CardContent>
           </Card>
@@ -164,18 +152,12 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-              S
-            </span>
-            <div className="leading-tight">
-              <div className="text-sm font-semibold">ShopBike</div>
-              <div className="text-xs text-muted-foreground">Verified &amp; Inspected</div>
-            </div>
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+            <Logo variant="auth" showLabel />
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
-              Log in
+              Đăng nhập
             </Link>
           </nav>
         </div>
@@ -229,7 +211,7 @@ export default function ResetPasswordPage() {
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to login
+                    Về trang đăng nhập
                   </Link>
                 </Button>
               </form>

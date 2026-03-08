@@ -1,10 +1,20 @@
 /**
  * Seller service – gọi API thật hoặc fallback mock khi BE chưa sẵn sàng.
+ * Có timeout để tránh load mãi khi backend treo.
  */
 import { sellerApi, type SellerDashboardStats, type CreateListingRequest } from "@/apis/sellerApi";
 import type { Listing } from "@/types/shopbike";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
+
+const FETCH_TIMEOUT_MS = 5_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+}
 
 // Mock data (giống SellerDashboardPage hiện tại)
 const SELLER_MOCK: Listing[] = [
@@ -84,8 +94,12 @@ export async function fetchSellerDashboard(): Promise<{
 }> {
   if (USE_MOCK) return mockStats();
   try {
-    return await sellerApi.getDashboard();
-  } catch {
+    return await withTimeout(
+      sellerApi.getDashboard(),
+      FETCH_TIMEOUT_MS,
+      "Backend không phản hồi.",
+    );
+  } catch (_) {
     return mockStats();
   }
 }

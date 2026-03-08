@@ -19,6 +19,7 @@ import {
   cancelOrder,
 } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
+import { ORDER_STATUS_LABEL, type OrderStatus } from "@/types/order";
 
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
@@ -39,7 +40,7 @@ type TxState = {
   totals?: { deposit?: number; totalNow?: number };
 };
 
-function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
+function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
@@ -54,7 +55,26 @@ function pad2(n: number) {
 function formatPaymentMethod(pm?: PaymentMethod) {
   if (!pm) return "—";
   if (pm.type === "CARD") return `${pm.brand} ending in ${pm.last4}`;
-  return "Bank Transfer";
+  return "Chuyển khoản ngân hàng";
+}
+
+const SHIPPING_FLOW_STEPS: OrderStatus[] = [
+  "RESERVED",
+  "PENDING_SELLER_SHIP",
+  "SELLER_SHIPPED",
+  "AT_WAREHOUSE_PENDING_ADMIN",
+  "RE_INSPECTION",
+  "RE_INSPECTION_DONE",
+  "SHIPPING",
+  "COMPLETED",
+];
+
+function isStepDone(status: OrderStatus | null, step: OrderStatus): boolean {
+  if (!status) return step === "RESERVED";
+  const idx = SHIPPING_FLOW_STEPS.indexOf(step);
+  const currentIdx = SHIPPING_FLOW_STEPS.indexOf(status);
+  if (currentIdx < 0) return idx < SHIPPING_FLOW_STEPS.indexOf("COMPLETED");
+  return idx <= currentIdx || status === "COMPLETED";
 }
 
 export default function TransactionPage() {
@@ -68,6 +88,7 @@ export default function TransactionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [orderState, setOrderState] = useState<TxState | null>(null);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
 
   const state = orderState ?? locationState;
 
@@ -78,9 +99,10 @@ export default function TransactionPage() {
       let cancelled = false;
       fetchOrderById(orderIdFromUrl)
         .then((o) => {
-          if (!cancelled && o && (o.status === "RESERVED" || o.status === "IN_TRANSACTION")) {
+          if (!cancelled && o) {
             const listingId = o.listingId ?? (o.listing as { id?: string })?.id;
             if (listingId && id === listingId) {
+              setOrderStatus(o.status);
               setOrderState({
                 orderId: o.id,
                 depositPaid: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
@@ -153,7 +175,7 @@ export default function TransactionPage() {
     }
   }
 
-  const currency = (listing?.currency ?? "USD") as "VND" | "USD";
+  const currency = (listing?.currency ?? "VND") as "VND" | "USD";
   const score = listing?.inspectionScore ?? 0;
   const inspectionReport = listing?.inspectionReport;
   const hasInspectionReport =
@@ -182,7 +204,7 @@ export default function TransactionPage() {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Loading transaction...</p>
+        <p className="text-sm text-muted-foreground">Đang tải giao dịch...</p>
       </div>
     );
   }
@@ -191,12 +213,12 @@ export default function TransactionPage() {
     return (
       <Card className="mx-auto max-w-6xl">
         <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Transaction not found</h1>
+          <h1 className="text-lg font-semibold">Không tìm thấy giao dịch</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {error ?? "Unable to load this transaction."}
           </p>
           <Button asChild variant="link" className="mt-4">
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về trang chủ</Link>
           </Button>
         </CardContent>
       </Card>
@@ -207,7 +229,7 @@ export default function TransactionPage() {
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Transaction</h1>
+          <h1 className="text-2xl font-bold">Giao dịch</h1>
           <Badge className="mt-2" variant="default">
             RESERVED / IN TRANSACTION
           </Badge>
@@ -220,7 +242,7 @@ export default function TransactionPage() {
             My orders
           </Button>
           <Button variant="outline" onClick={() => navigate(`/bikes/${listing.id}`)}>
-            View listing
+            Xem tin đăng
           </Button>
         </div>
       </div>
@@ -257,48 +279,49 @@ export default function TransactionPage() {
           {/* Progress */}
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Transaction Progress</span>
+              <span className="text-sm font-semibold">Tiến trình giao dịch</span>
             </CardHeader>
             <CardContent className="space-y-4">
-              {[
-                { done: true, title: "Reservation Confirmed", desc: "Deposit paid successfully" },
-                { done: true, title: "Finalize Purchase", desc: "Action required: pay balance & shipping" },
-                { done: false, title: "Completed", desc: "Ownership transferred" },
-              ].map(({ done, title, desc }) => (
-                <div key={title} className="flex gap-3">
-                  <div
-                    className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
-                      done ? "bg-primary" : "bg-muted"
-                    }`}
-                  />
-                  <div className={done ? "" : "opacity-50"}>
-                    <div className="font-semibold">{title}</div>
-                    <div className="text-sm text-muted-foreground">{desc}</div>
+              {(orderStatus ? SHIPPING_FLOW_STEPS : (["RESERVED", "IN_TRANSACTION", "COMPLETED"] as OrderStatus[])).map((step) => {
+                const done = orderStatus ? isStepDone(orderStatus, step) : (step === "RESERVED" || step === "IN_TRANSACTION");
+                const title = ORDER_STATUS_LABEL[step];
+                const desc = step === "RESERVED" ? "Đã đặt cọc thành công" : step === "PENDING_SELLER_SHIP" ? "Seller sẽ nhận thông báo và gửi xe tới kho" : step === "AT_WAREHOUSE_PENDING_ADMIN" ? "Admin xác nhận xe đã tới kho" : step === "RE_INSPECTION" ? "Inspector kiểm định lại tại kho" : step === "RE_INSPECTION_DONE" ? "Đã xác nhận đúng, chuyển giao hàng" : step === "SHIPPING" ? "Đang giao hàng tới bạn" : step === "COMPLETED" ? "Đã chuyển quyền sở hữu" : step === "IN_TRANSACTION" ? "Thanh toán số dư & giao hàng" : "";
+                return (
+                  <div key={step} className="flex gap-3">
+                    <div
+                      className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
+                        done ? "bg-primary" : "bg-muted"
+                      }`}
+                    />
+                    <div className={done ? "" : "opacity-50"}>
+                      <div className="font-semibold">{title}</div>
+                      {desc && <div className="text-sm text-muted-foreground">{desc}</div>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
 
           {/* Logistics */}
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Logistics & Payment</span>
+              <span className="text-sm font-semibold">Vận chuyển & Thanh toán</span>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border bg-muted/50 p-4">
-                  <div className="text-xs text-muted-foreground">Order ID</div>
+                  <div className="text-xs text-muted-foreground">Mã đơn</div>
                   <div className="mt-1 font-semibold">#{orderId}</div>
                 </div>
                 <div className="rounded-lg border bg-muted/50 p-4">
-                  <div className="text-xs text-muted-foreground">Payment Method</div>
+                  <div className="text-xs text-muted-foreground">Phương thức thanh toán</div>
                   <div className="mt-1 font-semibold">
                     {formatPaymentMethod(state.paymentMethod)}
                   </div>
                 </div>
                 <div className="rounded-lg border bg-muted/50 p-4 sm:col-span-2">
-                  <div className="text-xs text-muted-foreground">Delivery Address</div>
+                  <div className="text-xs text-muted-foreground">Địa chỉ giao hàng</div>
                   <div className="mt-1 font-semibold">
                     123 Cycling Way, District 1, HCMC
                   </div>
@@ -320,7 +343,7 @@ export default function TransactionPage() {
                     paymentMethod: state.paymentMethod,
                   }}
                 >
-                  Finalize Purchase
+                  Hoàn tất mua hàng
                 </Link>
               </Button>
               <Button
@@ -328,10 +351,10 @@ export default function TransactionPage() {
                 className="mt-3 w-full"
                 onClick={() => setCancelOpen(true)}
               >
-                Cancel Reservation
+                Hủy đặt chỗ
               </Button>
               <p className="mt-3 text-center text-xs text-muted-foreground">
-                Refund policy applies • Anti-spam cancellation limit
+                Áp dụng chính sách hoàn tiền • Giới hạn hủy chống spam
               </p>
             </CardContent>
           </Card>
@@ -361,13 +384,13 @@ export default function TransactionPage() {
 
                 <div className="mt-4 overflow-hidden rounded-lg border">
                   <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
-                    <span className="text-muted-foreground">Deposit Paid</span>
+                    <span className="text-muted-foreground">Đã đặt cọc</span>
                     <span className="font-semibold">
                       {formatMoney(depositPaid, currency)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 text-sm">
-                    <span className="text-muted-foreground">Due on delivery</span>
+                    <span className="text-muted-foreground">Còn lại khi giao hàng</span>
                     <span className="font-semibold">
                       {formatMoney(Math.max(0, totalPrice - depositPaid), currency)}
                     </span>
@@ -377,7 +400,7 @@ export default function TransactionPage() {
                 <div className="mt-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
                   <CheckCircle className="h-4 w-4 text-primary" />
                   <span>
-                    Payment:{" "}
+                    Thanh toán:{" "}
                     <span className="font-semibold">
                       {formatPaymentMethod(state.paymentMethod)}
                     </span>
@@ -390,7 +413,7 @@ export default function TransactionPage() {
                     className="mt-4 w-full"
                     onClick={() => setReportOpen(true)}
                   >
-                    View inspection report
+                    Xem báo cáo kiểm định
                   </Button>
                 )}
               </CardContent>
@@ -398,7 +421,7 @@ export default function TransactionPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold">Contact Support</div>
+                <div className="text-sm font-semibold">Liên hệ hỗ trợ</div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   24/7 assistance
                 </p>
@@ -419,21 +442,21 @@ export default function TransactionPage() {
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Reservation</DialogTitle>
+            <DialogTitle>Hủy đặt chỗ</DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel this reservation? A refund will be processed according to our policy (up to 7 days). Cancel limit: max 3 per period.
+              Bạn có chắc muốn hủy đặt chỗ này? Hoàn tiền sẽ được xử lý theo chính sách (trong vòng 7 ngày). Giới hạn hủy: tối đa 3 lần mỗi kỳ.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              Keep Reservation
+              Giữ đặt chỗ
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancelReservation}
               disabled={cancelling}
             >
-              {cancelling ? "Cancelling..." : "Cancel & Refund"}
+              {cancelling ? "Đang hủy..." : "Hủy & Hoàn tiền"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -444,14 +467,14 @@ export default function TransactionPage() {
         <Dialog open={reportOpen} onOpenChange={setReportOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Inspection Report</DialogTitle>
+              <DialogTitle>Báo cáo kiểm định</DialogTitle>
               <DialogDescription>{listing?.brand} {listing?.model ?? ""}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               {[
-                { rowLabel: "Frame integrity", ...inspectionReport!.frameIntegrity },
-                { rowLabel: "Drivetrain health", ...inspectionReport!.drivetrainHealth },
-                { rowLabel: "Braking system", ...inspectionReport!.brakingSystem },
+                { rowLabel: "Độ nguyên khung", ...inspectionReport!.frameIntegrity },
+                { rowLabel: "Tình trạng truyền động", ...inspectionReport!.drivetrainHealth },
+                { rowLabel: "Hệ thống phanh", ...inspectionReport!.brakingSystem },
               ].map(({ rowLabel, label: value, score: s }) => (
                 <div key={rowLabel} className="flex items-center justify-between rounded-lg border px-4 py-3">
                   <span className="text-sm text-muted-foreground">{rowLabel}</span>
@@ -463,7 +486,7 @@ export default function TransactionPage() {
                 </div>
               ))}
               <div className="flex items-center justify-between rounded-lg border px-4 py-3 bg-muted/30">
-                <span className="text-sm text-muted-foreground">Overall score</span>
+                <span className="text-sm text-muted-foreground">Điểm tổng</span>
                 <div className="flex items-center gap-2">
                   <Stars value={score} />
                   <span className="text-sm font-semibold">({score.toFixed(1)})</span>
@@ -478,7 +501,7 @@ export default function TransactionPage() {
       <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contact Support</DialogTitle>
+            <DialogTitle>Liên hệ hỗ trợ</DialogTitle>
             <DialogDescription>
               Live chat will be available when Backend is integrated. For now, please contact{" "}
               <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
@@ -487,7 +510,7 @@ export default function TransactionPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setSupportOpen(false)}>Close</Button>
+            <Button onClick={() => setSupportOpen(false)}>Đóng</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

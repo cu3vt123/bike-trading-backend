@@ -235,7 +235,7 @@ export default function BuyerProfilePage() {
                                 style: "currency",
                                 currency:
                                   (o.listing as { currency?: string })
-                                    ?.currency ?? "USD",
+                                    ?.currency ?? "VND",
                                 maximumFractionDigits: 2,
                               }).format(o.totalPrice)
                             : "—"}
@@ -278,7 +278,7 @@ export default function BuyerProfilePage() {
               )}
 
               <Button asChild variant="link" className="mt-4">
-                <Link to="/">← Back to Home</Link>
+                <Link to="/">← Về trang chủ</Link>
               </Button>
             </CardContent>
           </Card>

@@ -82,7 +82,7 @@ export default function SellerProfilePage() {
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEditError("Please enter a valid email address.");
+      setEditError("Vui lòng nhập địa chỉ email hợp lệ.");
       return;
     }
     setEditError("");
@@ -149,7 +149,7 @@ export default function SellerProfilePage() {
     if (addType === "VISA") {
       const last4 = addLast4.replace(/\D/g, "");
       if (last4.length !== 4) {
-        setAddError("Please enter 4 digits for card number.");
+        setAddError("Vui lòng nhập 4 chữ số cho số thẻ.");
         return;
       }
     }

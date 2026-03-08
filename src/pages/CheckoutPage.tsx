@@ -17,8 +17,7 @@ import { cn } from "@/lib/utils";
 
 type Plan = "DEPOSIT" | "FULL";
 type Method = "CARD" | "BANK";
-
-function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
+function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
@@ -30,8 +29,8 @@ const METHOD_CONFIG: Record<
   Method,
   { label: string; icon: React.ElementType }
 > = {
-  CARD: { label: "Card (Visa/Mastercard)", icon: CreditCard },
-  BANK: { label: "Bank Transfer", icon: Building2 },
+  CARD: { label: "Thẻ (Visa/Mastercard)", icon: CreditCard },
+  BANK: { label: "Chuyển khoản", icon: Building2 },
 };
 
 export default function CheckoutPage() {
@@ -42,9 +41,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<
-    Record<string, string>
-  >({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [plan, setPlan] = useState<Plan>("DEPOSIT");
   const [method, setMethod] = useState<Method>("CARD");
@@ -82,7 +79,7 @@ export default function CheckoutPage() {
       })
       .catch((err) => {
         if (!cancelled)
-          setFetchError(err?.message ?? "Failed to load listing.");
+          setFetchError(err?.message ?? "Không tải được tin đăng.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -96,7 +93,7 @@ export default function CheckoutPage() {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Loading checkout...</p>
+        <p className="text-sm text-muted-foreground">Đang tải thanh toán...</p>
       </div>
     );
   }
@@ -105,19 +102,20 @@ export default function CheckoutPage() {
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Listing not found</h1>
+          <h1 className="text-lg font-semibold">Không tìm thấy tin đăng</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {fetchError ?? "Checkout can't load because listing id is invalid."}
+            {fetchError ??
+              "Không tải được thanh toán do tin đăng không hợp lệ."}
           </p>
           <Button asChild variant="link" className="mt-4">
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về trang chủ</Link>
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const currency = (listing.currency ?? "USD") as "VND" | "USD";
+  const currency = (listing.currency ?? "VND") as "VND" | "USD";
   const itemPrice = listing.price;
   const shipping = 45;
   const deposit = 545;
@@ -127,23 +125,22 @@ export default function CheckoutPage() {
 
   function validatePaymentFields(): Record<string, string> {
     const errs: Record<string, string> = {};
-    if (!ship.street.trim()) errs.shipStreet = "Street address is required";
-    if (!ship.city.trim()) errs.shipCity = "City is required";
+    if (!ship.street.trim()) errs.shipStreet = "Vui lòng nhập địa chỉ đường";
+    if (!ship.city.trim()) errs.shipCity = "Vui lòng chọn thành phố";
     if (method === "CARD") {
       const n = card.number.replace(/\D/g, "");
       if (n.length < 12 || n.length > 19)
-        errs.cardNumber = "Enter a valid card number (12–19 digits)";
-      if (!card.name.trim()) errs.cardName = "Cardholder name is required";
-      if (!card.exp.trim()) errs.cardExp = "Expiry date (MM/YY) is required";
+        errs.cardNumber = "Nhập số thẻ hợp lệ (12–19 chữ số)";
+      if (!card.name.trim()) errs.cardName = "Vui lòng nhập tên chủ thẻ";
+      if (!card.exp.trim()) errs.cardExp = "Vui lòng nhập ngày hết hạn (MM/YY)";
       else if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim()))
-        errs.cardExp = "Expiry format: MM/YY";
+        errs.cardExp = "Định dạng: MM/YY";
       const cvcDigits = card.cvc.replace(/\D/g, "");
-      if (cvcDigits.length !== 3)
-        errs.cardCvc = "CVC must be exactly 3 digits";
+      if (cvcDigits.length !== 3) errs.cardCvc = "CVC phải đúng 3 chữ số";
     } else {
       if (bank.accountNumber.replace(/\D/g, "").length < 8)
-        errs.bankAccount = "Account number must be at least 8 digits";
-      if (!bank.bankName.trim()) errs.bankName = "Bank name is required";
+        errs.bankAccount = "Số tài khoản ít nhất 8 chữ số";
+      if (!bank.bankName.trim()) errs.bankName = "Vui lòng nhập tên ngân hàng";
     }
     return errs;
   }
@@ -171,7 +168,7 @@ export default function CheckoutPage() {
       if (!validation.ok) {
         setApiError(
           validation.error ??
-            "Payment validation failed. Use test card 4242 4242 4242 4242.",
+            "Xác thực thanh toán thất bại. Dùng thẻ thử 4242 4242 4242 4242.",
         );
         setSubmitting(false);
         return;
@@ -256,7 +253,9 @@ export default function CheckoutPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Select Payment Plan</span>
+              <span className="text-sm font-semibold">
+                Chọn hình thức thanh toán
+              </span>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
@@ -310,7 +309,9 @@ export default function CheckoutPage() {
 
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Payment Method</span>
+              <span className="text-sm font-semibold">
+                Phương thức thanh toán
+              </span>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-3">
@@ -344,26 +345,32 @@ export default function CheckoutPage() {
 
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Shipping Address</span>
+              <span className="text-sm font-semibold">Địa chỉ giao hàng</span>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <Label>Street address *</Label>
+                <Label>Địa chỉ đường *</Label>
                 <Input
-                  className={cn("mt-1", fieldErrors.shipStreet && "border-destructive")}
-                  placeholder="Street address"
+                  className={cn(
+                    "mt-1",
+                    fieldErrors.shipStreet && "border-destructive",
+                  )}
+                  placeholder="Số nhà, tên đường"
                   value={ship.street}
                   onChange={(e) => {
                     setShip((s) => ({ ...s, street: e.target.value }));
-                    if (fieldErrors.shipStreet) setFieldErrors((prev) => ({ ...prev, shipStreet: "" }));
+                    if (fieldErrors.shipStreet)
+                      setFieldErrors((prev) => ({ ...prev, shipStreet: "" }));
                   }}
                 />
                 {fieldErrors.shipStreet && (
-                  <p className="mt-1 text-xs text-destructive">{fieldErrors.shipStreet}</p>
+                  <p className="mt-1 text-xs text-destructive">
+                    {fieldErrors.shipStreet}
+                  </p>
                 )}
               </div>
               <div>
-                <Label>City *</Label>
+                <Label>Thành phố *</Label>
                 <select
                   className={cn(
                     "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -376,7 +383,7 @@ export default function CheckoutPage() {
                       setFieldErrors((prev) => ({ ...prev, shipCity: "" }));
                   }}
                 >
-                  <option value="">Select city</option>
+                  <option value="">Chọn thành phố</option>
                   {CITY_OPTIONS.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -384,14 +391,16 @@ export default function CheckoutPage() {
                   ))}
                 </select>
                 {fieldErrors.shipCity && (
-                  <p className="mt-1 text-xs text-destructive">{fieldErrors.shipCity}</p>
+                  <p className="mt-1 text-xs text-destructive">
+                    {fieldErrors.shipCity}
+                  </p>
                 )}
               </div>
               <div>
-                <Label>Postal code</Label>
+                <Label>Mã bưu điện</Label>
                 <Input
                   className="mt-1"
-                  placeholder="Postal code"
+                  placeholder="Mã bưu điện"
                   value={ship.postalCode}
                   onChange={(e) =>
                     setShip((s) => ({ ...s, postalCode: e.target.value }))
@@ -405,16 +414,16 @@ export default function CheckoutPage() {
             <Card>
               <CardHeader>
                 <span className="text-sm font-semibold">
-                  Card Details (Visa / Mastercard)
+                  Thông tin thẻ (Visa / Mastercard)
                 </span>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  As required by card issuers. Test cards: 4242 4242 4242 4242,
+                  Theo yêu cầu nhà phát hành thẻ. Thẻ thử: 4242 4242 4242 4242,
                   5555 5555 5555 4444
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label>Card number *</Label>
+                  <Label>Số thẻ *</Label>
                   <Input
                     className={cn(
                       "mt-1 font-mono",
@@ -433,14 +442,19 @@ export default function CheckoutPage() {
                     }}
                   />
                   {fieldErrors.cardNumber && (
-                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardNumber}</p>
+                    <p className="mt-1 text-xs text-destructive">
+                      {fieldErrors.cardNumber}
+                    </p>
                   )}
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Cardholder name *</Label>
+                  <Label>Tên chủ thẻ *</Label>
                   <Input
-                    className={cn("mt-1", fieldErrors.cardName && "border-destructive")}
-                    placeholder="John Doe (as on card)"
+                    className={cn(
+                      "mt-1",
+                      fieldErrors.cardName && "border-destructive",
+                    )}
+                    placeholder="VD: Nguyễn Văn A (ghi đúng như trên thẻ)"
                     value={card.name}
                     onChange={(e) => {
                       const cleaned = e.target.value
@@ -452,13 +466,18 @@ export default function CheckoutPage() {
                     }}
                   />
                   {fieldErrors.cardName && (
-                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardName}</p>
+                    <p className="mt-1 text-xs text-destructive">
+                      {fieldErrors.cardName}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <Label>Expiry (MM/YY) *</Label>
+                  <Label>Ngày hết hạn (MM/YY) *</Label>
                   <Input
-                    className={cn("mt-1", fieldErrors.cardExp && "border-destructive")}
+                    className={cn(
+                      "mt-1",
+                      fieldErrors.cardExp && "border-destructive",
+                    )}
                     placeholder="12/28"
                     value={card.exp}
                     onChange={(e) => {
@@ -466,18 +485,24 @@ export default function CheckoutPage() {
                       if (v.length >= 2)
                         v = v.slice(0, 2) + "/" + v.slice(2, 4);
                       setCard((c) => ({ ...c, exp: v }));
-                      if (fieldErrors.cardExp) setFieldErrors((prev) => ({ ...prev, cardExp: "" }));
+                      if (fieldErrors.cardExp)
+                        setFieldErrors((prev) => ({ ...prev, cardExp: "" }));
                     }}
                     maxLength={5}
                   />
                   {fieldErrors.cardExp && (
-                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardExp}</p>
+                    <p className="mt-1 text-xs text-destructive">
+                      {fieldErrors.cardExp}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <Label>CVC (3 digits) *</Label>
+                  <Label>CVC (3 chữ số) *</Label>
                   <Input
-                    className={cn("mt-1", fieldErrors.cardCvc && "border-destructive")}
+                    className={cn(
+                      "mt-1",
+                      fieldErrors.cardCvc && "border-destructive",
+                    )}
                     placeholder="123"
                     value={card.cvc}
                     onChange={(e) => {
@@ -492,7 +517,9 @@ export default function CheckoutPage() {
                     maxLength={3}
                   />
                   {fieldErrors.cardCvc && (
-                    <p className="mt-1 text-xs text-destructive">{fieldErrors.cardCvc}</p>
+                    <p className="mt-1 text-xs text-destructive">
+                      {fieldErrors.cardCvc}
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -503,10 +530,10 @@ export default function CheckoutPage() {
             <Card>
               <CardHeader>
                 <span className="text-sm font-semibold">
-                  Bank Transfer Details
+                  Thông tin chuyển khoản
                 </span>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Required by bank regulations. Min 8 digits for account number.
+                  Theo quy định ngân hàng. Số tài khoản tối thiểu 8 chữ số.
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -526,10 +553,10 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Bank name *</Label>
+                  <Label>Tên ngân hàng *</Label>
                   <Input
                     className="mt-1"
-                    placeholder="e.g. Vietcombank"
+                    placeholder="VD: Vietcombank"
                     value={bank.bankName}
                     onChange={(e) =>
                       setBank((b) => ({ ...b, bankName: e.target.value }))
@@ -537,10 +564,10 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Account holder name (optional)</Label>
+                  <Label>Chủ tài khoản (tùy chọn)</Label>
                   <Input
                     className="mt-1"
-                    placeholder="John Doe"
+                    placeholder="VD: Nguyễn Văn A"
                     value={bank.accountHolderName}
                     onChange={(e) =>
                       setBank((b) => ({
@@ -569,16 +596,16 @@ export default function CheckoutPage() {
                 htmlFor="agree"
                 className="text-xs text-muted-foreground cursor-pointer"
               >
-                I agree to the{" "}
+                Tôi đồng ý với{" "}
                 <span className="text-primary underline">
-                  cancellation & refund policy
+                  chính sách hủy & hoàn tiền
                 </span>
                 .
               </Label>
             </div>
             {agreeError && (
               <p className="text-sm text-destructive">
-                Please agree to the cancellation & refund policy to continue.
+                Vui lòng đồng ý với chính sách hủy & hoàn tiền để tiếp tục.
               </p>
             )}
           </div>
@@ -590,10 +617,10 @@ export default function CheckoutPage() {
             disabled={submitting}
           >
             {submitting
-              ? "Creating order..."
+              ? "Đang tạo đơn..."
               : plan === "DEPOSIT"
-                ? "Pay Deposit & Reserve →"
-                : "Pay Full Amount →"}
+                ? "Đặt cọc & Giữ chỗ →"
+                : "Thanh toán toàn bộ →"}
           </Button>
         </div>
 
@@ -620,23 +647,23 @@ export default function CheckoutPage() {
 
               <div className="mt-5 space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Item Price</span>
+                  <span>Giá xe</span>
                   <span>{formatMoney(itemPrice, currency)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Shipping</span>
+                  <span>Phí vận chuyển</span>
                   <span>{formatMoney(shipping, currency)}</span>
                 </div>
                 {plan === "DEPOSIT" && (
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Deposit Due (Now)</span>
+                    <span>Đặt cọc (ngay)</span>
                     <span>{formatMoney(deposit, currency)}</span>
                   </div>
                 )}
 
                 <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <div className="flex justify-between font-semibold text-primary">
-                    <span>Total due now</span>
+                    <span>Tổng thanh toán ngay</span>
                     <span>
                       {formatMoney(
                         plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
@@ -645,7 +672,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-primary/80">
-                    <span>Due on delivery</span>
+                    <span>Thanh toán khi nhận hàng</span>
                     <span>
                       {formatMoney(
                         plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0,
@@ -657,7 +684,7 @@ export default function CheckoutPage() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                UI complete. API integration when Backend is ready.
+                Giao diện hoàn chỉnh. Tích hợp API khi Backend sẵn sàng.
               </p>
             </CardContent>
           </Card>

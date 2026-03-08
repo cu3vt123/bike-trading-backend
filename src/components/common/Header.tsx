@@ -1,6 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useCallback } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
+import { Search, Heart } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { Logo } from "@/components/common/Logo";
 
 function scrollToListings() {
   const el = document.getElementById("listings");
@@ -10,18 +12,38 @@ function scrollToListings() {
 export function Header() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.role);
   const clearTokens = useAuthStore((s) => s.clearTokens);
 
-  const onExplore = useCallback(() => {
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  const onListings = useCallback(() => {
     if (location.pathname !== "/") {
       navigate("/", { state: { scrollTo: "listings" } });
       return;
     }
     scrollToListings();
   }, [location.pathname, navigate]);
+
+  const onSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const q = searchQuery.trim();
+      if (q) {
+        navigate("/", { state: { searchQuery: q } });
+        setSearchQuery("");
+        setSearchOpen(false);
+      }
+    },
+    [searchQuery, navigate]
+  );
 
   const onLogin = useCallback(() => {
     navigate("/login", { state: { from: location } });
@@ -45,98 +67,144 @@ export function Header() {
   }, [navigate]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link
-          to="/"
-          className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
-        >
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground text-base font-bold shadow-sm transition-transform group-hover:scale-105">
-            S
-          </span>
-          <div className="leading-tight">
-            <div className="text-sm font-bold text-slate-900">ShopBike</div>
-            <div className="text-xs text-slate-500">
-              Verified &amp; Inspected
-            </div>
-          </div>
-        </Link>
-
-        <nav className="flex flex-wrap items-center gap-1 sm:gap-2">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-transparent shadow-none backdrop-blur-md">
+      <div className="relative mx-auto flex w-full max-w-[100%] items-center py-4 pl-0 pr-0 sm:pl-1 sm:pr-1">
+        {/* Trái sát mép: icon kính lúp + thanh search khi mở */}
+        <div className="flex min-w-0 flex-1 items-center justify-start gap-2">
           <button
-            onClick={onExplore}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            type="button"
+            onClick={() => setSearchOpen((o) => !o)}
+            className="flex shrink-0 rounded-lg p-1.5 text-white/60 transition-all duration-200 hover:bg-white/5 hover:text-white/90"
+            title="Tìm kiếm"
+            aria-label="Tìm kiếm"
           >
-            Explore
+            <Search className="h-5 w-5" strokeWidth={1.5} />
           </button>
-
-          {!!accessToken && role === "BUYER" && (
-            <Link
-              to="/wishlist"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-            >
-              Wishlist
-            </Link>
+          {searchOpen && (
+            <form onSubmit={onSearchSubmit} className="relative min-w-[140px] flex-1 sm:min-w-[200px] sm:max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onBlur={() => {
+                  setSearchQuery("");
+                  setSearchOpen(false);
+                }}
+                placeholder="Tìm xe..."
+                className="h-9 w-full rounded-lg border border-white/20 bg-white/10 pl-8 pr-3 text-sm text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                aria-label="Tìm kiếm xe"
+              />
+            </form>
           )}
+        </div>
 
+        {/* Giữa: Hỗ trợ | Logo | Danh sách xe – hai bên cùng rộng để logo căn giữa đều */}
+        <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-sm">
           <Link
             to="/support"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            className="min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-white/75 transition-all duration-200 hover:text-white/95 sm:min-w-[6rem]"
           >
-            Support
+            Hỗ trợ
           </Link>
+          <span className="text-white/40">|</span>
+          <Link
+            to="/"
+            className="group flex flex-shrink-0 items-center justify-center transition-opacity hover:opacity-90 [&_img]:transition-transform group-hover:[&_img]:scale-[1.02]"
+          >
+            <Logo variant="headerStacked" />
+          </Link>
+          <span className="text-white/40">|</span>
+          <button
+            type="button"
+            onClick={onListings}
+            className="min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-white/75 transition-all duration-200 hover:text-white/95 sm:min-w-[6rem]"
+          >
+            Danh sách xe
+          </button>
+        </nav>
 
-          {!!accessToken && (
-            <button
-              onClick={onProfile}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
-            >
-              Profile
-            </button>
-          )}
-
-          {!!accessToken && role === "SELLER" && (
-            <button
-              onClick={onSellerDashboard}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
-            >
-              Seller dashboard
-            </button>
-          )}
-
-          {!!accessToken && (role === "INSPECTOR" || role === "ADMIN") && (
-            <button
-              onClick={onInspectorDashboard}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
-            >
-              Inspector
-            </button>
-          )}
-
+        {/* Phải sát mép: Đăng ký, Đăng nhập – kiểu chữ nghệ thuật, trong suốt */}
+        <div className="flex flex-1 items-center justify-end gap-2 text-sm">
           {!accessToken ? (
             <>
               <Link
                 to="/register"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-lg px-3 py-2 font-light tracking-wide text-white/70 transition-all duration-200 hover:bg-white/5 hover:text-white/95"
               >
-                Sign up
+                Đăng ký
               </Link>
               <button
                 onClick={onLogin}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow"
+                className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 font-light tracking-wide text-white/90 backdrop-blur-sm transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white"
               >
-                Login
+                Đăng nhập
               </button>
             </>
           ) : (
-            <button
-              onClick={onLogout}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
-            >
-              Logout
-            </button>
+            <>
+              {role === "BUYER" && (
+                <>
+                  <Link
+                    to="/wishlist"
+                    className="rounded-lg p-2 text-white/60 transition-all duration-200 hover:bg-white/5 hover:text-white/90"
+                    title="Danh sách yêu thích"
+                    aria-label="Yêu thích"
+                  >
+                    <Heart className="h-5 w-5" strokeWidth={1.5} />
+                  </Link>
+                  <span className="text-white/40">|</span>
+                </>
+              )}
+              {role === "SELLER" && (
+                <>
+                  <button
+                    onClick={onSellerDashboard}
+                    className="rounded-lg px-3 py-2 font-light tracking-wide text-white/70 transition-all duration-200 hover:bg-white/5 hover:text-white/95"
+                  >
+                    Kênh người bán
+                  </button>
+                  <span className="text-white/40">|</span>
+                </>
+              )}
+              {role === "ADMIN" && (
+                <>
+                  <button
+                    onClick={() => navigate("/admin")}
+                    className="rounded-lg px-3 py-2 font-light tracking-wide text-white/70 transition-all duration-200 hover:bg-white/5 hover:text-white/95"
+                  >
+                    Kênh admin
+                  </button>
+                  <span className="text-white/40">|</span>
+                </>
+              )}
+              {(role === "INSPECTOR" || role === "ADMIN") && (
+                <>
+                  <button
+                    onClick={onInspectorDashboard}
+                    className="rounded-lg px-3 py-2 font-light tracking-wide text-white/70 transition-all duration-200 hover:bg-white/5 hover:text-white/95"
+                  >
+                    Kiểm định viên
+                  </button>
+                  <span className="text-white/40">|</span>
+                </>
+              )}
+              <button
+                onClick={onProfile}
+                className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-light tracking-wide text-white/80 backdrop-blur-sm transition-all duration-200 hover:border-white/25 hover:bg-white/10 hover:text-white/95"
+              >
+                Hồ sơ
+              </button>
+              <button
+                onClick={onLogout}
+                className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 font-light tracking-wide text-white/80 backdrop-blur-sm transition-all duration-200 hover:border-white/25 hover:bg-white/10 hover:text-white/95"
+              >
+                Đăng xuất
+              </button>
+            </>
           )}
-        </nav>
+        </div>
       </div>
     </header>
   );

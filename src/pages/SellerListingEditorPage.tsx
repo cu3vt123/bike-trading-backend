@@ -34,6 +34,17 @@ const CITY_OPTIONS = [
   "Da Lat",
 ] as const;
 
+/** Đúng 5 ảnh bắt buộc theo checklist */
+const PHOTO_SLOT_LABELS = [
+  "Toàn xe (góc tổng thể)",
+  "Toàn xe (góc khác / hai bên)",
+  "Serial khung",
+  "Hệ truyền động",
+  "Phanh & bánh xe",
+] as const;
+
+const REQUIRED_PHOTO_COUNT = 5;
+
 export default function SellerListingEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -45,14 +56,15 @@ export default function SellerListingEditorPage() {
   const [condition, setCondition] = useState<Condition>("MINT_USED");
   const [step, setStep] = useState<Step>("DRAFT");
   const [savedId, setSavedId] = useState<string | null>(id ?? null);
-  const [photoItems, setPhotoItems] = useState<
-    Array<{ file: File; url: string }>
-  >([]);
+  const [photoSlots, setPhotoSlots] = useState<
+    Array<{ file: File; url: string } | null>
+  >(() => Array.from({ length: REQUIRED_PHOTO_COUNT }, () => null));
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needUpdateReason, setNeedUpdateReason] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const activeSlotRef = useRef<number | null>(null);
 
   const isEdit = useMemo(() => !!id || !!savedId, [id, savedId]);
   const listingId = id ?? savedId ?? "";
@@ -85,7 +97,9 @@ export default function SellerListingEditorPage() {
       location,
       condition,
       // Demo: gửi object URLs để BE nhận được ảnh list (chưa upload thật)
-      imageUrls: photoItems.map((p) => p.url).filter(Boolean),
+      imageUrls: photoSlots
+        .filter((p): p is { file: File; url: string } => p != null)
+        .map((p) => p.url),
     };
   }
 
@@ -103,15 +117,16 @@ export default function SellerListingEditorPage() {
         navigate(`/seller/listings/${created.id}/edit`, { replace: true });
       }
     } catch {
-      setError("Could not save draft. Please try again.");
+      setError("Không lưu được nháp. Vui lòng thử lại.");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function onSubmitForInspection() {
-    if (photoItems.length === 0) {
-      setPhotoError("Please upload at least 1 photo before submitting.");
+    const filled = photoSlots.filter(Boolean).length;
+    if (filled < REQUIRED_PHOTO_COUNT) {
+      setPhotoError(`Vui lòng tải đủ ${REQUIRED_PHOTO_COUNT} ảnh theo checklist (hiện có ${filled}/5).`);
       return;
     }
     setError(null);
@@ -129,7 +144,7 @@ export default function SellerListingEditorPage() {
       setStep("PENDING_INSPECTION");
       navigate("/seller", { replace: true });
     } catch {
-      setError("Could not submit for inspection. Please try again.");
+      setError("Không gửi được kiểm định. Vui lòng thử lại.");
     } finally {
       setSubmitting(false);
     }
@@ -139,39 +154,47 @@ export default function SellerListingEditorPage() {
 
   useEffect(() => {
     return () => {
-      // cleanup object URLs
-      for (const p of photoItems) URL.revokeObjectURL(p.url);
+      for (const p of photoSlots) {
+        if (p) URL.revokeObjectURL(p.url);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function onPickSlot(slotIndex: number) {
+    if (locked) return;
+    activeSlotRef.current = slotIndex;
+    fileInputRef.current?.click();
+  }
+
   function onPickFiles(files: FileList | null) {
     if (!files || locked) return;
+    const slotIndex = activeSlotRef.current;
+    activeSlotRef.current = null;
+    if (slotIndex == null || slotIndex < 0 || slotIndex >= REQUIRED_PHOTO_COUNT) return;
+
+    const file = Array.from(files).find((f) => f.type.startsWith("image/"));
+    if (!file) return;
     setPhotoError(null);
 
-    const next: Array<{ file: File; url: string }> = [];
-    for (const f of Array.from(files)) {
-      if (!f.type.startsWith("image/")) continue;
-      next.push({ file: f, url: URL.createObjectURL(f) });
-    }
-
-    // limit to 8 photos
-    const merged = [...photoItems, ...next].slice(0, 8);
-    // revoke unused urls if clipped
-    const clipped = [...photoItems, ...next].slice(8);
-    for (const c of clipped) URL.revokeObjectURL(c.url);
-
-    setPhotoItems(merged);
+    setPhotoSlots((prev) => {
+      const next = [...prev];
+      const old = next[slotIndex];
+      if (old) URL.revokeObjectURL(old.url);
+      next[slotIndex] = { file, url: URL.createObjectURL(file) };
+      return next;
+    });
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function removePhoto(idx: number) {
+  function removePhoto(slotIndex: number) {
     setPhotoError(null);
-    setPhotoItems((prev) => {
-      const copy = [...prev];
-      const removed = copy.splice(idx, 1)[0];
-      if (removed) URL.revokeObjectURL(removed.url);
-      return copy;
+    setPhotoSlots((prev) => {
+      const next = [...prev];
+      const old = next[slotIndex];
+      if (old) URL.revokeObjectURL(old.url);
+      next[slotIndex] = null;
+      return next;
     });
   }
 
@@ -179,19 +202,19 @@ export default function SellerListingEditorPage() {
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-2xl font-bold text-slate-900">
-            {isEdit ? "Edit listing" : "Create listing"}
+          <div className="text-2xl font-bold text-foreground">
+            {isEdit ? "Chỉnh sửa tin" : "Tạo tin đăng"}
           </div>
-          <div className="mt-1 text-sm text-slate-500">
-            Draft → Submit for Inspection → (Approve) Publish.
+          <div className="mt-1 text-sm text-muted-foreground">
+            Nháp → Gửi kiểm định → (Duyệt) Xuất bản.
           </div>
         </div>
 
         <Link
           to="/seller"
-          className="inline-flex rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="inline-flex rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
         >
-          ← Back to dashboard
+          ← Về bảng điều khiển
         </Link>
       </div>
 
@@ -203,26 +226,26 @@ export default function SellerListingEditorPage() {
 
       {locked && (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          This listing is <b>pending inspection</b>. Editing is disabled until a result is available.
+          Tin này <b>đang chờ kiểm định</b>. Không thể sửa cho đến khi có kết quả.
         </div>
       )}
       {!locked && needUpdateReason && (
         <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-          <div className="font-semibold">Inspector requested an update</div>
+          <div className="font-semibold">Kiểm định viên yêu cầu cập nhật</div>
           <p className="mt-1">
             {needUpdateReason}
           </p>
           <p className="mt-1 text-xs text-rose-700">
-            Please fix the issues above, then save draft and submit for inspection again.
+            Vui lòng sửa theo nội dung trên, lưu nháp rồi gửi kiểm định lại.
           </p>
         </div>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-            <div className="text-sm font-semibold text-slate-900">
-              Bike details
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="text-sm font-semibold text-foreground">
+              Thông tin xe
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -230,16 +253,16 @@ export default function SellerListingEditorPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={locked}
-                className="sm:col-span-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
-                placeholder="Listing title"
+                className="sm:col-span-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                placeholder="Tiêu đề tin đăng"
               />
               <select
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 disabled={locked}
-                className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
-                <option value="">Select brand</option>
+                <option value="">Chọn hãng</option>
                 {BRAND_OPTIONS.map((b) => (
                   <option key={b} value={b}>
                     {b}
@@ -250,16 +273,16 @@ export default function SellerListingEditorPage() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 disabled={locked}
-                className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
-                placeholder="Price (USD)"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                placeholder="Giá (VNĐ)"
               />
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 disabled={locked}
-                className="sm:col-span-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
+                className="sm:col-span-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
-                <option value="">Select city</option>
+                <option value="">Chọn thành phố</option>
                 {CITY_OPTIONS.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -271,46 +294,33 @@ export default function SellerListingEditorPage() {
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as Condition)}
                 disabled={locked}
-                className="sm:col-span-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-slate-50"
+                className="sm:col-span-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
-                <option value="MINT_USED">Mint (Used)</option>
-                <option value="GOOD_USED">Good (Used)</option>
-                <option value="FAIR_USED">Fair (Used)</option>
+                <option value="MINT_USED">Rất tốt (đã dùng)</option>
+                <option value="GOOD_USED">Tốt (đã dùng)</option>
+                <option value="FAIR_USED">Khá (đã dùng)</option>
               </select>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-slate-900">
-                  Photos
-                </div>
-                <div className="mt-1 text-xs text-slate-500">
-                  Upload 1–8 photos. Required before submit for inspection.
-                </div>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div>
+              <div className="text-sm font-semibold text-foreground">
+                Ảnh (bắt buộc đủ 5 theo checklist)
               </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => onPickFiles(e.target.files)}
-                  className="hidden"
-                  disabled={locked}
-                />
-                <button
-                  type="button"
-                  disabled={locked || photoItems.length >= 8}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
-                >
-                  + Add photos
-                </button>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Mỗi ô tương ứng một nội dung trong checklist. Bắt buộc trước khi gửi kiểm định.
               </div>
             </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => onPickFiles(e.target.files)}
+              className="hidden"
+              disabled={locked}
+            />
 
             {photoError && (
               <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -318,73 +328,82 @@ export default function SellerListingEditorPage() {
               </div>
             )}
 
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {photoItems.map((p, idx) => (
-                <div
-                  key={p.url}
-                  className="group relative overflow-hidden rounded-xl border border-black/10 bg-slate-100"
-                >
-                  <div className="aspect-square">
-                    <img
-                      src={p.url}
-                      alt={`photo-${idx + 1}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {PHOTO_SLOT_LABELS.map((label, idx) => {
+                const item = photoSlots[idx];
+                return (
+                  <div
+                    key={idx}
+                    className="flex flex-col rounded-xl border border-border bg-muted/50 overflow-hidden"
+                  >
+                    <div className="px-3 py-2 text-xs font-semibold text-foreground border-b border-border bg-card">
+                      {idx + 1}. {label}
+                    </div>
+                    <div className="relative aspect-square bg-muted">
+                      {item ? (
+                        <>
+                          <img
+                            src={item.url}
+                            alt={label}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                          {!locked && (
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(idx)}
+                              className="absolute right-2 top-2 rounded-lg bg-primary/90 px-2 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary"
+                              aria-label="Xóa ảnh"
+                            >
+                              Xóa
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={locked}
+                          onClick={() => onPickSlot(idx)}
+                          className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-none text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <span className="text-sm font-medium">Chọn ảnh</span>
+                          <span className="text-[10px]">(bấm để tải lên)</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {!locked && (
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute right-2 top-2 rounded-lg bg-black/60 px-2 py-1 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100"
-                      aria-label="Remove photo"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              {photoItems.length === 0 && (
-                <div className="col-span-2 rounded-xl border border-dashed border-black/15 bg-white p-4 text-sm text-slate-600 sm:col-span-4">
-                  No photos yet. Click <b>Add photos</b> to upload.
-                  <div className="mt-2 text-xs text-slate-500">
-                    Checklist: full bike (both sides), frame serial, drivetrain,
-                    brakes/wheels.
-                  </div>
-                </div>
-              )}
+                );
+              })}
             </div>
 
-            <div className="mt-3 text-xs text-slate-500">
-              {photoItems.length}/8 uploaded
+            <div className="mt-3 text-xs text-muted-foreground">
+              {photoSlots.filter(Boolean).length}/{REQUIRED_PHOTO_COUNT} ảnh đã tải
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-5">
-          <div className="sticky top-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-            <div className="text-sm font-semibold text-slate-900">Actions</div>
+          <div className="sticky top-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="text-sm font-semibold text-foreground">Thao tác</div>
 
             <button
               onClick={onSaveDraft}
               disabled={locked || submitting}
-              className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Saving..." : "Save draft"}
+              {submitting ? "Đang lưu..." : "Lưu nháp"}
             </button>
 
             <button
               onClick={onSubmitForInspection}
               disabled={locked || submitting}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-200"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Submitting..." : "Submit for inspection →"}
+              {submitting ? "Đang gửi..." : "Gửi kiểm định →"}
             </button>
 
-            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
-              Rule: Only <b>APPROVE</b> → you can publish to marketplace (later
-              sprint).
+            <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground">
+              Tin sẽ được xuất bản lên sàn sau khi kiểm định viên duyệt.
             </div>
           </div>
         </div>

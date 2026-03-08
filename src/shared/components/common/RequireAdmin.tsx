@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-export function RequireInspector() {
+export function RequireAdmin() {
   const location = useLocation();
   const { accessToken, role, _hasHydrated } = useAuthStore();
 
@@ -15,7 +15,7 @@ export function RequireInspector() {
   if (!accessToken) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  if (role !== "INSPECTOR" && role !== "ADMIN") {
+  if (role !== "ADMIN") {
     return <Navigate to="/403" state={{ from: location }} replace />;
   }
   return <Outlet />;

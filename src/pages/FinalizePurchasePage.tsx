@@ -22,7 +22,7 @@ type LocationState = {
   totals?: { deposit?: number; totalNow?: number };
 };
 
-function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
+function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
@@ -32,7 +32,7 @@ function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
 
 function paymentLabel(method?: PaymentMethod) {
   if (!method) return "—";
-  if (method.type === "BANK_TRANSFER") return "Bank transfer";
+  if (method.type === "BANK_TRANSFER") return "Chuyển khoản ngân hàng";
   return `${method.brand} •••• ${method.last4}`;
 }
 
@@ -58,7 +58,7 @@ export default function FinalizePurchasePage() {
         if (!cancelled) setListing(data ?? null);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? "Failed to load listing.");
+        if (!cancelled) setError(err?.message ?? "Không tải được tin đăng.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -73,11 +73,11 @@ export default function FinalizePurchasePage() {
   const deposit =
     state.depositPaid ?? state.totals?.deposit ?? Math.round(total * 0.08);
   const due = Math.max(0, total - deposit);
-  const currency = (listing?.currency ?? "USD") as "VND" | "USD";
+  const currency = (listing?.currency ?? "VND") as "VND" | "USD";
 
   async function onComplete() {
     if (!state.orderId) {
-      setError("Missing order information. Please go back to the transaction page.");
+      setError("Thiếu thông tin đơn hàng. Vui lòng quay lại trang giao dịch.");
       return;
     }
     setError(null);
@@ -94,7 +94,7 @@ export default function FinalizePurchasePage() {
         replace: true,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not complete order. Please try again.");
+      setError(err instanceof Error ? err.message : "Không thể hoàn tất đơn. Vui lòng thử lại.");
     } finally {
       setSubmitting(false);
     }
@@ -104,7 +104,7 @@ export default function FinalizePurchasePage() {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <p className="text-sm text-muted-foreground">Đang tải...</p>
       </div>
     );
   }
@@ -113,12 +113,12 @@ export default function FinalizePurchasePage() {
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Finalize page not found</h1>
+          <h1 className="text-lg font-semibold">Không tìm thấy trang hoàn tất</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {error ?? "This page can't load because listing id is invalid."}
+            {error ?? "Trang không tải được vì mã tin đăng không hợp lệ."}
           </p>
           <Button asChild variant="link" className="mt-4">
-            <Link to="/">Back to Home</Link>
+            <Link to="/">Về trang chủ</Link>
           </Button>
         </CardContent>
       </Card>
@@ -127,30 +127,30 @@ export default function FinalizePurchasePage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <h1 className="text-2xl font-bold">Finalize Purchase</h1>
+      <h1 className="text-2xl font-bold">Hoàn tất mua hàng</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Pay balance and confirm delivery.
+        Thanh toán số dư và xác nhận giao hàng.
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Shipping & Contact</span>
+              <span className="text-sm font-semibold">Giao hàng & Liên hệ</span>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label>Full name</Label>
-                  <Input className="mt-1" placeholder="Full name" />
+                  <Label>Họ và tên</Label>
+                  <Input className="mt-1" placeholder="Họ và tên" />
                 </div>
                 <div>
-                  <Label>Phone number</Label>
-                  <Input className="mt-1" placeholder="Phone number" />
+                  <Label>Số điện thoại</Label>
+                  <Input className="mt-1" placeholder="Số điện thoại" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Delivery address</Label>
-                  <Input className="mt-1" placeholder="Delivery address" />
+                  <Label>Địa chỉ giao hàng</Label>
+                  <Input className="mt-1" placeholder="Địa chỉ giao hàng" />
                 </div>
               </div>
             </CardContent>
@@ -158,9 +158,9 @@ export default function FinalizePurchasePage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <span className="text-sm font-semibold">Balance Payment</span>
+              <span className="text-sm font-semibold">Thanh toán số dư</span>
               <span className="text-xs text-muted-foreground">
-                Method:{" "}
+                Phương thức:{" "}
                 <span className="font-semibold">
                   {paymentLabel(state.paymentMethod)}
                 </span>
@@ -177,12 +177,12 @@ export default function FinalizePurchasePage() {
                 </div>
               )}
               <Button onClick={onComplete} className="mt-4 w-full" disabled={submitting}>
-                {submitting ? "Processing..." : "Pay Balance & Complete →"}
+                {submitting ? "Đang xử lý..." : "Thanh toán số dư & Hoàn tất →"}
               </Button>
               <Button asChild variant="ghost" className="mt-3 w-full" size="sm">
                 <Link to={`/transaction/${listing.id}`} state={state}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to transaction
+                  Về trang giao dịch
                 </Link>
               </Button>
             </CardContent>
@@ -192,14 +192,14 @@ export default function FinalizePurchasePage() {
         <div className="lg:col-span-5">
           <Card className="sticky top-24">
             <CardContent className="pt-6">
-              <div className="text-sm font-semibold">Order Summary</div>
+              <div className="text-sm font-semibold">Tóm tắt đơn hàng</div>
               <p className="mt-2 text-sm text-muted-foreground">
                 {listing.brand} {listing.model ?? ""}
               </p>
 
               <div className="mt-4 overflow-hidden rounded-lg border text-sm">
                 <div className="flex justify-between bg-muted/50 px-4 py-3">
-                  <span className="text-muted-foreground">Total</span>
+                  <span className="text-muted-foreground">Tổng</span>
                   <span className="font-semibold">{formatMoney(total, currency)}</span>
                 </div>
                 <div className="flex justify-between px-4 py-3">

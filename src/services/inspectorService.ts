@@ -1,11 +1,15 @@
 /**
  * Inspector service – API or mock fallback.
+ * Có timeout để tránh load mãi khi backend treo.
  */
 import { inspectorApi } from "@/apis/inspectorApi";
 import type { Listing } from "@/types/shopbike";
 import { USE_MOCK_API } from "@/lib/apiConfig";
 
 const USE_MOCK = USE_MOCK_API;
+
+/** Timeout (ms) – sau khoảng này nếu API chưa trả về thì coi như lỗi, dùng mock hoặc báo lỗi */
+const FETCH_TIMEOUT_MS = 5_000;
 
 const MOCK_PENDING: Listing[] = [
   {
@@ -30,10 +34,23 @@ const MOCK_PENDING: Listing[] = [
   },
 ];
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(message)), ms),
+    ),
+  ]);
+}
+
 export async function fetchPendingListings(): Promise<Listing[]> {
   if (USE_MOCK) return MOCK_PENDING;
   try {
-    return await inspectorApi.getPendingListings();
+    return await withTimeout(
+      inspectorApi.getPendingListings(),
+      FETCH_TIMEOUT_MS,
+      "Backend không phản hồi.",
+    );
   } catch {
     return MOCK_PENDING;
   }

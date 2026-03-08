@@ -35,12 +35,12 @@ export default function WishlistPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <Heart className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold">Your wishlist is empty</h2>
+            <h2 className="mt-4 text-lg font-semibold">Danh sách yêu thích trống</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Click the heart icon on a bike to add it to your wishlist.
+              Bấm biểu tượng trái tim trên xe để thêm vào danh sách yêu thích.
             </p>
             <Button asChild className="mt-6">
-              <Link to="/">Explore bikes</Link>
+              <Link to="/">Khám phá xe</Link>
             </Button>
           </CardContent>
         </Card>
@@ -51,24 +51,24 @@ export default function WishlistPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Wishlist</h1>
+        <h1 className="text-2xl font-bold">Danh sách yêu thích</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {listings.length} {listings.length === 1 ? "item" : "items"} in your wishlist
+          {listings.length} {listings.length === 1 ? "mục" : "mục"} trong danh sách yêu thích
         </p>
       </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">Loading...</p>
+          <p className="mt-3 text-sm text-muted-foreground">Đang tải...</p>
         </div>
       ) : listings.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center py-12">
             <Bike className="h-12 w-12 text-muted-foreground" />
-            <p className="mt-3 text-sm">Some listings may no longer be available.</p>
+            <p className="mt-3 text-sm">Một số tin có thể không còn khả dụng.</p>
             <Button asChild variant="outline" className="mt-4">
-              <Link to="/">Back to home</Link>
+              <Link to="/">Về trang chủ</Link>
             </Button>
           </CardContent>
         </Card>

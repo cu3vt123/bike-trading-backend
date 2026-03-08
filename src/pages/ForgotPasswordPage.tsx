@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authApi } from "@/apis/authApi";
+import { Logo } from "@/components/common/Logo";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 
@@ -28,12 +29,12 @@ export default function ForgotPasswordPage() {
 
     const trimmed = email.trim();
     if (!trimmed) {
-      setError("Please enter your registered email.");
+      setError("Vui lòng nhập email đã đăng ký.");
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
-      setError("Invalid email.");
+      setError("Email không hợp lệ.");
       return;
     }
 
@@ -59,14 +60,8 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-                S
-              </span>
-              <div className="leading-tight">
-                <div className="text-sm font-semibold">ShopBike</div>
-                <div className="text-xs text-muted-foreground">Verified &amp; Inspected</div>
-              </div>
+            <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+              <Logo variant="auth" showLabel />
             </Link>
           </div>
         </header>
@@ -74,23 +69,23 @@ export default function ForgotPasswordPage() {
         <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Mail className="h-6 w-6" />
               </div>
-              <CardTitle>Check your email</CardTitle>
+              <CardTitle>Kiểm tra email</CardTitle>
               <CardDescription>
-                If an account with email <strong>{email}</strong> exists, you will receive
-                password reset instructions.
+                Nếu tài khoản với email <strong>{email}</strong> tồn tại, bạn sẽ nhận được
+                hướng dẫn đặt lại mật khẩu.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                Didn't receive the email? Check spam folder or try again in a few minutes.
+                Chưa nhận được email? Kiểm tra thư mục spam hoặc thử lại sau vài phút.
               </p>
               <Button variant="outline" className="w-full" asChild>
                 <Link to="/login">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to login
+                  Về trang đăng nhập
                 </Link>
               </Button>
             </CardContent>
@@ -104,21 +99,15 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-              S
-            </span>
-            <div className="leading-tight">
-              <div className="text-sm font-semibold">ShopBike</div>
-              <div className="text-xs text-muted-foreground">Verified &amp; Inspected</div>
-            </div>
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+            <Logo variant="auth" showLabel />
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/#listings" className="text-muted-foreground hover:text-foreground">
-              Explore
+              Khám phá
             </Link>
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
-              Log in
+              Đăng nhập
             </Link>
           </nav>
         </div>
@@ -128,9 +117,9 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Forgot password</CardTitle>
+              <CardTitle>Quên mật khẩu</CardTitle>
               <CardDescription>
-                Enter your registered email. We will send a password reset link.
+                Nhập email đã đăng ký. Chúng tôi sẽ gửi link đặt lại mật khẩu.
               </CardDescription>
             </CardHeader>
 
@@ -161,7 +150,7 @@ export default function ForgotPasswordPage() {
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to login
+                    Về trang đăng nhập
                   </Link>
                 </Button>
               </form>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Bike } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import ListingCard from "@/components/listing/ListingCard";
 import type { Listing } from "@/types/shopbike";
 import { BIKE_CONDITION_LABEL } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { Logo } from "@/components/common/Logo";
 
 const SECTION_LISTINGS_ID = "listings";
 
@@ -29,6 +30,7 @@ function scrollToListings() {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { accessToken, role } = useAuthStore();
 
   const [listings, setListings] = useState<Listing[]>([]);
@@ -52,7 +54,7 @@ export default function HomePage() {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err?.message ?? "Failed to load listings. Using fallback.");
+          setError(err?.message ?? "Không tải được danh sách. Đang dùng dữ liệu dự phòng.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -87,6 +89,23 @@ export default function HomePage() {
     }
   }, []);
 
+  useEffect(() => {
+    const state = location.state as { scrollTo?: string } | null;
+    if (state?.scrollTo === "listings") {
+      setTimeout(scrollToListings, 100);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
+
+  useEffect(() => {
+    const state = location.state as { searchQuery?: string; scrollTo?: string } | null;
+    if (state?.searchQuery != null && state.searchQuery.trim() !== "") {
+      setQ(state.searchQuery.trim());
+      setTimeout(scrollToListings, 100);
+      navigate(location.pathname, { replace: true, state: state.scrollTo ? { scrollTo: state.scrollTo } : {} });
+    }
+  }, [location.state, location.pathname, navigate]);
+
   const brands = useMemo(() => {
     const set = new Set(listings.map((x) => x.brand).filter(Boolean));
     return ["ALL", ...Array.from(set).sort()];
@@ -116,186 +135,153 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero */}
-      <Card className="overflow-hidden border-slate-200 shadow-lg">
-        <CardContent className="p-0">
-          <div className="grid gap-0 md:grid-cols-2">
-            <div className="relative overflow-hidden rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
-              <div className="aspect-[16/10] w-full bg-slate-100">
-                <img
-                  src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1400&q=60"
-                  alt="ShopBike hero"
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent md:from-transparent" />
-            </div>
-
-            <div className="flex flex-col justify-center px-6 py-6 md:px-8">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-                VERIFIED MARKETPLACE
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                Inspected listings only
-              </div>
-
-              <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl lg:text-4xl">
-                Find your next ride —{" "}
-                <span className="text-primary">verified</span> &{" "}
-                <span className="text-primary">inspected</span>
-              </h1>
-
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Marketplace for used sport bikes. Listings visible only after{" "}
-                <span className="font-semibold text-foreground">inspection APPROVE</span>.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button
-                  size="lg"
-                  onClick={scrollToListings}
-                  className="shadow-sm"
-                >
-                  Browse bikes
-                </Button>
-                {showSellButton && (
-                  <Button variant="outline" size="lg" onClick={handleSellYourBike}>
-                    Sell your bike
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-3 px-4 pb-6 md:grid-cols-3 md:px-6">
-            <div className="rounded-xl border border-slate-200 bg-primary/5 px-4 py-3.5 transition-colors hover:bg-primary/10">
-              <div className="text-sm font-semibold text-foreground">Inspection Report</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                Clear checks, transparent info.
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-primary/5 px-4 py-3.5 transition-colors hover:bg-primary/10">
-              <div className="text-sm font-semibold text-foreground">Anti-fraud</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                Verified & moderated listings.
-              </div>
-            </div>
-            <Link
-              to="/support"
-              className="rounded-xl border border-slate-200 bg-primary/5 px-4 py-3.5 transition-colors hover:bg-primary/10"
-            >
-              <div className="text-sm font-semibold text-foreground">Support</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                Help through the transaction.
-              </div>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filters */}
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-1 flex-wrap gap-3 sm:items-center">
-              <div className="relative min-w-0 flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search bikes, brand, or location..."
-                  className="h-10 pl-9"
-                />
-              </div>
-
-              <Select value={brand} onValueChange={setBrand}>
-                <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue placeholder="All brands" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      {b === "ALL" ? "All brands" : b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={condition} onValueChange={setCondition}>
-                <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue placeholder="Condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All conditions</SelectItem>
-                  {Object.entries(BIKE_CONDITION_LABEL).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>
-                      {v}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={frameSize} onValueChange={setFrameSize}>
-                <SelectTrigger className="w-full sm:w-[140px]">
-                  <SelectValue placeholder="Frame size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {frameSizes.map((f) => (
-                    <SelectItem key={f} value={f}>
-                      {f === "ALL" ? "All sizes" : f}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="flex gap-2 sm:flex-nowrap">
-                <Input
-                  type="number"
-                  placeholder="Min $"
-                  value={priceMin}
-                  onChange={(e) => setPriceMin(e.target.value)}
-                  className="w-24"
-                />
-                <Input
-                  type="number"
-                  placeholder="Max $"
-                  value={priceMax}
-                  onChange={(e) => setPriceMax(e.target.value)}
-                  className="w-24"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-3 md:justify-end">
-              <div className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{filtered.length}</span> results
-              </div>
+      {/* Hero – tràn full màn hình đầu tiên (100vh), tifo + ShopBike, bù padding main để không chừa khoảng trắng */}
+      <section className="relative left-1/2 w-screen -translate-x-1/2 -mt-6 sm:-mt-8">
+        <div className="relative flex h-screen min-h-[100dvh] w-full items-end justify-center overflow-hidden bg-slate-900 md:items-center md:justify-center">
+          <img
+            src="/hero-shopbike.png"
+            alt="ShopBike — Xe đạp thể thao đã kiểm định"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-black/25 md:bg-gradient-to-t md:from-black/60 md:via-black/20 md:to-transparent" />
+          <div
+            className="relative z-10 flex w-full max-w-6xl flex-col items-center px-6 pb-12 pt-8 text-center md:pb-16 md:pt-0"
+          >
+            <h1 className="flex justify-center [&_img]:drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+              <Logo variant="hero" />
+            </h1>
+            <p className="mx-auto mt-4 max-w-md text-base font-semibold leading-relaxed text-white/95 md:text-lg">
+              Xe đạp thể thao đã kiểm định &amp; duyệt. Tìm chuyến đi tiếp theo của bạn.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setQ("");
-                  setBrand("ALL");
-                  setCondition("ALL");
-                  setFrameSize("ALL");
-                  setPriceMin("");
-                  setPriceMax("");
-                }}
+                size="lg"
+                onClick={scrollToListings}
+                className="min-w-[160px] bg-white font-bold text-slate-900 shadow-lg hover:bg-white/95 tracking-tight"
               >
-                Clear all
+                Xem danh sách xe
               </Button>
+              {showSellButton && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleSellYourBike}
+                  className="min-w-[140px] border-white/70 bg-white/10 font-semibold text-white hover:bg-white/20 tracking-tight"
+                >
+                  Bán xe của bạn
+                </Button>
+              )}
             </div>
           </div>
-        </CardHeader>
-      </Card>
+        </div>
+      </section>
+
+      {/* Bộ lọc (trên) + Tìm kiếm (dưới) – không dùng thanh full màn hình */}
+      <section className="space-y-4">
+        {/* Hàng 1: Bộ lọc */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 flex-wrap gap-3 sm:items-center">
+            <Select value={brand} onValueChange={setBrand}>
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectValue placeholder="Tất cả hãng" />
+              </SelectTrigger>
+              <SelectContent>
+                {brands.map((b) => (
+                  <SelectItem key={b} value={b}>
+                    {b === "ALL" ? "Tất cả hãng" : b}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={condition} onValueChange={setCondition}>
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectValue placeholder="Tất cả tình trạng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tất cả tình trạng</SelectItem>
+                {Object.entries(BIKE_CONDITION_LABEL).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={frameSize} onValueChange={setFrameSize}>
+              <SelectTrigger className="w-full sm:w-[140px]">
+                <SelectValue placeholder="Tất cả size" />
+              </SelectTrigger>
+              <SelectContent>
+                {frameSizes.map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {f === "ALL" ? "Tất cả size" : f}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex gap-2 sm:flex-nowrap">
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="Tối thiểu (VNĐ)"
+                value={priceMin}
+                onChange={(e) => setPriceMin(e.target.value)}
+                className="w-28 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="Tối đa (VNĐ)"
+                value={priceMax}
+                onChange={(e) => setPriceMax(e.target.value)}
+                className="w-28 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 md:justify-end">
+            <div className="text-sm text-muted-foreground">
+              Hiển thị <span className="font-semibold text-foreground">{filtered.length}</span> kết quả
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setQ("");
+                setBrand("ALL");
+                setCondition("ALL");
+                setFrameSize("ALL");
+                setPriceMin("");
+                setPriceMax("");
+              }}
+            >
+              Xóa bộ lọc
+            </Button>
+          </div>
+        </div>
+
+        {/* Hàng 2: Thanh tìm kiếm */}
+        <div className="relative w-full max-w-xl">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Tìm xe, hãng hoặc khu vực..."
+            className="h-11 w-full pl-9 text-base"
+          />
+        </div>
+      </section>
 
       {/* Listings */}
       <section id={SECTION_LISTINGS_ID} className="scroll-mt-24">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Featured Listings</h2>
+            <h2 className="text-lg font-semibold">Tin nổi bật</h2>
             <p className="text-sm text-muted-foreground">
-              Only inspected & approved listings are shown.
+              Chỉ hiển thị tin đã kiểm định &amp; duyệt.
             </p>
           </div>
           <Link
@@ -306,33 +292,33 @@ export default function HomePage() {
             }}
             className="text-sm font-semibold text-primary hover:underline"
           >
-            View all bikes →
+            Xem tất cả xe →
           </Link>
         </div>
 
         {loading ? (
           <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border bg-card py-16">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">Loading listings...</p>
+            <p className="text-sm text-muted-foreground">Đang tải danh sách...</p>
           </div>
         ) : error ? (
           <Card className="mt-6">
             <CardContent className="flex flex-col items-center gap-3 py-12">
               <p className="text-sm text-destructive">{error}</p>
               <p className="text-xs text-muted-foreground">
-                Showing fallback data if available.
+                Đang hiển thị dữ liệu dự phòng nếu có.
               </p>
             </CardContent>
           </Card>
         ) : filtered.length === 0 ? (
-          <Card className="mt-6 border-slate-200">
+          <Card className="mt-6">
             <CardContent className="flex flex-col items-center gap-4 py-16">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                <Bike className="h-7 w-7 text-slate-400" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                <Bike className="h-7 w-7 text-muted-foreground" />
               </div>
-              <p className="text-sm font-semibold text-foreground">No bikes found matching your criteria</p>
+              <p className="text-sm font-semibold text-foreground">Không tìm thấy xe phù hợp</p>
               <p className="text-xs text-muted-foreground">
-                Try adjusting your search or clearing filters.
+                Thử đổi từ khóa hoặc xóa bộ lọc.
               </p>
               <Button
                 variant="outline"
@@ -345,7 +331,7 @@ export default function HomePage() {
                   setPriceMax("");
                 }}
               >
-                Clear all filters
+                Xóa bộ lọc
               </Button>
             </CardContent>
           </Card>
@@ -358,17 +344,6 @@ export default function HomePage() {
         )}
       </section>
 
-      <Card className="border-slate-200 bg-slate-50/50">
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm text-muted-foreground">
-          <span>
-            Data from <b>buyerService</b> (API + mock fallback) • Only{" "}
-            <b>PUBLISHED + APPROVE</b> on marketplace.
-          </span>
-          <Link to="/login" className="font-semibold text-primary transition-colors hover:underline">
-            Go to Login →
-          </Link>
-        </CardContent>
-      </Card>
     </div>
   );
 }

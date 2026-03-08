@@ -10,7 +10,7 @@ const MOCK_ORDERS = [
   { id: "ORD-102", bike: "Cervelo S5", buyer: "rider_99", amount: 6900, deposit: 552, status: "PAID" },
 ];
 
-function formatMoney(value: number, currency: "VND" | "USD" = "USD") {
+function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
@@ -22,33 +22,33 @@ function stateLabel(state: ListingState) {
   switch (state) {
     case "DRAFT":
       return {
-        text: "Draft",
-        cls: "bg-slate-100 text-slate-700 border-slate-200",
+        text: "Nháp",
+        cls: "bg-muted text-foreground border-border",
       };
     case "PENDING_INSPECTION":
       return {
-        text: "In Review",
+        text: "Đang duyệt",
         cls: "bg-amber-50 text-amber-700 border-amber-200",
       };
     case "NEED_UPDATE":
       return {
-        text: "Needs Update",
+        text: "Cần cập nhật",
         cls: "bg-rose-50 text-rose-700 border-rose-200",
       };
     case "PUBLISHED":
       return {
-        text: "Published",
-        cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        text: "Đã xuất bản",
+        cls: "bg-primary/10 text-primary border-primary/30",
       };
     case "REJECTED":
       return {
-        text: "Rejected",
-        cls: "bg-slate-50 text-slate-500 border-slate-200",
+        text: "Từ chối",
+        cls: "bg-muted/80 text-muted-foreground border-border",
       };
     default:
       return {
         text: state,
-        cls: "bg-slate-50 text-slate-600 border-slate-200",
+        cls: "bg-muted/80 text-muted-foreground border-border",
       };
   }
 }
@@ -63,10 +63,10 @@ function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
-      <div className="text-sm font-semibold text-slate-900">{label}</div>
-      <div className="mt-2 text-2xl font-bold text-slate-900">{value}</div>
-      {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="text-sm font-semibold text-foreground">{label}</div>
+      <div className="mt-2 text-2xl font-bold text-foreground">{value}</div>
+      {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
 }
@@ -92,7 +92,7 @@ export default function SellerDashboardPage() {
       <div className="mx-auto max-w-6xl py-12">
         <div className="flex flex-col items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">Loading dashboard...</p>
+          <p className="mt-3 text-sm text-muted-foreground">Đang tải bảng điều khiển...</p>
         </div>
       </div>
     );
@@ -102,54 +102,54 @@ export default function SellerDashboardPage() {
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-2xl font-bold text-slate-900">
-            Seller Dashboard
+          <div className="text-2xl font-bold text-foreground">
+            Kênh người bán
           </div>
-          <div className="mt-1 text-sm text-slate-500">
-            Manage your inventory, inspection, and publishing.
+          <div className="mt-1 text-sm text-muted-foreground">
+            Quản lý tin đăng, kiểm định và xuất bản.
           </div>
         </div>
 
         <Link
           to="/seller/listings/new"
-          className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+          className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          + Create new listing
+          + Tạo tin mới
         </Link>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Listings" value={total} />
+        <StatCard label="Tổng tin" value={total} />
         <StatCard
-          label="Active Listings"
+          label="Tin đang bán"
           value={published}
-          hint="PUBLISHED + APPROVE only"
+          hint="Chỉ PUBLISHED + APPROVE"
         />
-        <StatCard label="In Review" value={inReview} />
-        <StatCard label="Need Update" value={needUpdate} />
+        <StatCard label="Đang duyệt" value={inReview} />
+        <StatCard label="Cần cập nhật" value={needUpdate} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
         {/* Inventory table */}
-        <div className="lg:col-span-8 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+        <div className="lg:col-span-8 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-slate-900">
-              Your inventory
+            <div className="text-sm font-semibold text-foreground">
+              Kho tin của bạn
             </div>
-            <Link to="/seller" className="text-sm font-semibold text-emerald-700 hover:underline">
-              View all
+            <Link to="/seller" className="text-sm font-semibold text-primary hover:underline">
+              Xem tất cả
             </Link>
           </div>
 
-          <div className="mt-4 overflow-hidden rounded-xl border border-black/10">
-            <div className="grid grid-cols-12 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600">
-              <div className="col-span-6">Listing</div>
-              <div className="col-span-2 text-right">Price</div>
-              <div className="col-span-2 text-center">Status</div>
-              <div className="col-span-2 text-right">Action</div>
+          <div className="mt-4 overflow-hidden rounded-xl border border-border">
+            <div className="grid grid-cols-12 bg-muted px-4 py-3 text-xs font-semibold text-muted-foreground">
+              <div className="col-span-6">Tin đăng</div>
+              <div className="col-span-2 text-right">Giá</div>
+              <div className="col-span-2 text-center">Trạng thái</div>
+              <div className="col-span-2 text-right">Thao tác</div>
             </div>
 
-            <div className="divide-y divide-black/5">
+            <div className="divide-y divide-border">
               {listings.map((x) => {
                 const badge = stateLabel(x.state);
                 const canEdit =
@@ -165,7 +165,7 @@ export default function SellerDashboardPage() {
                     className="grid grid-cols-12 items-center px-4 py-3"
                   >
                     <div className="col-span-6 flex items-center gap-3">
-                      <div className="h-10 w-14 overflow-hidden rounded-lg bg-slate-100">
+                      <div className="h-10 w-14 overflow-hidden rounded-lg bg-muted">
                         <img
                           src={x.thumbnailUrl ?? x.imageUrls?.[0] ?? ""}
                           alt={x.title}
@@ -174,22 +174,22 @@ export default function SellerDashboardPage() {
                         />
                       </div>
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-slate-900">
+                        <div className="truncate text-sm font-semibold text-foreground">
                           {x.brand}
                         </div>
-                        <div className="truncate text-xs text-slate-500">
+                        <div className="truncate text-xs text-muted-foreground">
                           {x.title}
                         </div>
                         {needUpdateReason && (
                           <div className="mt-1 text-xs text-rose-600">
-                            Inspector feedback: {needUpdateReason}
+                            Phản hồi kiểm định: {needUpdateReason}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="col-span-2 text-right text-sm font-semibold text-slate-900">
-                      {formatMoney(x.price, "USD")}
+                    <div className="col-span-2 text-right text-sm font-semibold text-foreground">
+                      {formatMoney(x.price, "VND")}
                     </div>
 
                     <div className="col-span-2 text-center">
@@ -204,16 +204,16 @@ export default function SellerDashboardPage() {
                       {canEdit ? (
                         <Link
                           to={`/seller/listings/${x.id}/edit`}
-                          className="inline-flex rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          className="inline-flex rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
                         >
-                          Edit
+                          Sửa
                         </Link>
                       ) : (
                         <button
                           disabled
-                          className="inline-flex cursor-not-allowed rounded-lg border border-black/10 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400"
+                          className="inline-flex cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
                         >
-                          Locked
+                          Khóa
                         </button>
                       )}
                     </div>
@@ -223,47 +223,47 @@ export default function SellerDashboardPage() {
             </div>
           </div>
 
-          <div className="mt-3 text-xs text-slate-500">
-            Draft/Need Update can be edited. Pending Inspection locks editing. Published limits core content changes.
+          <div className="mt-3 text-xs text-muted-foreground">
+            Nháp/Cần cập nhật có thể sửa. Đang duyệt khóa sửa. Đã xuất bản giới hạn thay đổi nội dung.
           </div>
         </div>
 
         {/* New Listing Draft panel */}
-        <div className="lg:col-span-4 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-          <div className="text-sm font-semibold text-slate-900">
-            New listing draft
+        <div className="lg:col-span-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="text-sm font-semibold text-foreground">
+            Tin nháp mới
           </div>
-          <div className="mt-1 text-xs text-slate-500">
-            Create a draft first, then submit for inspection.
+          <div className="mt-1 text-xs text-muted-foreground">
+            Tạo nháp trước, sau đó gửi kiểm định.
           </div>
 
           <div className="mt-4 space-y-3">
             <input
-              className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
-              placeholder="Listing title"
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="Tiêu đề tin"
             />
             <input
-              className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
-              placeholder="Price (USD)"
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="Giá (VNĐ)"
             />
 
-            <div className="rounded-xl border border-black/10 bg-slate-50 p-3">
-              <div className="text-xs font-semibold text-slate-700">
-                Photos checklist
+            <div className="rounded-xl border border-border bg-muted p-3">
+              <div className="text-xs font-semibold text-foreground">
+                Checklist ảnh
               </div>
-              <ul className="mt-2 space-y-1 text-xs text-slate-600">
-                <li>• Full bike (both sides)</li>
-                <li>• Frame serial</li>
-                <li>• Drivetrain close-up</li>
-                <li>• Brakes / wheels</li>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <li>• Toàn xe (hai bên)</li>
+                <li>• Serial khung</li>
+                <li>• Hệ truyền động</li>
+                <li>• Phanh / bánh</li>
               </ul>
             </div>
 
             <Link
               to="/seller/listings/new"
-              className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+              className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Continue to editor →
+              Tiếp tục soạn tin →
             </Link>
           </div>
         </div>
@@ -271,68 +271,68 @@ export default function SellerDashboardPage() {
 
       {/* Orders & Ratings row */}
       <div className="mt-6 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-emerald-600" />
-            <span className="text-sm font-semibold text-slate-900">Orders / Deposits</span>
+            <Package className="h-5 w-5 text-primary" />
+            <span className="text-sm font-semibold text-foreground">Đơn hàng / Đặt cọc</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Manage orders and deposits.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Quản lý đơn và đặt cọc.</p>
           <div className="mt-4 space-y-3">
             {MOCK_ORDERS.map((o) => (
               <div
                 key={o.id}
-                className="flex items-center justify-between rounded-lg border border-black/10 bg-slate-50/50 px-4 py-3"
+                className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3"
               >
                 <div>
-                  <div className="text-sm font-semibold">{o.bike}</div>
-                  <div className="text-xs text-slate-500">
-                    {o.id} • {o.buyer} • {formatMoney(o.deposit)} deposit
+                  <div className="text-sm font-semibold text-foreground">{o.bike}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {o.id} • {o.buyer} • Đặt cọc {formatMoney(o.deposit)}
                   </div>
                 </div>
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    o.status === "PAID" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                    o.status === "PAID" ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-700"
                   }`}
                 >
-                  {o.status === "PAID" ? "Paid" : "Pending"}
+                  {o.status === "PAID" ? "Đã thanh toán" : "Chờ xử lý"}
                 </span>
               </div>
             ))}
             {MOCK_ORDERS.length === 0 && (
-              <p className="py-4 text-center text-sm text-slate-500">No orders yet.</p>
+              <p className="py-4 text-center text-sm text-muted-foreground">Chưa có đơn nào.</p>
             )}
           </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Will integrate API when Backend provides order management endpoint.
+          <p className="mt-3 text-xs text-muted-foreground">
+            Sẽ tích hợp API khi Backend có endpoint quản lý đơn.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 text-amber-500" />
-            <span className="text-sm font-semibold text-slate-900">Ratings & reputation</span>
+            <span className="text-sm font-semibold text-foreground">Đánh giá & uy tín</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">Trust level from buyers.</p>
-          <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-black/10 bg-slate-50/50 py-6">
+          <p className="mt-1 text-xs text-muted-foreground">Mức độ tin cậy từ người mua.</p>
+          <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-border bg-muted/50 py-6">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-slate-900">4.8</span>
+              <span className="text-3xl font-bold text-foreground">4.8</span>
               <span className="text-amber-500">★★★★★</span>
             </div>
-            <p className="mt-2 text-sm text-slate-600">12 reviews</p>
-            <p className="mt-1 text-xs text-slate-500">97% positive feedback</p>
+            <p className="mt-2 text-sm text-muted-foreground">12 đánh giá</p>
+            <p className="mt-1 text-xs text-muted-foreground">97% phản hồi tích cực</p>
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-600">5 sao</span>
+              <span className="text-muted-foreground">5 sao</span>
               <span className="font-semibold">10</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-slate-600">4 sao</span>
+              <span className="text-muted-foreground">4 sao</span>
               <span className="font-semibold">2</span>
             </div>
           </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Ratings from successful transactions. Will sync API when available.
+          <p className="mt-3 text-xs text-muted-foreground">
+            Đánh giá từ giao dịch thành công. Sẽ đồng bộ API khi có.
           </p>
         </div>
       </div>

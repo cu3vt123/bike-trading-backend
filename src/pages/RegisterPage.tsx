@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { Logo } from "@/components/common/Logo";
 import type { Role } from "@/types/auth";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/apis/authApi";
@@ -159,16 +160,8 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-              S
-            </span>
-            <div className="leading-tight">
-              <div className="text-sm font-semibold">ShopBike</div>
-              <div className="text-xs text-muted-foreground">
-                Verified &amp; Inspected
-              </div>
-            </div>
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+            <Logo variant="auth" showLabel />
           </Link>
 
           <nav className="flex items-center gap-4 text-sm">
@@ -176,13 +169,13 @@ export default function RegisterPage() {
               to="/#listings"
               className="text-muted-foreground hover:text-foreground"
             >
-              Explore
+              Khám phá
             </Link>
             <Link
               to="/login"
               className="text-muted-foreground hover:text-foreground"
             >
-              Log in
+              Đăng nhập
             </Link>
           </nav>
         </div>
@@ -192,7 +185,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Create account</CardTitle>
+              <CardTitle>Tạo tài khoản</CardTitle>
               <CardDescription>
                 Choose your role and fill in your details to get started.
               </CardDescription>
@@ -296,7 +289,7 @@ export default function RegisterPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Creating account..." : "Create account"}
+                  {submitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
                 </Button>
 
                 <Button
@@ -305,17 +298,17 @@ export default function RegisterPage() {
                   className="w-full"
                   asChild
                 >
-                  <Link to="/">Back to home</Link>
+                  <Link to="/">Về trang chủ</Link>
                 </Button>
               </form>
 
               <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{" "}
+                Đã có tài khoản?{" "}
                 <Link
                   to="/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Log in
+                  Đăng nhập
                 </Link>
               </p>
             </CardContent>

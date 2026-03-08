@@ -21,7 +21,7 @@ export default function SellerStatsPage() {
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link to="/profile">← Back to Profile</Link>
+          <Link to="/profile">← Về hồ sơ</Link>
         </Button>
       </div>
 
