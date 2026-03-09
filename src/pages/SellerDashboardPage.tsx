@@ -175,10 +175,11 @@ export default function SellerDashboardPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-sm font-semibold text-foreground">
-                          {x.brand}
+                          {x.title || `${x.brand} ${x.model ?? ""}`}
                         </div>
                         <div className="truncate text-xs text-muted-foreground">
-                          {x.title}
+                          {x.brand}
+                          {x.model ? ` · ${x.model}` : ""}
                         </div>
                         {needUpdateReason && (
                           <div className="mt-1 text-xs text-destructive">

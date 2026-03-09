@@ -6,8 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { fetchMyOrders } from "@/services/buyerService";
 import { authApi } from "@/apis/authApi";
-import type { Order } from "@/types/order";
+import type { Order, OrderStatus } from "@/types/order";
 import { ORDER_STATUS_LABEL } from "@/types/order";
+
+/** Trạng thái hiển thị: đơn COMPLETED nhưng chưa có warehouseConfirmedAt → coi như đang giao tới kho (chờ admin xác nhận). */
+function getOrderDisplayStatus(o: Order): OrderStatus {
+  if (o.status === "COMPLETED" && !o.warehouseConfirmedAt) return "SELLER_SHIPPED";
+  return o.status;
+}
 
 export default function BuyerProfilePage() {
   const clearTokens = useAuthStore((s) => s.clearTokens);
@@ -192,10 +198,24 @@ export default function BuyerProfilePage() {
                       : "—";
                     const listingId =
                       o.listingId ?? (o.listing as { id?: string })?.id;
+                    const displayStatus = getOrderDisplayStatus(o);
                     const isPending =
                       o.status === "RESERVED" || o.status === "IN_TRANSACTION";
+                    const isCompletedAndConfirmed =
+                      o.status === "COMPLETED" && !!o.warehouseConfirmedAt;
+                    const inProgressStatuses = [
+                      "PENDING_SELLER_SHIP",
+                      "SELLER_SHIPPED",
+                      "AT_WAREHOUSE_PENDING_ADMIN",
+                      "RE_INSPECTION",
+                      "RE_INSPECTION_DONE",
+                      "SHIPPING",
+                    ] as const;
+                    const canTrackProgress =
+                      inProgressStatuses.includes(o.status as (typeof inProgressStatuses)[number]) &&
+                      !!listingId;
                     const txState =
-                      isPending && listingId
+                      (isPending || canTrackProgress) && listingId
                         ? {
                             orderId: o.id,
                             depositPaid:
@@ -242,7 +262,7 @@ export default function BuyerProfilePage() {
                         </div>
                         <div className="col-span-2 flex justify-end">
                           <Badge variant={isPending ? "secondary" : "default"}>
-                            {ORDER_STATUS_LABEL[o.status] ?? o.status}
+                            {ORDER_STATUS_LABEL[displayStatus] ?? displayStatus}
                           </Badge>
                         </div>
                         <div className="col-span-2 flex justify-end">
@@ -255,9 +275,22 @@ export default function BuyerProfilePage() {
                                 Thanh toán tiếp
                               </Link>
                             </Button>
-                          ) : o.status === "COMPLETED" ? (
+                          ) : canTrackProgress && listingId && txState ? (
+                            <Button asChild variant="outline" size="sm">
+                              <Link
+                                to={`/transaction/${listingId}?orderId=${o.id}`}
+                                state={txState}
+                              >
+                                Xem tiến trình
+                              </Link>
+                            </Button>
+                          ) : isCompletedAndConfirmed ? (
                             <span className="text-xs text-muted-foreground">
                               Hoàn thành
+                            </span>
+                          ) : o.status === "COMPLETED" && !o.warehouseConfirmedAt ? (
+                            <span className="text-xs text-muted-foreground">
+                              Chờ admin xác nhận
                             </span>
                           ) : null}
                         </div>

@@ -8,6 +8,7 @@ import type { Listing, BikeDetail } from "@/types/shopbike";
 import type { Order } from "@/types/order";
 
 import { USE_MOCK_API } from "@/lib/apiConfig";
+import { applyOrderOverrides, setOrderOverride } from "@/lib/orderOverrides";
 
 const USE_MOCK = USE_MOCK_API;
 
@@ -89,7 +90,8 @@ export async function fetchMyOrders(): Promise<Order[]> {
     return [];
   }
   try {
-    return await buyerApi.orderApi.getMyOrders();
+    const orders = await buyerApi.orderApi.getMyOrders();
+    return applyOrderOverrides(orders);
   } catch {
     return [];
   }
@@ -97,16 +99,24 @@ export async function fetchMyOrders(): Promise<Order[]> {
 
 export async function completeOrder(orderId: string): Promise<Order> {
   if (USE_MOCK) {
-    return { id: orderId, listingId: "", status: "COMPLETED" } as Order;
+    const mock = { id: orderId, listingId: "", status: "COMPLETED" } as Order;
+    setOrderOverride(orderId, { status: mock.status });
+    return mock;
   }
-  return await buyerApi.orderApi.complete(orderId);
+  const order = await buyerApi.orderApi.complete(orderId);
+  setOrderOverride(orderId, { status: "COMPLETED" });
+  return order;
 }
 
 export async function cancelOrder(orderId: string): Promise<Order> {
   if (USE_MOCK) {
-    return { id: orderId, listingId: "", status: "CANCELLED" } as Order;
+    const mock = { id: orderId, listingId: "", status: "CANCELLED" } as Order;
+    setOrderOverride(orderId, { status: mock.status });
+    return mock;
   }
-  return await buyerApi.orderApi.cancel(orderId);
+  const order = await buyerApi.orderApi.cancel(orderId);
+  setOrderOverride(orderId, { status: "CANCELLED" });
+  return order;
 }
 
 /** Validate payment (Visa/Bank) via backend sandbox before order creation */

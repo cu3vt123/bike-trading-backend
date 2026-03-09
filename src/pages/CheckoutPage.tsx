@@ -14,6 +14,7 @@ import {
 } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { cn } from "@/lib/utils";
+import { validateExpiry } from "@/lib/validateExpiry";
 
 type Plan = "DEPOSIT" | "FULL";
 type Method = "CARD" | "BANK";
@@ -132,9 +133,8 @@ export default function CheckoutPage() {
       if (n.length < 12 || n.length > 19)
         errs.cardNumber = "Nhập số thẻ hợp lệ (12–19 chữ số)";
       if (!card.name.trim()) errs.cardName = "Vui lòng nhập tên chủ thẻ";
-      if (!card.exp.trim()) errs.cardExp = "Vui lòng nhập ngày hết hạn (MM/YY)";
-      else if (!/^\d{1,2}\s*\/\s*\d{2,4}$/.test(card.exp.trim()))
-        errs.cardExp = "Định dạng: MM/YY";
+      const expValidation = validateExpiry(card.exp);
+      if (!expValidation.valid) errs.cardExp = expValidation.message ?? "Ngày hết hạn không hợp lệ";
       const cvcDigits = card.cvc.replace(/\D/g, "");
       if (cvcDigits.length !== 3) errs.cardCvc = "CVC phải đúng 3 chữ số";
     } else {
@@ -482,8 +482,12 @@ export default function CheckoutPage() {
                     value={card.exp}
                     onChange={(e) => {
                       let v = e.target.value.replace(/\D/g, "");
-                      if (v.length >= 2)
-                        v = v.slice(0, 2) + "/" + v.slice(2, 4);
+                      if (v.length >= 2) {
+                        let mm = parseInt(v.slice(0, 2), 10);
+                        if (mm > 12) mm = 12;
+                        if (mm < 1) mm = 1;
+                        v = String(mm).padStart(2, "0") + "/" + v.slice(2, 4);
+                      }
                       setCard((c) => ({ ...c, exp: v }));
                       if (fieldErrors.cardExp)
                         setFieldErrors((prev) => ({ ...prev, cardExp: "" }));

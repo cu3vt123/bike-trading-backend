@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useState, useRef, useEffect } from "react";
-import { Search, Heart } from "lucide-react";
+import { Search, Heart, ShoppingCart } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 
@@ -66,6 +66,10 @@ export function Header() {
     navigate("/inspector");
   }, [navigate]);
 
+  const onCart = useCallback(() => {
+    navigate("/cart");
+  }, [navigate]);
+
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-transparent shadow-none backdrop-blur-md">
       <div className="relative mx-auto flex w-full max-w-[100%] items-center py-4 pl-0 pr-0 sm:pl-1 sm:pr-1">
@@ -125,8 +129,31 @@ export function Header() {
           </button>
         </nav>
 
-        {/* Phải sát mép: Đăng ký, Đăng nhập – kiểu chữ nghệ thuật, trong suốt */}
-        <div className="flex flex-1 items-center justify-end gap-2 text-sm">
+        {/* Phải sát mép: icon hành động + nút đăng nhập/role */}
+        <div className="flex flex-1 items-center justify-end gap-3 text-sm">
+          {/* Nếu là buyer: yêu thích + giỏ hàng */}
+          {role === "BUYER" && (
+            <div className="flex items-center gap-2 rounded-full bg-white/5 px-2 py-1">
+              <Link
+                to="/wishlist"
+                className="rounded-full p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                title="Yêu thích"
+                aria-label="Yêu thích"
+              >
+                <Heart className="h-4 w-4" strokeWidth={1.6} />
+              </Link>
+              <button
+                type="button"
+                onClick={onCart}
+                className="rounded-full p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                title="Giỏ hàng"
+                aria-label="Giỏ hàng"
+              >
+                <ShoppingCart className="h-4 w-4" strokeWidth={1.6} />
+              </button>
+            </div>
+          )}
+
           {!accessToken ? (
             <>
               <Link
@@ -144,19 +171,6 @@ export function Header() {
             </>
           ) : (
             <>
-              {role === "BUYER" && (
-                <>
-                  <Link
-                    to="/wishlist"
-                    className="rounded-lg p-2 text-white/60 transition-all duration-200 hover:bg-white/5 hover:text-white/90"
-                    title="Danh sách yêu thích"
-                    aria-label="Yêu thích"
-                  >
-                    <Heart className="h-5 w-5" strokeWidth={1.5} />
-                  </Link>
-                  <span className="text-white/40">|</span>
-                </>
-              )}
               {role === "SELLER" && (
                 <>
                   <button

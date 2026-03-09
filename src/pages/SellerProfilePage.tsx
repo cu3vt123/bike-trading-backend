@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { validateExpiry } from "@/lib/validateExpiry";
 
 type PaymentItem = {
   id: string;
@@ -152,6 +153,11 @@ export default function SellerProfilePage() {
         setAddError("Vui lòng nhập 4 chữ số cho số thẻ.");
         return;
       }
+    }
+    const expValidation = validateExpiry(addExpiry.trim() || "12/26");
+    if (!expValidation.valid) {
+      setAddError(expValidation.message ?? "Ngày hết hạn không hợp lệ");
+      return;
     }
     const id = `pm-${Date.now()}`;
     const isDefault = paymentMethods.length === 0;
@@ -434,12 +440,22 @@ export default function SellerProfilePage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="add-expiry">Expiry (MM/YY)</Label>
+                  <Label htmlFor="add-expiry">Ngày hết hạn (MM/YY)</Label>
                   <Input
                     id="add-expiry"
-                    placeholder="12/26"
+                    placeholder="12/28"
                     value={addExpiry}
-                    onChange={(e) => setAddExpiry(e.target.value)}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/\D/g, "");
+                      if (v.length >= 2) {
+                        let mm = parseInt(v.slice(0, 2), 10);
+                        if (mm > 12) mm = 12;
+                        if (mm < 1) mm = 1;
+                        v = String(mm).padStart(2, "0") + "/" + v.slice(2, 4);
+                      }
+                      setAddExpiry(v);
+                    }}
+                    maxLength={5}
                   />
                 </div>
               </>

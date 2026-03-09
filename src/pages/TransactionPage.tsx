@@ -73,7 +73,10 @@ const SHIPPING_FLOW_STEPS: OrderStatus[] = [
 function isStepDone(status: OrderStatus | null, step: OrderStatus): boolean {
   if (!status) return step === "RESERVED";
   const idx = SHIPPING_FLOW_STEPS.indexOf(step);
-  const currentIdx = SHIPPING_FLOW_STEPS.indexOf(status);
+  const currentIdx =
+    status === "IN_TRANSACTION"
+      ? 0
+      : SHIPPING_FLOW_STEPS.indexOf(status);
   if (currentIdx < 0) return idx < SHIPPING_FLOW_STEPS.indexOf("COMPLETED");
   return idx <= currentIdx || status === "COMPLETED";
 }
@@ -286,7 +289,26 @@ export default function TransactionPage() {
               {(orderStatus ? SHIPPING_FLOW_STEPS : (["RESERVED", "IN_TRANSACTION", "COMPLETED"] as OrderStatus[])).map((step) => {
                 const done = orderStatus ? isStepDone(orderStatus, step) : (step === "RESERVED" || step === "IN_TRANSACTION");
                 const title = ORDER_STATUS_LABEL[step];
-                const desc = step === "RESERVED" ? "Đã đặt cọc thành công" : step === "PENDING_SELLER_SHIP" ? "Seller sẽ nhận thông báo và gửi xe tới kho" : step === "AT_WAREHOUSE_PENDING_ADMIN" ? "Admin xác nhận xe đã tới kho" : step === "RE_INSPECTION" ? "Inspector kiểm định lại tại kho" : step === "RE_INSPECTION_DONE" ? "Đã xác nhận đúng, chuyển giao hàng" : step === "SHIPPING" ? "Đang giao hàng tới bạn" : step === "COMPLETED" ? "Đã chuyển quyền sở hữu" : step === "IN_TRANSACTION" ? "Thanh toán số dư & giao hàng" : "";
+                const desc =
+                  step === "RESERVED"
+                    ? "Đã đặt cọc thành công"
+                    : step === "PENDING_SELLER_SHIP"
+                      ? "Seller sẽ nhận thông báo và gửi xe tới kho"
+                      : step === "SELLER_SHIPPED"
+                        ? "Seller đã gửi xe, đang trên đường tới kho"
+                        : step === "AT_WAREHOUSE_PENDING_ADMIN"
+                          ? "Admin xác nhận xe đã tới kho"
+                          : step === "RE_INSPECTION"
+                            ? "Inspector kiểm định lại tại kho"
+                            : step === "RE_INSPECTION_DONE"
+                              ? "Đã xác nhận đúng, chuyển giao hàng"
+                              : step === "SHIPPING"
+                                ? "Đang giao hàng tới bạn"
+                                : step === "COMPLETED"
+                                  ? "Đã chuyển quyền sở hữu"
+                                  : step === "IN_TRANSACTION"
+                                    ? "Thanh toán số dư & giao hàng"
+                                    : "";
                 return (
                   <div key={step} className="flex gap-3">
                     <div
@@ -334,26 +356,61 @@ export default function TransactionPage() {
           {/* Actions */}
           <Card>
             <CardContent className="pt-6">
-              <Button asChild className="w-full">
-                <Link
-                  to={`/finalize/${listing.id}`}
-                  state={{
-                    orderId,
-                    depositPaid,
-                    totalPrice,
-                    paymentMethod: state.paymentMethod,
-                  }}
+              {orderStatus === "COMPLETED" ? (
+                <Button asChild className="w-full" variant="secondary">
+                  <Link
+                    to={`/success/${listing.id}`}
+                    state={{
+                      orderId,
+                      depositPaid,
+                      totalPrice,
+                      paymentMethod: state.paymentMethod,
+                      completedAt: Date.now(),
+                    }}
+                  >
+                    Đã hoàn thành — Xem chi tiết
+                  </Link>
+                </Button>
+              ) : !orderStatus ||
+                  orderStatus === "SHIPPING" ||
+                  orderStatus === "RE_INSPECTION_DONE" ? (
+                <Button asChild className="w-full">
+                  <Link
+                    to={`/finalize/${listing.id}`}
+                    state={{
+                      orderId,
+                      depositPaid,
+                      totalPrice,
+                      paymentMethod: state.paymentMethod,
+                    }}
+                  >
+                    {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE"
+                      ? "Xác nhận đã nhận hàng & Hoàn tất"
+                      : "Hoàn tất mua hàng"}
+                  </Link>
+                </Button>
+              ) : (
+                <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-center text-sm text-muted-foreground">
+                  {orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION"
+                    ? "Thanh toán xong, chờ seller gửi xe tới kho."
+                    : orderStatus === "PENDING_SELLER_SHIP"
+                      ? "Chờ seller gửi xe tới kho."
+                      : orderStatus === "SELLER_SHIPPED" || orderStatus === "AT_WAREHOUSE_PENDING_ADMIN"
+                        ? "Xe đang tới kho / chờ admin xác nhận."
+                        : orderStatus === "RE_INSPECTION"
+                          ? "Đang kiểm định lại tại kho."
+                          : "Chờ bước tiếp theo."}
+                </p>
+              )}
+              {(orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION" || !orderStatus) && (
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => setCancelOpen(true)}
                 >
-                  Hoàn tất mua hàng
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                className="mt-3 w-full"
-                onClick={() => setCancelOpen(true)}
-              >
-                Hủy đặt chỗ
-              </Button>
+                  Hủy đặt chỗ
+                </Button>
+              )}
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 Áp dụng chính sách hoàn tiền • Giới hạn hủy chống spam
               </p>

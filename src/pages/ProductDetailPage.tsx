@@ -31,6 +31,16 @@ function Stars({ value }: { value: number }) {
   return <span className="text-primary">{stars}</span>;
 }
 
+function scoreToLevelLabel(score: number): string {
+  if (!score || Number.isNaN(score)) return "—";
+  if (score >= 4.7) return "Xuất sắc";
+  if (score >= 4.0) return "Tốt";
+  if (score >= 3.3) return "Khá tốt";
+  if (score >= 2.3) return "Trung bình";
+  if (score > 0) return "Kém";
+  return "—";
+}
+
 export default function ProductDetailPage() {
   const { id } = useParams();
   const location = useLocation();
@@ -151,9 +161,9 @@ export default function ProductDetailPage() {
       ? inspectionReport!
       : isVerified && score > 0
         ? {
-            frameIntegrity: { score, label: "—" as const },
-            drivetrainHealth: { score, label: "—" as const },
-            brakingSystem: { score, label: "—" as const },
+            frameIntegrity: { score, label: scoreToLevelLabel(score) },
+            drivetrainHealth: { score, label: scoreToLevelLabel(score) },
+            brakingSystem: { score, label: scoreToLevelLabel(score) },
           }
         : undefined;
   /** Hiển thị badge "Đã kiểm định" chỉ khi đã có báo cáo hoặc điểm, tránh mâu thuẫn với "Chưa có điểm kiểm định" */

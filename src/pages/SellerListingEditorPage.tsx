@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import {
   createListing,
   updateListing,
@@ -142,6 +143,9 @@ export default function SellerListingEditorPage() {
       }
       await submitForInspection(targetId);
       setStep("PENDING_INSPECTION");
+      toast.success("Đã gửi tin đăng kiểm định thành công", {
+        description: "Tin đăng đang chờ inspector duyệt.",
+      });
       navigate("/seller", { replace: true });
     } catch {
       setError("Không gửi được kiểm định. Vui lòng thử lại.");

@@ -179,11 +179,12 @@ export default function InspectorDashboardPage() {
                           />
                         </div>
                         <div>
-                          <div className="font-semibold">
-                            {item.brand} {item.model ?? ""}
+                          <div className="font-semibold text-foreground">
+                            {item.title || `${item.brand} ${item.model ?? ""}`}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {item.title}
+                            {item.brand}
+                            {item.model ? ` · ${item.model}` : ""}
                           </div>
                           <div className="mt-1 text-sm">
                             {formatMoney(item.price, item.currency ?? "VND")} • {item.location}
@@ -318,27 +319,42 @@ export default function InspectorDashboardPage() {
               </p>
               {(["frameIntegrity", "drivetrainHealth", "brakingSystem"] as const).map((key) => {
                 const val = inspectionReport[key];
+                const selectValue = INSPECTION_OPTIONS.find((o) => o.score === val.score)?.label ?? INSPECTION_OPTIONS[0].label;
+                const isCustomLabel = val.label.trim() !== "" && !INSPECTION_OPTIONS.some((o) => o.label === val.label);
                 return (
-                  <div key={key} className="flex items-center gap-4">
-                    <Label className="w-32 shrink-0 text-foreground">{INSPECTION_ROW_LABELS[key]}</Label>
-                    <Select
-                      value={val.label}
-                      onValueChange={(v) => {
-                        const opt = INSPECTION_OPTIONS.find((o) => o.label === v);
-                        if (opt) setReportField(key, { label: opt.label, score: opt.score });
-                      }}
-                    >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INSPECTION_OPTIONS.map((o) => (
-                          <SelectItem key={o.label} value={o.label}>
-                            {o.label} ({(o.score).toFixed(1)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div key={key} className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="flex items-center gap-4">
+                      <Label className="w-40 shrink-0 text-foreground">{INSPECTION_ROW_LABELS[key]}</Label>
+                      <Select
+                        value={selectValue}
+                        onValueChange={(v) => {
+                          const opt = INSPECTION_OPTIONS.find((o) => o.label === v);
+                          if (opt) setReportField(key, { score: opt.score, label: isCustomLabel ? val.label : opt.label });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {INSPECTION_OPTIONS.map((o) => (
+                            <SelectItem key={o.label} value={o.label}>
+                              {o.label} ({(o.score).toFixed(1)})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="pl-[calc(10rem+1rem)]">
+                      <Input
+                        placeholder="Nhận xét chi tiết (điền vào phần hiển thị thay cho '—' cho người mua)"
+                        value={val.label}
+                        onChange={(e) => setReportField(key, { ...val, label: e.target.value })}
+                        className="text-sm"
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Nếu để trống, sẽ hiển thị mức đánh giá đã chọn (vd: Tốt).
+                      </p>
+                    </div>
                   </div>
                 );
               })}

@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchListingById } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
+import { createReview } from "@/services/reviewService";
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
@@ -42,7 +44,12 @@ export default function PurchaseSuccessPage() {
   const [listing, setListing] = useState<BikeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rating, setRating] = useState<number>(5);
+  const [comment, setComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
+  const hasToasted = useRef(false);
   useEffect(() => {
     if (!id) {
       setLoading(false);
@@ -64,10 +71,51 @@ export default function PurchaseSuccessPage() {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (loading || error || !listing) return;
+    if (state.orderId && !hasToasted.current) {
+      hasToasted.current = true;
+      toast.success("Mua hàng thành công!", {
+        description: "Đơn hàng của bạn đã được xác nhận.",
+      });
+    }
+  }, [loading, error, listing, state.orderId]);
+
   const currency = (listing?.currency ?? "VND") as "VND" | "USD";
   const total = state.totalPrice ?? listing?.price ?? 0;
   const deposit = state.depositPaid ?? 0;
   const due = Math.max(0, total - deposit);
+
+  async function handleSubmitReview() {
+    if (!state.orderId || !listing?.id || !listing.seller?.id) {
+      toast.error("Thiếu thông tin đơn hàng để đánh giá.");
+      return;
+    }
+    if (!rating || rating < 1 || rating > 5) {
+      toast.error("Vui lòng chọn số sao từ 1 đến 5.");
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      await createReview({
+        orderId: state.orderId,
+        listingId: listing.id,
+        sellerId: listing.seller.id,
+        rating,
+        comment: comment.trim() || undefined,
+      });
+      setReviewSubmitted(true);
+      toast.success("Đã gửi đánh giá. Cảm ơn bạn!");
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Không gửi được đánh giá. Vui lòng thử lại.",
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -166,6 +214,64 @@ export default function PurchaseSuccessPage() {
                 </p>
               </CardContent>
             </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="text-sm font-semibold">Đánh giá trải nghiệm mua hàng</div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Đánh giá của bạn giúp người mua khác và ảnh hưởng tới điểm uy tín của người bán. Admin có thể xem và duyệt các đánh giá.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setRating(v)}
+                  className={`text-2xl ${
+                    v <= rating ? "text-primary" : "text-muted-foreground"
+                  }`}
+                  aria-label={`Đánh giá ${v} sao`}
+                >
+                  ★
+                </button>
+              ))}
+              <span className="ml-2 text-xs text-muted-foreground">
+                {rating}/5
+              </span>
+            </div>
+            <div className="w-full sm:w-1/2">
+              <textarea
+                className="mt-2 w-full rounded-md border border-border bg-background p-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                rows={2}
+                placeholder="Chia sẻ ngắn gọn về xe, giao dịch, giao hàng..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              Đánh giá sẽ hiển thị sau khi được hệ thống ghi nhận. Admin có thể chỉnh sửa hoặc ẩn đánh giá nếu phát hiện vi phạm.
+            </p>
+            <Button
+              size="sm"
+              onClick={handleSubmitReview}
+              disabled={submittingReview || reviewSubmitted}
+            >
+              {reviewSubmitted
+                ? "Đã gửi đánh giá"
+                : submittingReview
+                  ? "Đang gửi..."
+                  : "Gửi đánh giá"}
+            </Button>
           </div>
         </CardContent>
       </Card>

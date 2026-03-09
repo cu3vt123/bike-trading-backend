@@ -181,7 +181,9 @@ export default function HomePage() {
               <Logo variant="hero" />
             </h1>
             <p className="mx-auto mt-4 max-w-md text-base font-semibold leading-relaxed text-white/95 md:text-lg">
-              Xe đạp thể thao đã kiểm định &amp; duyệt. Tìm chuyến đi tiếp theo của bạn.
+              Xe đạp thể thao đã kiểm định &amp; duyệt.
+              <br />
+              Tìm kiếm chuyến đi tiếp theo với bạn
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button

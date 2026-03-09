@@ -1,9 +1,11 @@
 /**
  * Admin service – quản lý người dùng, kho, báo cáo, danh mục, giao dịch, thống kê.
- * Mock cho đến khi BE có API.
+ * Khi backend đã có API, ưu tiên gọi API; nếu lỗi/404 sẽ fallback sang mock để demo.
  */
 import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
+import { setOrderOverride } from "@/lib/orderOverrides";
+import { adminApi, type AdminStats as ApiAdminStats, type OrderWithListing as ApiOrderWithListing } from "@/apis/adminApi";
 
 type OrderWithListing = Order & { listing?: Listing };
 const _orders: OrderWithListing[] = [
@@ -61,45 +63,87 @@ export type AdminStats = {
 };
 
 export async function fetchOrdersForWarehouseConfirm(): Promise<OrderWithListing[]> {
-  await new Promise((r) => setTimeout(r, 300));
-  return MOCK_ORDERS_WAREHOUSE.filter(
-    (o) => o.status === "SELLER_SHIPPED" || o.status === "AT_WAREHOUSE_PENDING_ADMIN",
-  ).map((o) => ({ ...o }));
+  try {
+    const apiData = await adminApi.getWarehouseOrders();
+    return apiData as ApiOrderWithListing[];
+  } catch {
+    // Fallback mock
+    await new Promise((r) => setTimeout(r, 300));
+    return MOCK_ORDERS_WAREHOUSE.filter(
+      (o) => o.status === "SELLER_SHIPPED" || o.status === "AT_WAREHOUSE_PENDING_ADMIN",
+    ).map((o) => ({ ...o }));
+  }
 }
 
 export async function confirmWarehouseArrival(orderId: string): Promise<Order> {
-  await new Promise((r) => setTimeout(r, 400));
-  const order = MOCK_ORDERS_WAREHOUSE.find((o) => o.id === orderId);
-  if (!order) throw new Error("Không tìm thấy đơn hàng.");
-  order.status = "RE_INSPECTION";
-  order.warehouseConfirmedAt = new Date().toISOString();
-  return { ...order };
+  try {
+    const order = await adminApi.confirmWarehouseArrival(orderId);
+    setOrderOverride(order.id, {
+      status: order.status,
+      warehouseConfirmedAt: order.warehouseConfirmedAt,
+    });
+    return order;
+  } catch {
+    await new Promise((r) => setTimeout(r, 400));
+    const order = MOCK_ORDERS_WAREHOUSE.find((o) => o.id === orderId);
+    if (!order) throw new Error("Không tìm thấy đơn hàng.");
+    order.status = "RE_INSPECTION";
+    order.warehouseConfirmedAt = new Date().toISOString();
+    setOrderOverride(order.id, {
+      status: order.status,
+      warehouseConfirmedAt: order.warehouseConfirmedAt,
+    });
+    return { ...order };
+  }
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {
-  await new Promise((r) => setTimeout(r, 200));
-  return {
-    totalUsers: 124,
-    totalBuyers: 80,
-    totalSellers: 32,
-    totalListings: 56,
-    totalOrders: 89,
-    ordersPendingWarehouse: 2,
-    ordersReInspection: 1,
-  };
+  try {
+    const stats = await adminApi.getStats();
+    return stats as ApiAdminStats;
+  } catch {
+    await new Promise((r) => setTimeout(r, 200));
+    return {
+      totalUsers: 124,
+      totalBuyers: 80,
+      totalSellers: 32,
+      totalListings: 56,
+      totalOrders: 89,
+      ordersPendingWarehouse: 2,
+      ordersReInspection: 1,
+    };
+  }
 }
 
 /** Mock: danh sách đơn cần kiểm định lại tại kho (cho inspector) */
 export async function fetchReInspectionOrders(): Promise<OrderWithListing[]> {
-  await new Promise((r) => setTimeout(r, 200));
-  return MOCK_ORDERS_WAREHOUSE.filter((o) => o.status === "RE_INSPECTION").map((o) => ({ ...o }));
+  try {
+    const apiData = await adminApi.getReInspectionOrders();
+    return apiData as ApiOrderWithListing[];
+  } catch {
+    await new Promise((r) => setTimeout(r, 200));
+    return MOCK_ORDERS_WAREHOUSE.filter((o) => o.status === "RE_INSPECTION").map((o) => ({ ...o }));
+  }
 }
 
 export async function submitReInspectionDone(orderId: string): Promise<Order> {
-  await new Promise((r) => setTimeout(r, 400));
-  const order = MOCK_ORDERS_WAREHOUSE.find((o) => o.id === orderId);
-  if (!order) throw new Error("Không tìm thấy đơn hàng.");
-  order.status = "SHIPPING";
-  order.reInspectionDoneAt = new Date().toISOString();
-  return { ...order };
+  try {
+    const order = await adminApi.submitReInspectionDone(orderId);
+    setOrderOverride(order.id, {
+      status: order.status,
+      reInspectionDoneAt: order.reInspectionDoneAt,
+    });
+    return order;
+  } catch {
+    await new Promise((r) => setTimeout(r, 400));
+    const order = MOCK_ORDERS_WAREHOUSE.find((o) => o.id === orderId);
+    if (!order) throw new Error("Không tìm thấy đơn hàng.");
+    order.status = "SHIPPING";
+    order.reInspectionDoneAt = new Date().toISOString();
+    setOrderOverride(order.id, {
+      status: order.status,
+      reInspectionDoneAt: order.reInspectionDoneAt,
+    });
+    return { ...order };
+  }
 }

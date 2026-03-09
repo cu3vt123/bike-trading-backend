@@ -36,8 +36,8 @@ export default function MainLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-border bg-card">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6">
+      <footer className="w-full border-t border-border bg-card">
+        <div className="flex w-full flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6">
           <span className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} ShopBike — Sàn đã xác minh &amp; kiểm định
           </span>

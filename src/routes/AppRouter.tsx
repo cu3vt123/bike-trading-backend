@@ -23,6 +23,7 @@ import CheckoutPage from "@/pages/CheckoutPage";
 import TransactionPage from "@/pages/TransactionPage";
 import FinalizePurchasePage from "@/pages/FinalizePurchasePage";
 import PurchaseSuccessPage from "@/pages/PurchaseSuccessPage";
+import CartPage from "@/pages/CartPage";
 
 // Seller pages (Sprint 1 UI-only)
 import SellerDashboardPage from "@/pages/SellerDashboardPage";
@@ -62,6 +63,7 @@ export default function AppRouter() {
             <Route path="transaction/:id" element={<TransactionPage />} />
             <Route path="finalize/:id" element={<FinalizePurchasePage />} />
             <Route path="success/:id" element={<PurchaseSuccessPage />} />
+            <Route path="cart" element={<CartPage />} />
           </Route>
 
           {/* SELLER-only flow */}

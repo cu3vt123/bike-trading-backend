@@ -25,7 +25,7 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   PENDING: "Chờ xử lý",
   RESERVED: "Đã đặt cọc",
   PENDING_SELLER_SHIP: "Chờ seller gửi xe",
-  SELLER_SHIPPED: "Seller đã gửi xe",
+  SELLER_SHIPPED: "Đang giao tới kho",
   AT_WAREHOUSE_PENDING_ADMIN: "Xe tại kho (chờ admin xác nhận)",
   RE_INSPECTION: "Đang kiểm định lại tại kho",
   RE_INSPECTION_DONE: "Đã kiểm định lại",

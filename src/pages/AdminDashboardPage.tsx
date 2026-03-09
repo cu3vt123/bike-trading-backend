@@ -9,6 +9,7 @@ import {
   BarChart3,
   Package,
   CheckCircle,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,13 +19,18 @@ import {
   fetchAdminStats,
   type AdminStats,
 } from "@/services/adminService";
+import { fetchAdminReviews, adminUpdateReview } from "@/services/reviewService";
+import { fetchPendingListings } from "@/services/inspectorService";
 import { ORDER_STATUS_LABEL } from "@/types/order";
 import type { Order } from "@/types/order";
+import type { Listing } from "@/types/shopbike";
+import type { Review } from "@/types/review";
 
 const TABS = [
   { id: "warehouse", label: "Xác nhận xe tới kho", icon: Package },
   { id: "users", label: "Quản lý người dùng", icon: Users },
   { id: "listings", label: "Kiểm duyệt tin đăng", icon: FileCheck },
+   { id: "reviews", label: "Đánh giá sau mua", icon: Star },
   { id: "reports", label: "Báo cáo vi phạm / Tranh chấp", icon: AlertTriangle },
   { id: "categories", label: "Danh mục xe & Thương hiệu", icon: Tags },
   { id: "transactions", label: "Giao dịch & Phí dịch vụ", icon: CreditCard },
@@ -43,7 +49,10 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("warehouse");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [warehouseOrders, setWarehouseOrders] = useState<(Order & { listing?: { brand?: string; model?: string } })[]>([]);
+  const [pendingListings, setPendingListings] = useState<Listing[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [listingsLoading, setListingsLoading] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const loadStats = useCallback(() => {
@@ -56,6 +65,18 @@ export default function AdminDashboardPage() {
       .catch(() => setWarehouseOrders([]))
       .finally(() => setLoading(false));
   }, []);
+  const loadPendingListings = useCallback(() => {
+    setListingsLoading(true);
+    fetchPendingListings()
+      .then(setPendingListings)
+      .catch(() => setPendingListings([]))
+      .finally(() => setListingsLoading(false));
+  }, []);
+  const loadReviews = useCallback(() => {
+    fetchAdminReviews()
+      .then(setReviews)
+      .catch(() => setReviews([]));
+  }, []);
 
   useEffect(() => {
     loadStats();
@@ -63,6 +84,12 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (activeTab === "warehouse") loadWarehouse();
   }, [activeTab, loadWarehouse]);
+  useEffect(() => {
+    if (activeTab === "listings") loadPendingListings();
+  }, [activeTab, loadPendingListings]);
+  useEffect(() => {
+    if (activeTab === "reviews") loadReviews();
+  }, [activeTab, loadReviews]);
 
   async function handleConfirmWarehouse(orderId: string) {
     setConfirmingId(orderId);
@@ -218,13 +245,119 @@ export default function AdminDashboardPage() {
                   Kiểm duyệt tin đăng
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Duyệt/từ chối tin từ seller. Có thể dùng trang Kiểm định viên.
+                  Tin đăng chờ kiểm định từ seller. Duyệt/từ chối tại đây hoặc mở trang Kiểm định viên để thao tác chi tiết.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {listingsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                ) : pendingListings.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    Không có tin đăng nào đang chờ duyệt.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingListings.map((listing) => (
+                      <div
+                        key={listing.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-semibold text-foreground">
+                            {listing.title || `${listing.brand} ${listing.model ?? ""}`}
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {listing.brand}
+                            {listing.model ? ` · ${listing.model}` : ""} · ID: {listing.id} ·{" "}
+                            {listing.state ?? "Chờ kiểm định"} · {formatMoney(listing.price ?? 0)}
+                          </div>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to="/inspector">Duyệt trên trang Kiểm định viên →</Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="pt-2">
+                  <Button asChild variant="outline">
+                    <Link to="/inspector">Mở trang Kiểm định viên →</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "reviews" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Đánh giá sau mua
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Tổng hợp đánh giá của người mua. Admin có thể xem, chỉnh sửa hoặc ẩn đánh giá nếu phát hiện nội dung không hợp lý.
                 </p>
               </CardHeader>
               <CardContent>
-                <Button asChild variant="outline">
-                  <Link to="/inspector">Mở trang Kiểm định viên →</Link>
-                </Button>
+                {reviews.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    Chưa có đánh giá nào.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {reviews.map((r) => (
+                      <div
+                        key={r.id}
+                        className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 text-sm"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <div className="font-semibold text-foreground">
+                              Đơn {r.orderId} · Seller {r.sellerId}
+                            </div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              Listing {r.listingId} · {r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground mr-1">Điểm:</span>
+                            {[1, 2, 3, 4, 5].map((v) => (
+                              <button
+                                key={v}
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    const updated = await adminUpdateReview(r.id, { rating: v, status: "EDITED" });
+                                    setReviews((prev) =>
+                                      prev.map((x) => (x.id === updated.id ? updated : x)),
+                                    );
+                                  } catch {
+                                    // ignore
+                                  }
+                                }}
+                                className={`text-lg ${
+                                  v <= r.rating ? "text-primary" : "text-muted-foreground"
+                                }`}
+                                aria-label={`Chỉnh thành ${v} sao`}
+                              >
+                                ★
+                              </button>
+                            ))}
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              {r.rating}/5
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {r.comment || "Không có nội dung bình luận."}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

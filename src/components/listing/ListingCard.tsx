@@ -87,10 +87,11 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold text-foreground">
-              {listing.brand} {listing.model ?? ""}
+              {listing.title || `${listing.brand} ${listing.model ?? ""}`}
             </div>
             <div className="mt-0.5 truncate text-xs text-muted-foreground">
-              {listing.title}
+              {listing.brand}
+              {listing.model ? ` · ${listing.model}` : ""}
             </div>
           </div>
 

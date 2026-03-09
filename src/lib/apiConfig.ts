@@ -64,6 +64,23 @@ export const API_PATHS = {
     LISTING_NEED_UPDATE: (id: string) => `/inspector/listings/${id}/need-update`,
   },
 
+  // Admin (requires ADMIN role)
+  ADMIN: {
+    WAREHOUSE_ORDERS: "/admin/orders/warehouse-pending",
+    CONFIRM_WAREHOUSE: (id: string) => `/admin/orders/${id}/confirm-warehouse`,
+    RE_INSPECTION_ORDERS: "/admin/orders/re-inspection",
+    RE_INSPECTION_DONE: (id: string) => `/admin/orders/${id}/re-inspection-done`,
+    STATS: "/admin/dashboard/stats",
+  },
+
+  // Reviews (buyer + admin moderation)
+  REVIEWS: {
+    CREATE_FOR_ORDER: (orderId: string) => `/buyer/orders/${orderId}/review`,
+    MY_REVIEWS: "/buyer/reviews",
+    ADMIN_LIST: "/admin/reviews",
+    ADMIN_UPDATE: (id: string) => `/admin/reviews/${id}`,
+  },
+
   // Health check
   HEALTH: "/health",
 } as const;
