@@ -1,8 +1,7 @@
 package com.biketrading.backend.security;
 
-import com.biketrading.backend.repository.BuyerRepository;
-import com.biketrading.backend.repository.InspectorRepository;
-import com.biketrading.backend.repository.SellerRepository;
+import com.biketrading.backend.entity.User;
+import com.biketrading.backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,37 +24,31 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired private JwtTokenProvider tokenProvider;
-    @Autowired private BuyerRepository buyerRepository;
-    @Autowired private SellerRepository sellerRepository;
-    @Autowired private InspectorRepository inspectorRepository;
+    @Autowired private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            // 1. Lấy Token từ Request (nằm trong header "Authorization")
             String jwt = getJwtFromRequest(request);
 
-            // 2. Nếu Token hợp lệ
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromJWT(jwt);
 
-                // 3. XÁC ĐỊNH ROLE TỪ DATABASE (Thay vì để ArrayList rỗng như trước)
-                List<GrantedAuthority> authorities = new ArrayList<>();
-                if (sellerRepository.findByUsername(username).isPresent()) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_SELLER"));
-                } else if (buyerRepository.findByUsername(username).isPresent()) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_BUYER"));
-                } else if (inspectorRepository.findByUsername(username).isPresent()) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_INSPECTOR"));
+                // Tìm User bằng UserRepository mới
+                User user = userRepository.findByUsername(username).orElse(null);
+
+                if (user != null) {
+                    List<GrantedAuthority> authorities = new ArrayList<>();
+                    // Set quyền theo format Spring (VD: ROLE_BUYER)
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-
-                // 4. Set thông tin User + Role vào hệ thống Security
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(username, null, authorities);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);

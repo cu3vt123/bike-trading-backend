@@ -1,102 +1,76 @@
 package com.biketrading.backend.controller;
 
-import com.biketrading.backend.dto.BikeDTO;
-import com.biketrading.backend.entity.Bike;
-import com.biketrading.backend.entity.Seller;
-import com.biketrading.backend.repository.SellerRepository;
-import com.biketrading.backend.service.BikeService;
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
+import com.biketrading.backend.dto.ListingDTO;
+import com.biketrading.backend.entity.Listing;
+import com.biketrading.backend.entity.User;
+import com.biketrading.backend.enums.ListingState;
+import com.biketrading.backend.repository.ListingRepository;
+import com.biketrading.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/seller")
 public class SellerController {
 
-    @Autowired
-    private BikeService bikeService;
+    @Autowired private ListingRepository listingRepository;
+    @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private SellerRepository sellerRepository;
-
-    // ==========================================
-    // 1. LẤY THỐNG KÊ DASHBOARD
-    // ==========================================
-    @GetMapping("/dashboard/stats")
-    @Operation(summary = "Lấy thống kê doanh thu cho Seller")
-    public ResponseEntity<?> getShopStats() {
-        String sellerName = SecurityContextHolder.getContext().getAuthentication().getName();
-        // Tạm thời mock dữ liệu (Sau này có thể viết query trong OrderRepository để tính toán thật)
-        return ResponseEntity.ok(Map.of(
-                "sellerName", sellerName,
-                "totalOrders", 15,
-                "totalRevenue", new BigDecimal("55000000"),
-                "activeListings", 8
-        ));
+    // Lấy user đang đăng nhập
+    private User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username).orElse(null);
     }
 
-    // ==========================================
-    // 2. LẤY DANH SÁCH XE CỦA SHOP
-    // ==========================================
+    // 1. Lấy danh sách xe CỦA NGƯỜI BÁN NÀY
     @GetMapping("/listings")
-    @Operation(summary = "Lấy toàn bộ danh sách xe do Seller này đăng")
-    public ResponseEntity<List<Bike>> getMyListings() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<List<ListingDTO>> getMyListings() {
+        User seller = getCurrentUser();
+        if (seller == null) return ResponseEntity.status(401).build();
 
-        Seller seller = sellerRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Seller không tồn tại"));
+        // Tạm thời lấy tất cả xe của seller này (Lọc thủ công, bạn có thể viết thêm hàm trong Repository sau)
+        List<Listing> myListings = listingRepository.findAll().stream()
+                .filter(l -> l.getSeller() != null && l.getSeller().getId().equals(seller.getId()))
+                .collect(Collectors.toList());
 
-        // Gọi bikeService (đã có sẵn hàm getAllBikes theo sellerId)
-        List<Bike> bikes = bikeService.getAllBikes(seller.getSellerId());
-
-        return ResponseEntity.ok(bikes);
+        List<ListingDTO> response = myListings.stream()
+                .map(ListingDTO::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
-    // ==========================================
-    // 3. ĐĂNG BÁN XE (TẠO BẢN NHÁP - DRAFT)
-    // ==========================================
+    // 2. Tạo tin đăng xe mới (Mặc định là DRAFT)
     @PostMapping("/listings")
-    @Operation(summary = "Seller đăng bán xe mới (Tạo bản nháp)")
-    public ResponseEntity<?> createListing(@Valid @RequestBody BikeDTO bikeDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<?> createListing(@RequestBody Listing request) {
+        User seller = getCurrentUser();
+        if (seller == null) return ResponseEntity.status(401).build();
 
-        // Tìm thông tin Seller từ DB dựa vào token (username)
-        Seller seller = sellerRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Seller không tồn tại"));
+        request.setSeller(seller);
+        request.setState(ListingState.DRAFT); // Vừa tạo thì trạng thái là Nháp
 
-        // Gọi Service để tạo bản nháp (DRAFT)
-        Bike createdBike = bikeService.createDraftBike(bikeDTO, seller.getSellerId());
-
-        return ResponseEntity.status(201).body(Map.of(
-                "message", "Tạo bản nháp thành công!",
-                "bike", createdBike
-        ));
+        Listing savedListing = listingRepository.save(request);
+        return ResponseEntity.ok(ListingDTO.fromEntity(savedListing));
     }
 
-    // ==========================================
-    // 4. GỬI YÊU CẦU KIỂM DUYỆT (SUBMIT)
-    // ==========================================
+    // 3. Gửi xe đi kiểm định
     @PutMapping("/listings/{id}/submit")
-    @Operation(summary = "Seller gửi yêu cầu kiểm duyệt xe lên hệ thống")
     public ResponseEntity<?> submitForInspection(@PathVariable Long id) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User seller = getCurrentUser();
+        Listing listing = listingRepository.findById(id).orElse(null);
 
-        Seller seller = sellerRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Seller không tồn tại"));
+        if (listing == null || !listing.getSeller().getId().equals(seller.getId())) {
+            return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy xe của bạn"));
+        }
 
-        // Gọi Service để chuyển trạng thái sang PENDING_INSPECTION
-        Bike bike = bikeService.submitForInspection(id, seller.getSellerId());
+        listing.setState(ListingState.PENDING_INSPECTION); // Chuyển trạng thái sang chờ duyệt
+        listingRepository.save(listing);
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Đã gửi yêu cầu kiểm duyệt thành công!",
-                "bike", bike
-        ));
+        return ResponseEntity.ok(Map.of("message", "Đã gửi xe đi kiểm định thành công"));
     }
 }
