@@ -1,6 +1,5 @@
 package com.biketrading.backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -27,8 +26,13 @@ public class Bike {
     private String frameSize;
     private Integer conditionPercentage;
 
-    private String approvalStatus;
-    private String salesStatus;
+    // Set mặc định khi insert vào database
+    @Column(name = "approval_status")
+    private String approvalStatus = "DRAFT";
+
+    @Column(name = "sales_status")
+    private String salesStatus = "AVAILABLE";
+
     private Boolean isVerified;
 
     @Column(name = "created_at", insertable = false, updatable = false)
