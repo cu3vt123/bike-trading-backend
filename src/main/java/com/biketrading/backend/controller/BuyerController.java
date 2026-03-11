@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -40,9 +41,11 @@ public class BuyerController {
         return ResponseEntity.ok(buyerService.getMyOrders(username));
     }
 
-    // TẠO ĐƠN HÀNG: Mua xong là KHÓA XE (RESERVED)
+    // ==========================================
+    // TẠO ĐƠN HÀNG: Đặt cọc 8% và Khóa xe (RESERVED)
+    // ==========================================
     @PostMapping("/orders")
-    @Operation(summary = "Buyer tạo đơn mua xe mới")
+    @Operation(summary = "Buyer tạo đơn mua xe mới (Tính cọc 8%)")
     public ResponseEntity<?> createOrder(@Valid @RequestBody OrderDTO orderDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -58,9 +61,9 @@ public class BuyerController {
 
         Bike bike = bikeOpt.get();
 
-        // KIỂM TRA: Nếu xe không ở trạng thái AVAILABLE thì không cho mua
-        if (!"AVAILABLE".equals(bike.getSalesStatus())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Rất tiếc, chiếc xe này đã có người đặt hoặc đã bán!"));
+        // KIỂM TRA: Chỉ cho mua nếu xe đang ở trạng thái AVAILABLE và đã được DUYỆT (APPROVED)
+        if (!"AVAILABLE".equals(bike.getSalesStatus()) || !"APPROVED".equals(bike.getApprovalStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Rất tiếc, chiếc xe này chưa được duyệt hoặc đã có người đặt!"));
         }
 
         Buyer buyer = buyerOpt.get();
@@ -68,8 +71,13 @@ public class BuyerController {
         Order order = new Order();
         order.setBikeId(bike.getBikeId());
         order.setBuyerId(buyer.getBuyerId());
-        order.setAmount(bike.getPrice());
-        order.setStatus("PENDING");
+
+        // LOGIC TÍNH TIỀN CỌC 8%
+        BigDecimal depositPercentage = new BigDecimal("0.08");
+        BigDecimal depositAmount = bike.getPrice().multiply(depositPercentage);
+
+        order.setAmount(depositAmount); // Chỉ lưu số tiền cọc phải trả vào đơn hàng
+        order.setStatus("RESERVED");    // Trạng thái đơn: Đã đặt trước
         order.setCreatedAt(LocalDateTime.now());
 
         Order savedOrder = orderRepository.save(order);
@@ -79,12 +87,15 @@ public class BuyerController {
         bikeRepository.save(bike);
 
         return ResponseEntity.status(201).body(Map.of(
-                "message", "Đặt mua xe thành công!",
+                "message", "Đặt mua xe thành công! Vui lòng thanh toán khoản cọc 8%.",
+                "depositAmount", depositAmount,
                 "order", savedOrder
         ));
     }
 
+    // ==========================================
     // HOÀN TẤT: Thanh toán xong là ẨN XE VĨNH VIỄN (SOLD)
+    // ==========================================
     @PostMapping("/orders/{orderId}/complete")
     @Operation(summary = "Buyer thanh toán và hoàn tất đơn hàng")
     public ResponseEntity<?> completeOrder(@PathVariable Long orderId) {
@@ -116,8 +127,11 @@ public class BuyerController {
         return ResponseEntity.ok(Map.of("message", "Thanh toán và hoàn tất đơn hàng thành công!"));
     }
 
+    // ==========================================
     // HỦY ĐƠN: Nhả xe lại lên sàn (AVAILABLE)
+    // ==========================================
     @PutMapping("/orders/{orderId}/cancel")
+    @Operation(summary = "Buyer hủy đơn hàng")
     public ResponseEntity<?> cancelOrder(@PathVariable Long orderId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -128,11 +142,12 @@ public class BuyerController {
             Buyer buyer = buyerOpt.get();
             Order order = orderOpt.get();
 
+            // Chống IDOR: Phải là đơn của chính người này
             if (!order.getBuyerId().equals(buyer.getBuyerId())) {
                 return ResponseEntity.status(403).body(Map.of("message", "Bạn không có quyền hủy đơn này."));
             }
 
-            if (order.getStatus().equals("PENDING")) {
+            if ("PENDING".equals(order.getStatus()) || "RESERVED".equals(order.getStatus())) {
                 order.setStatus("CANCELLED");
                 orderRepository.save(order);
 

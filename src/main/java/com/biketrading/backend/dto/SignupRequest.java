@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class SignupRequest {
-    private String role; // FE sẽ gửi "BUYER" hoặc "SELLER"
+    private String role; // FE sẽ gửi "BUYER", "SELLER", hoặc "INSPECTOR"
     private String username;
     private String email;
     private String password;

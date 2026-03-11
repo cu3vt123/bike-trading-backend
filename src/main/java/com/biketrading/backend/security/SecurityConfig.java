@@ -20,7 +20,6 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // 1. Tiêm bộ lọc JWT của bạn vào đây
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -33,6 +32,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+        // Thay url này nếu FE của bạn chạy port khác
         config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -47,17 +47,25 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập tự do vào API Auth (Login, Signup) và Swagger
+                        // 1. CÁC API CÔNG KHAI (Không cần Token)
                         .requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-
-                        // Cho phép ai cũng có thể xem danh sách xe đạp (GET method)
                         .requestMatchers(HttpMethod.GET, "/api/bikes/**").permitAll()
 
-                        // TẤT CẢ CÁC API CÒN LẠI (Mua hàng, Xem Profile,...) ĐỀU PHẢI CÓ TOKEN HỢP LỆ!
+                        // 2. PHÂN QUYỀN (ROLE-BASED ACCESS CONTROL)
+                        // Chỉ Seller mới được gọi các API bắt đầu bằng /api/seller/
+                        .requestMatchers("/api/seller/**").hasRole("SELLER")
+
+                        // Chỉ Buyer mới được gọi các API bắt đầu bằng /api/buyer/
+                        .requestMatchers("/api/buyer/**").hasRole("BUYER")
+
+                        // Chỉ Inspector mới được gọi các API bắt đầu bằng /api/inspector/
+                        .requestMatchers("/api/inspector/**").hasRole("INSPECTOR")
+
+                        // 3. TẤT CẢ CÁC API CÒN LẠI ĐỀU PHẢI CÓ TOKEN HỢP LỆ
                         .anyRequest().authenticated()
                 );
 
-        // 2. Chèn bộ lọc JWT vào trước bộ lọc xác thực mặc định của Spring
+        // Chèn bộ lọc JWT vào trước bộ lọc mặc định
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
