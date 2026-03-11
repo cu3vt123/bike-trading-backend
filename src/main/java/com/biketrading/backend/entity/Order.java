@@ -1,49 +1,41 @@
 package com.biketrading.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orders")
+@Data
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
-    private Long orderId;
+    private Long id;
 
-    @Column(name = "bike_id")
-    private Long bikeId;
+    @ManyToOne
+    @JoinColumn(name = "buyer_id", nullable = false)
+    private User buyer;
 
-    @Column(name = "buyer_id")
-    private Long buyerId;
+    @ManyToOne
+    @JoinColumn(name = "listing_id", nullable = false)
+    private Listing listing;
 
-    @Column(name = "total_amount") // <--- QUAN TRỌNG: Sửa lỗi 500 ở đây
-    private BigDecimal amount;
+    private String status = "PENDING"; // PENDING, RESERVED, IN_TRANSACTION, COMPLETED, CANCELLED
+    private String plan = "DEPOSIT"; // DEPOSIT hoặc FULL
 
-    private String status = "PENDING";
+    private BigDecimal totalPrice;
+    private BigDecimal depositAmount;
+    private Boolean depositPaid = false;
 
-    @Column(name = "created_at")
+    // Địa chỉ giao hàng
+    private String shippingStreet;
+    private String shippingCity;
+    private String shippingPostalCode;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    // ==========================================
-    // GETTER VÀ SETTER
-    // ==========================================
-    public Long getOrderId() { return orderId; }
-    public void setOrderId(Long orderId) { this.orderId = orderId; }
-
-    public Long getBikeId() { return bikeId; }
-    public void setBikeId(Long bikeId) { this.bikeId = bikeId; }
-
-    public Long getBuyerId() { return buyerId; }
-    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
-
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
