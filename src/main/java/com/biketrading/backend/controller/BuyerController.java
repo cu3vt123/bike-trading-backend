@@ -1,173 +1,119 @@
 package com.biketrading.backend.controller;
 
-import com.biketrading.backend.dto.OrderDTO;
-import com.biketrading.backend.entity.Bike;
-import com.biketrading.backend.entity.Buyer;
+import com.biketrading.backend.entity.Listing;
 import com.biketrading.backend.entity.Order;
-import com.biketrading.backend.repository.BikeRepository;
-import com.biketrading.backend.repository.BuyerRepository;
+import com.biketrading.backend.entity.User;
+import com.biketrading.backend.enums.ListingState;
+import com.biketrading.backend.repository.ListingRepository;
 import com.biketrading.backend.repository.OrderRepository;
-import com.biketrading.backend.service.BuyerService;
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
+import com.biketrading.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/buyer")
 public class BuyerController {
 
-    @Autowired private BuyerService buyerService;
-    @Autowired private BuyerRepository buyerRepository;
-    @Autowired private BikeRepository bikeRepository;
     @Autowired private OrderRepository orderRepository;
+    @Autowired private ListingRepository listingRepository;
+    @Autowired private UserRepository userRepository;
 
-    @GetMapping("/profile")
-    public ResponseEntity<?> getProfile() {
+    private User getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(buyerService.getBuyerProfile(username));
+        return userRepository.findByUsername(username).orElse(null);
     }
 
-    @GetMapping("/orders")
-    public ResponseEntity<?> getOrders() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(buyerService.getMyOrders(username));
-    }
-
-    // ==========================================
-    // TẠO ĐƠN HÀNG: Đặt cọc 8% và Khóa xe (RESERVED)
-    // ==========================================
+    // 1. Tạo đơn đặt hàng mới
     @PostMapping("/orders")
-    @Operation(summary = "Buyer tạo đơn mua xe mới (Tính cọc 8%)")
-    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderDTO orderDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<?> createOrder(@RequestBody Map<String, Long> requestBody) {
+        User buyer = getCurrentUser();
+        Long listingId = requestBody.get("listingId");
 
-        Optional<Buyer> buyerOpt = buyerRepository.findByUsername(username);
-        if (buyerOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("message", "Người dùng không tồn tại!"));
+        Listing listing = listingRepository.findById(listingId).orElse(null);
+        if (listing == null) {
+            return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy xe"));
         }
 
-        Optional<Bike> bikeOpt = bikeRepository.findById(orderDTO.getBikeId());
-        if (bikeOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Chiếc xe này không tồn tại!"));
+        // Kiểm tra xem xe có đang PUBLISHED (mở bán) không
+        if (listing.getState() != ListingState.PUBLISHED) {
+            return ResponseEntity.status(400).body(Map.of("message", "Xe này hiện không thể mua"));
         }
 
-        Bike bike = bikeOpt.get();
-
-        // KIỂM TRA: Chỉ cho mua nếu xe đang ở trạng thái AVAILABLE và đã được DUYỆT (APPROVED)
-        if (!"AVAILABLE".equals(bike.getSalesStatus()) || !"APPROVED".equals(bike.getApprovalStatus())) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Rất tiếc, chiếc xe này chưa được duyệt hoặc đã có người đặt!"));
-        }
-
-        Buyer buyer = buyerOpt.get();
-
+        // Tạo đơn hàng
         Order order = new Order();
-        order.setBikeId(bike.getBikeId());
-        order.setBuyerId(buyer.getBuyerId());
+        order.setBuyer(buyer);
+        order.setListing(listing);
+        order.setTotalPrice(listing.getPrice());
+        order.setStatus("PENDING");
 
-        // LOGIC TÍNH TIỀN CỌC 8%
-        BigDecimal depositPercentage = new BigDecimal("0.08");
-        BigDecimal depositAmount = bike.getPrice().multiply(depositPercentage);
-
-        order.setAmount(depositAmount); // Chỉ lưu số tiền cọc phải trả vào đơn hàng
-        order.setStatus("RESERVED");    // Trạng thái đơn: Đã đặt trước
-        order.setCreatedAt(LocalDateTime.now());
+        // Đổi trạng thái xe thành Đang giao dịch
+        listing.setState(ListingState.IN_TRANSACTION);
+        listingRepository.save(listing);
 
         Order savedOrder = orderRepository.save(order);
-
-        // KHÓA XE TẠM THỜI (Tránh người khác mua trùng)
-        bike.setSalesStatus("RESERVED");
-        bikeRepository.save(bike);
-
-        return ResponseEntity.status(201).body(Map.of(
-                "message", "Đặt mua xe thành công! Vui lòng thanh toán khoản cọc 8%.",
-                "depositAmount", depositAmount,
-                "order", savedOrder
-        ));
+        return ResponseEntity.ok(savedOrder);
     }
 
-    // ==========================================
-    // HOÀN TẤT: Thanh toán xong là ẨN XE VĨNH VIỄN (SOLD)
-    // ==========================================
-    @PostMapping("/orders/{orderId}/complete")
-    @Operation(summary = "Buyer thanh toán và hoàn tất đơn hàng")
-    public ResponseEntity<?> completeOrder(@PathVariable Long orderId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    // 2. Lấy danh sách đơn hàng của tôi
+    @GetMapping("/orders")
+    public ResponseEntity<?> getMyOrders() {
+        User buyer = getCurrentUser();
+        if (buyer == null) return ResponseEntity.status(401).build();
 
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        if (orderOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng không tồn tại!"));
+        List<Order> myOrders = orderRepository.findByBuyerId(buyer.getId());
+        return ResponseEntity.ok(myOrders);
+    }
+    // 3. Hoàn tất thanh toán đơn hàng
+    @PutMapping("/orders/{id}/complete")
+    public ResponseEntity<?> completeOrder(@PathVariable Long id) {
+        User buyer = getCurrentUser();
+        Order order = orderRepository.findById(id).orElse(null);
+
+        if (order == null || !order.getBuyer().getId().equals(buyer.getId())) {
+            return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy đơn hàng của bạn"));
         }
 
-        Order order = orderOpt.get();
-        Optional<Buyer> buyerOpt = buyerRepository.findByUsername(username);
-        if (buyerOpt.isEmpty() || !order.getBuyerId().equals(buyerOpt.get().getBuyerId())) {
-            return ResponseEntity.status(403).body(Map.of("message", "Bạn không có quyền thao tác trên đơn hàng này!"));
-        }
-
-        // Đổi trạng thái đơn hàng -> COMPLETED
+        // Cập nhật trạng thái đơn hàng
         order.setStatus("COMPLETED");
+        order.setDepositPaid(true); // Đã thanh toán
         orderRepository.save(order);
 
-        // Đổi trạng thái xe -> ĐÃ BÁN (SOLD)
-        Optional<Bike> bikeOpt = bikeRepository.findById(order.getBikeId());
-        if (bikeOpt.isPresent()) {
-            Bike bike = bikeOpt.get();
-            bike.setSalesStatus("SOLD");
-            bikeRepository.save(bike);
-        }
+        // Cập nhật trạng thái xe thành ĐÃ BÁN
+        Listing listing = order.getListing();
+        listing.setState(ListingState.SOLD);
+        listingRepository.save(listing);
 
-        return ResponseEntity.ok(Map.of("message", "Thanh toán và hoàn tất đơn hàng thành công!"));
+        return ResponseEntity.ok(Map.of("message", "Thanh toán thành công! Chúc mừng bạn đã sở hữu xe."));
     }
 
-    // ==========================================
-    // HỦY ĐƠN: Nhả xe lại lên sàn (AVAILABLE)
-    // ==========================================
-    @PutMapping("/orders/{orderId}/cancel")
-    @Operation(summary = "Buyer hủy đơn hàng")
-    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    // 4. Hủy đơn hàng
+    @PutMapping("/orders/{id}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long id) {
+        User buyer = getCurrentUser();
+        Order order = orderRepository.findById(id).orElse(null);
 
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        Optional<Buyer> buyerOpt = buyerRepository.findByUsername(username);
-
-        if (buyerOpt.isPresent() && orderOpt.isPresent()) {
-            Buyer buyer = buyerOpt.get();
-            Order order = orderOpt.get();
-
-            // Chống IDOR: Phải là đơn của chính người này
-            if (!order.getBuyerId().equals(buyer.getBuyerId())) {
-                return ResponseEntity.status(403).body(Map.of("message", "Bạn không có quyền hủy đơn này."));
-            }
-
-            if ("PENDING".equals(order.getStatus()) || "RESERVED".equals(order.getStatus())) {
-                order.setStatus("CANCELLED");
-                orderRepository.save(order);
-
-                // NHẢ XE LẠI SÀN (RESERVED -> AVAILABLE)
-                Optional<Bike> bikeOpt = bikeRepository.findById(order.getBikeId());
-                if (bikeOpt.isPresent()) {
-                    Bike bike = bikeOpt.get();
-                    bike.setSalesStatus("AVAILABLE");
-                    bikeRepository.save(bike);
-                }
-
-                return ResponseEntity.ok(Map.of("message", "Hủy đơn hàng thành công!"));
-            }
+        if (order == null || !order.getBuyer().getId().equals(buyer.getId())) {
+            return ResponseEntity.status(404).body(Map.of("message", "Không tìm thấy đơn hàng của bạn"));
         }
-        return ResponseEntity.badRequest().body(Map.of("message", "Không thể hủy đơn hàng này."));
-    }
 
-    @GetMapping("/wishlist")
-    public ResponseEntity<?> getWishlist() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(buyerService.getWishlist(username));
+        if (order.getStatus().equals("COMPLETED") || order.getStatus().equals("CANCELLED")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Đơn hàng này không thể hủy nữa"));
+        }
+
+        // Hủy đơn
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+
+        // Nhả xe lại lên sàn (Trả về trạng thái PUBLISHED)
+        Listing listing = order.getListing();
+        listing.setState(ListingState.PUBLISHED);
+        listingRepository.save(listing);
+
+        return ResponseEntity.ok(Map.of("message", "Đã hủy đơn hàng thành công!"));
     }
 }
