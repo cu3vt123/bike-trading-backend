@@ -1,86 +1,45 @@
 package com.biketrading.backend.controller;
 
-import com.biketrading.backend.entity.Bike;
-import com.biketrading.backend.repository.BikeRepository;
-import com.biketrading.backend.service.BikeService;
+import com.biketrading.backend.dto.ListingDTO;
+import com.biketrading.backend.entity.Listing;
+import com.biketrading.backend.enums.InspectionResult;
+import com.biketrading.backend.enums.ListingState;
+import com.biketrading.backend.repository.ListingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bikes")
 public class BikeController {
 
     @Autowired
-    private BikeService bikeService;
+    private ListingRepository listingRepository;
 
-    @Autowired
-    private BikeRepository bikeRepository;
-
-    // SHOP-15: Xem chi tiết xe
-    // GET http://localhost:8081/api/bikes/{id}
-    @Operation(
-            summary = "Get bike detail",
-            description = "Public endpoint. Returns details of a bike listing by id."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "404", description = "Bike not found", content = @Content())
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<Bike> getBikeDetail(
-            @Parameter(description = "Bike id", example = "1")
-            @PathVariable Long id
-    ) {
-        Bike bike = bikeService.getBikeById(id);
-        if (bike == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(bike);
-    }
-
-    // SHOP-12: Xem danh sách xe (Có thể lọc theo người bán)
-    // GET http://localhost:8081/api/bikes
-    // GET http://localhost:8081/api/bikes?sellerId=1
-    @Operation(
-            summary = "Get bike listings",
-            description = "Public endpoint. Returns bike listings. Optional filter by sellerId."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "400", description = "Invalid query parameter")
-    })
     @GetMapping
-    public ResponseEntity<List<Bike>> getAllBikes(
-            @Parameter(description = "Filter by seller id", example = "1")
-            @RequestParam(required = false) Long sellerId
-    ) {
-        return ResponseEntity.ok(bikeService.getAllBikes(sellerId));
+    public ResponseEntity<List<ListingDTO>> getPublicBikes() {
+        // Chỉ lấy xe đã PUBLISHED và được APPROVE
+        List<Listing> bikes = listingRepository.findByStateAndInspectionResult(
+                ListingState.PUBLISHED,
+                InspectionResult.APPROVE
+        );
+
+        // Chuyển sang DTO để FE đọc được
+        List<ListingDTO> response = bikes.stream()
+                .map(ListingDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 
-    // SHOP-12 (MỞ RỘNG): Tìm kiếm xe theo tên
-    // GET http://localhost:8081/api/bikes/search?keyword=Galaxy
-    @Operation(
-            summary = "Search bikes by keyword",
-            description = "Public endpoint. Search bikes by name (contains)."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "400", description = "Missing/invalid keyword")
-    })
-    @GetMapping("/search")
-    public ResponseEntity<List<Bike>> searchBikes(
-            @Parameter(description = "Keyword to search in bike name", example = "Giant")
-            @RequestParam String keyword
-    ) {
-        return ResponseEntity.ok(bikeRepository.findByNameContaining(keyword));
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getBikeDetail(@PathVariable Long id) {
+        return listingRepository.findById(id)
+                .map(ListingDTO::fromEntity)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(404).build());
     }
 }

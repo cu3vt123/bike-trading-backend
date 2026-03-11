@@ -1,29 +1,27 @@
 package com.biketrading.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.biketrading.backend.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sellers")
+@Table(name = "users")
 @Data
-public class Seller {
-
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long sellerId;
+    private Long id;
 
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password; // dùng cho signup/login, không trả ra response
-
     private String email;
-    private String phone;
-    private String shopName;
-    private Double reputationScore;
+    private String password;
+    private String displayName;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

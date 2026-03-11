@@ -1,11 +1,15 @@
 package com.biketrading.backend.security;
 
+import com.biketrading.backend.entity.User;
+import com.biketrading.backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -14,47 +18,40 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return path.startsWith("/api/auth/")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-ui")
-                || path.equals("/swagger-ui.html");
-    }
+    @Autowired private JwtTokenProvider tokenProvider;
+    @Autowired private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-
-        String jwt = getJwtFromRequest(request);
-
-        // Không có token thì cho qua luôn (đúng chuẩn)
-        if (!StringUtils.hasText(jwt)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         try {
-            if (tokenProvider.validateToken(jwt)) {
+            String jwt = getJwtFromRequest(request);
+
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromJWT(jwt);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                // Tìm User bằng UserRepository mới
+                User user = userRepository.findByUsername(username).orElse(null);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (user != null) {
+                    List<GrantedAuthority> authorities = new ArrayList<>();
+                    // Set quyền theo format Spring (VD: ROLE_BUYER)
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
         } catch (Exception ex) {
-            logger.error("JWT authentication failed", ex);
-            // không block request ở đây để swagger/public endpoint vẫn chạy
+            logger.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
