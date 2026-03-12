@@ -4,6 +4,15 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2025-02] Wishlist yêu cầu đăng nhập BUYER
+
+### Thay đổi
+
+- **ProductDetailPage**: Nút wishlist (trái tim) chỉ hiển thị khi user đã đăng nhập với role BUYER. Khi chưa đăng nhập hoặc role khác, nút không hiện – tránh thêm wishlist khi chưa đăng nhập.
+- **ListingCard**: Đã có sẵn `canWishlist = showWishlist && role === "BUYER"` – nhất quán với ProductDetailPage.
+
+---
+
 ## [Gần đây] Gộp toàn bộ docs vào một folder `docs/`
 
 ### Thay đổi

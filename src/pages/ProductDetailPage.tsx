@@ -12,13 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
 import { INSPECTION_ROW_LABELS, INSPECTION_OVERALL_LABEL } from "@/constants/inspection";
 
 type NavState = { listing?: BikeDetail };
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(currency === "VND" ? "vi-VN" : undefined, {
     style: "currency",
     currency,
     maximumFractionDigits: currency === "VND" ? 0 : 2,
@@ -96,8 +97,10 @@ export default function ProductDetailPage() {
   const [active, setActive] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const role = useAuthStore((s) => s.role);
   const inWishlist = useWishlistStore((s) => s.ids.has(listing?.id ?? ""));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const canWishlist = role === "BUYER";
 
   const specs = useMemo(() => {
     const s = listing?.specs;
@@ -409,7 +412,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  {canBuy && (
+                  {canBuy && canWishlist && (
                     <Button
                       variant="outline"
                       size="icon"
