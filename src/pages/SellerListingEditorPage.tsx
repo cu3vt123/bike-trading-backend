@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
 import {
   createListing,
   updateListing,
   submitForInspection,
   fetchListingById,
 } from "@/services/sellerService";
+import { useNotificationStore } from "@/stores/useNotificationStore";
 
 type Condition = "MINT_USED" | "GOOD_USED" | "FAIR_USED";
 type Step = "DRAFT" | "PENDING_INSPECTION";
@@ -66,6 +66,7 @@ export default function SellerListingEditorPage() {
   const [needUpdateReason, setNeedUpdateReason] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeSlotRef = useRef<number | null>(null);
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const isEdit = useMemo(() => !!id || !!savedId, [id, savedId]);
   const listingId = id ?? savedId ?? "";
@@ -143,8 +144,13 @@ export default function SellerListingEditorPage() {
       }
       await submitForInspection(targetId);
       setStep("PENDING_INSPECTION");
-      toast.success("Đã gửi tin đăng kiểm định thành công", {
-        description: "Tin đăng đang chờ inspector duyệt.",
+      addNotification({
+        role: "SELLER",
+        type: "success",
+        title: "Đã gửi tin đăng kiểm định",
+        message: "Tin đăng đang chờ inspector duyệt.",
+        link: "/seller",
+        sourceKey: `listing-submit-${targetId}`,
       });
       navigate("/seller", { replace: true });
     } catch {

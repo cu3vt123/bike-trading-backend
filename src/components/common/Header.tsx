@@ -1,8 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useState, useRef, useEffect } from "react";
-import { Search, Heart, ShoppingCart } from "lucide-react";
+import { Search, Heart, ShoppingCart, Bell } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
+import { useNotificationStore } from "@/stores/useNotificationStore";
+import { syncSellerOrderNotifications } from "@/services/sellerService";
 
 function scrollToListings() {
   const el = document.getElementById("listings");
@@ -19,7 +21,7 @@ export function Header() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.role);
   const clearTokens = useAuthStore((s) => s.clearTokens);
-
+  const items = useNotificationStore((s) => s.items);
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
@@ -69,6 +71,19 @@ export function Header() {
   const onCart = useCallback(() => {
     navigate("/cart");
   }, [navigate]);
+
+  const onNotifications = useCallback(() => {
+    navigate("/notifications");
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!accessToken || role !== "SELLER") return;
+    syncSellerOrderNotifications();
+    const intervalId = setInterval(syncSellerOrderNotifications, 10_000);
+    return () => clearInterval(intervalId);
+  }, [accessToken, role]);
+
+  const unreadCount = role ? items.filter((x) => x.role === role && !x.read).length : 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-transparent shadow-none backdrop-blur-md">
@@ -204,6 +219,20 @@ export function Header() {
                   <span className="text-white/40">|</span>
                 </>
               )}
+              <button
+                type="button"
+                onClick={onNotifications}
+                className="relative rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                title="Thông báo"
+                aria-label="Thông báo"
+              >
+                <Bell className="h-4 w-4" strokeWidth={1.6} />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-primary px-1 text-[10px] font-semibold leading-4 text-primary-foreground">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
               <button
                 onClick={onProfile}
                 className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-light tracking-wide text-white/80 backdrop-blur-sm transition-all duration-200 hover:border-white/25 hover:bg-white/10 hover:text-white/95"

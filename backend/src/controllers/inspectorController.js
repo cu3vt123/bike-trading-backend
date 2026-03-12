@@ -7,7 +7,7 @@ function normalize(doc) {
 }
 
 export async function pendingListings(_req, res) {
-  const listings = await Listing.find({ state: "PENDING_INSPECTION" })
+  const listings = await Listing.find({ state: "PENDING_INSPECTION", isHidden: { $ne: true } })
     .sort({ updatedAt: -1 })
     .limit(200);
   return res.status(200).json({ content: listings.map(normalize) });
@@ -20,6 +20,12 @@ export async function getListing(req, res) {
   return ok(res, normalize(listing));
 }
 
+const inspectionReportSchema = z.object({
+  frameIntegrity: z.object({ score: z.number().min(0).max(5), label: z.string() }),
+  drivetrainHealth: z.object({ score: z.number().min(0).max(5), label: z.string() }),
+  brakingSystem: z.object({ score: z.number().min(0).max(5), label: z.string() }),
+}).optional();
+
 export async function approve(req, res) {
   const { id } = req.params;
   const listing = await Listing.findById(id);
@@ -29,8 +35,17 @@ export async function approve(req, res) {
     return badRequest(res, "Listing is not pending inspection");
   }
 
+  const reportParsed = inspectionReportSchema.safeParse(req.body?.inspectionReport);
+  const report = reportParsed.success ? reportParsed.data : null;
+
   listing.inspectionResult = "APPROVE";
-  listing.inspectionScore = listing.inspectionScore ?? 4.5;
+  if (report) {
+    listing.inspectionReport = report;
+    const avg = (report.frameIntegrity.score + report.drivetrainHealth.score + report.brakingSystem.score) / 3;
+    listing.inspectionScore = Math.round(avg * 10) / 10;
+  } else {
+    listing.inspectionScore = listing.inspectionScore ?? 4.5;
+  }
   listing.state = "PUBLISHED";
   listing.inspectionNeedUpdateReason = "";
   await listing.save();

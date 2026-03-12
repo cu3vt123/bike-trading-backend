@@ -26,7 +26,7 @@ src/
 │   ├── components/
 │   │   ├── common/        # GuestRoute, ProtectedRoute, RequireAuth, RequireBuyer, RequireSeller, RequireInspector
 │   │   └── ui/            # Button, Card, Input, ...
-│   ├── constants/         # API_ENDPOINTS
+│   ├── constants/         # API_ENDPOINTS, hero (HERO_SLIDES)
 │   ├── layouts/           # MainLayout
 │   ├── pages/             # ForbiddenPage
 │   └── types/             # UserRole
@@ -42,7 +42,7 @@ src/
 ├── pages/                 # (giữ tạm) Các page – features re-export từ đây
 ├── components/            # (giữ tạm) Header, ListingCard, ui
 ├── layouts/               # (giữ tạm) MainLayout
-├── stores/                # useAuthStore, useWishlistStore
+├── stores/                # useAuthStore, useWishlistStore, useNotificationStore
 ├── types/                 # auth, shopbike, order
 └── mocks/                 # Mock data
 ```

@@ -10,7 +10,7 @@ export async function requireAuth(req, res, next) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.sub);
-    if (!user) return unauthorized(res, "Invalid token");
+    if (!user || user.isHidden) return unauthorized(res, "Invalid token");
     req.user = {
       id: String(user._id),
       email: user.email,

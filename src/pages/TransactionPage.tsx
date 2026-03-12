@@ -96,35 +96,32 @@ export default function TransactionPage() {
 
   const state = orderState ?? locationState;
 
-  // When no state (refresh, bookmark) but orderId in URL → fetch order
+  // Fetch order when orderId from URL or state → sync status & expiresAt
+  const orderIdToFetch = searchParams.get("orderId") ?? locationState.orderId;
   useEffect(() => {
-    const orderIdFromUrl = searchParams.get("orderId");
-    if (orderIdFromUrl && !locationState.orderId) {
-      let cancelled = false;
-      fetchOrderById(orderIdFromUrl)
-        .then((o) => {
-          if (!cancelled && o) {
-            const listingId = o.listingId ?? (o.listing as { id?: string })?.id;
-            if (listingId && id === listingId) {
-              setOrderStatus(o.status);
-              setOrderState({
-                orderId: o.id,
-                depositPaid: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
-                totalPrice: o.totalPrice ?? 0,
-                expiresAt: o.expiresAt ? new Date(o.expiresAt).getTime() : undefined,
-                paymentMethod: { type: "BANK_TRANSFER" },
-                totals: {
-                  deposit: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
-                  totalNow: o.depositAmount ?? o.totalPrice ?? 0,
-                },
-              });
-            }
+    if (!orderIdToFetch || !id) return;
+    let cancelled = false;
+    fetchOrderById(orderIdToFetch)
+      .then((o) => {
+        if (!cancelled && o) {
+          const listingId = o.listingId ?? (o.listing as { id?: string })?.id;
+          if (listingId && id === listingId) {
+            setOrderStatus(o.status);
+            setOrderState((prev) => ({
+              ...(prev ?? locationState),
+              orderId: o.id,
+              depositPaid: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
+              totalPrice: o.totalPrice ?? 0,
+              expiresAt: o.expiresAt ? new Date(o.expiresAt).getTime() : undefined,
+              paymentMethod: prev?.paymentMethod ?? locationState?.paymentMethod ?? { type: "BANK_TRANSFER" },
+              totals: prev?.totals ?? locationState?.totals ?? {},
+            }));
           }
-        })
-        .catch(() => {});
-      return () => { cancelled = true; };
-    }
-  }, [searchParams, locationState.orderId, id]);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [orderIdToFetch, id]);
 
   useEffect(() => {
     if (!id) {
@@ -253,30 +250,39 @@ export default function TransactionPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
-          {/* Countdown */}
+          {/* Countdown: chỉ hiển thị khi admin đã xác nhận kho & inspector kiểm định xong (SHIPPING) */}
           <Card>
             <CardHeader>
               <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                TIME LEFT TO COMPLETE PURCHASE
+                {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE"
+                  ? "THỜI GIAN CÒN LẠI ĐỂ HOÀN TẤT THANH TOÁN"
+                  : "BƯỚC TIẾP THEO"}
               </span>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { val: hours, label: "Hours" },
-                  { val: minutes, label: "Minutes" },
-                  { val: seconds, label: "Seconds" },
-                ].map(({ val, label }) => (
-                  <div
-                    key={label}
-                    className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
-                  >
-                    <div className="text-2xl font-bold text-primary">{pad2(val)}</div>
-                    <div className="mt-1 text-xs text-primary/80">{label}</div>
-                  </div>
-                ))}
-              </div>
+              {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE" ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { val: hours, label: "Giờ" },
+                    { val: minutes, label: "Phút" },
+                    { val: seconds, label: "Giây" },
+                  ].map(({ val, label }) => (
+                    <div
+                      key={label}
+                      className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
+                    >
+                      <div className="text-2xl font-bold text-primary">{pad2(val)}</div>
+                      <div className="mt-1 text-xs text-primary/80">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+                  Bước tiếp theo: Xác nhận và hoàn tất thanh toán. Khung thời gian chỉ bắt đầu khi
+                  admin đã xác nhận xe tới kho và inspector kiểm định xong.
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -371,9 +377,7 @@ export default function TransactionPage() {
                     Đã hoàn thành — Xem chi tiết
                   </Link>
                 </Button>
-              ) : !orderStatus ||
-                  orderStatus === "SHIPPING" ||
-                  orderStatus === "RE_INSPECTION_DONE" ? (
+              ) : orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE" ? (
                 <Button asChild className="w-full">
                   <Link
                     to={`/finalize/${listing.id}`}
@@ -399,7 +403,7 @@ export default function TransactionPage() {
                         ? "Xe đang tới kho / chờ admin xác nhận."
                         : orderStatus === "RE_INSPECTION"
                           ? "Đang kiểm định lại tại kho."
-                          : "Chờ bước tiếp theo."}
+                          : "Đơn đang trong quy trình: seller gửi xe → admin xác nhận → inspector kiểm định → giao hàng. Sàn sẽ cập nhật khi có bước mới."}
                 </p>
               )}
               {(orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION" || !orderStatus) && (

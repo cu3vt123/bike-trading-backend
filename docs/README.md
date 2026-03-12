@@ -13,6 +13,8 @@ Toàn bộ tài liệu dự án nằm trong **một folder** `docs/`.
 | [RUN-FULL-PROJECT.md](RUN-FULL-PROJECT.md) | Cách chạy toàn bộ dự án (FE + BE) |
 | [HUONG-DAN-DEMO.md](HUONG-DAN-DEMO.md) | Hướng dẫn demo |
 | [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi |
+| [ERD-SPEC.md](ERD-SPEC.md) | Đặc tả ERD – entities, quan hệ (User, Listing, Order, Review) |
+| [KIEM-KE-HE-THONG.md](KIEM-KE-HE-THONG.md) | Báo cáo kiểm kê hệ thống – cấu trúc, models, routes, logic |
 
 ## Tài liệu Backend (NodeJS demo & Spring Boot)
 

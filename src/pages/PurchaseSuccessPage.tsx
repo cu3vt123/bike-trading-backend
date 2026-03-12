@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchListingById } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { createReview } from "@/services/reviewService";
+import { useNotificationStore } from "@/stores/useNotificationStore";
 
 type PaymentMethod =
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
@@ -48,6 +48,8 @@ export default function PurchaseSuccessPage() {
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const hasToasted = useRef(false);
   useEffect(() => {
@@ -75,11 +77,16 @@ export default function PurchaseSuccessPage() {
     if (loading || error || !listing) return;
     if (state.orderId && !hasToasted.current) {
       hasToasted.current = true;
-      toast.success("Mua hàng thành công!", {
-        description: "Đơn hàng của bạn đã được xác nhận.",
+      addNotification({
+        role: "BUYER",
+        type: "success",
+        title: "Mua hàng thành công",
+        message: "Đơn hàng của bạn đã được xác nhận.",
+        link: "/profile",
+        sourceKey: `order-success-${state.orderId}`,
       });
     }
-  }, [loading, error, listing, state.orderId]);
+  }, [loading, error, listing, state.orderId, addNotification]);
 
   const currency = (listing?.currency ?? "VND") as "VND" | "USD";
   const total = state.totalPrice ?? listing?.price ?? 0;
@@ -87,12 +94,13 @@ export default function PurchaseSuccessPage() {
   const due = Math.max(0, total - deposit);
 
   async function handleSubmitReview() {
+    setFormError(null);
     if (!state.orderId || !listing?.id || !listing.seller?.id) {
-      toast.error("Thiếu thông tin đơn hàng để đánh giá.");
+      setFormError("Thiếu thông tin đơn hàng để đánh giá.");
       return;
     }
     if (!rating || rating < 1 || rating > 5) {
-      toast.error("Vui lòng chọn số sao từ 1 đến 5.");
+      setFormError("Vui lòng chọn số sao từ 1 đến 5.");
       return;
     }
     setSubmittingReview(true);
@@ -105,13 +113,25 @@ export default function PurchaseSuccessPage() {
         comment: comment.trim() || undefined,
       });
       setReviewSubmitted(true);
-      toast.success("Đã gửi đánh giá. Cảm ơn bạn!");
+      addNotification({
+        role: "BUYER",
+        type: "success",
+        title: "Đánh giá đã được gửi",
+        message: "Cảm ơn bạn đã phản hồi trải nghiệm mua hàng.",
+        link: "/profile",
+      });
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Không gửi được đánh giá. Vui lòng thử lại.",
-      );
+      const msg = err instanceof Error
+        ? err.message
+        : "Không gửi được đánh giá. Vui lòng thử lại.";
+      setFormError(msg);
+      addNotification({
+        role: "BUYER",
+        type: "error",
+        title: "Gửi đánh giá thất bại",
+        message: msg,
+        link: "/profile",
+      });
     } finally {
       setSubmittingReview(false);
     }
@@ -257,6 +277,9 @@ export default function PurchaseSuccessPage() {
               />
             </div>
           </div>
+          {formError && (
+            <p className="mt-3 text-sm text-destructive">{formError}</p>
+          )}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
               Đánh giá sẽ hiển thị sau khi được hệ thống ghi nhận. Admin có thể chỉnh sửa hoặc ẩn đánh giá nếu phát hiện vi phạm.

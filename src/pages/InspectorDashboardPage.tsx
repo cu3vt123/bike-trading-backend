@@ -270,8 +270,8 @@ export default function InspectorDashboardPage() {
                         onClick={async () => {
                           setReInspectionSubmittingId(order.id);
                           try {
-                            await submitReInspectionDone(order.id);
-                            loadReInspection();
+                            const updated = await submitReInspectionDone(order.id);
+                            setReInspectionOrders((prev) => prev.filter((o) => o.id !== updated.id));
                           } finally {
                             setReInspectionSubmittingId(null);
                           }

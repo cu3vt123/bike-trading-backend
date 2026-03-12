@@ -54,6 +54,8 @@ export type Listing = {
   };
 
   specs?: Array<{ label: string; value: string }>;
+  isHidden?: boolean;
+  hiddenAt?: string | null;
 };
 
 export type BikeDetail = Listing & {

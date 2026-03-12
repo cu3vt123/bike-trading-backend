@@ -86,13 +86,11 @@ export async function fetchOrderById(orderId: string): Promise<Order | null> {
 }
 
 export async function fetchMyOrders(): Promise<Order[]> {
-  if (USE_MOCK) {
-    return [];
-  }
   try {
     const orders = await buyerApi.orderApi.getMyOrders();
     return applyOrderOverrides(orders);
   } catch {
+    if (USE_MOCK) return [];
     return [];
   }
 }

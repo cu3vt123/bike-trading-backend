@@ -50,6 +50,7 @@ export const API_PATHS = {
   // Seller (requires SELLER role)
   SELLER: {
     DASHBOARD: "/seller/dashboard",
+    ORDERS: "/seller/orders",
     LISTINGS: "/seller/listings",
     LISTING_BY_ID: (id: string) => `/seller/listings/${id}`,
     LISTING_SUBMIT: (id: string) => `/seller/listings/${id}/submit`,
@@ -71,6 +72,12 @@ export const API_PATHS = {
     RE_INSPECTION_ORDERS: "/admin/orders/re-inspection",
     RE_INSPECTION_DONE: (id: string) => `/admin/orders/${id}/re-inspection-done`,
     STATS: "/admin/dashboard/stats",
+    USERS: "/admin/users",
+    HIDE_USER: (id: string) => `/admin/users/${id}/hide`,
+    UNHIDE_USER: (id: string) => `/admin/users/${id}/unhide`,
+    LISTINGS: "/admin/listings",
+    HIDE_LISTING: (id: string) => `/admin/listings/${id}/hide`,
+    UNHIDE_LISTING: (id: string) => `/admin/listings/${id}/unhide`,
   },
 
   // Reviews (buyer + admin moderation)

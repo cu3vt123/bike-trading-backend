@@ -50,6 +50,8 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/HUONG-DAN-DEMO.md` | Demo |
 | `docs/README.md` | Mục lục toàn bộ tài liệu (docs + docs/backend) |
 | `docs/CHANGELOG.md` | Lịch sử thay đổi |
+| `docs/ERD-SPEC.md` | Đặc tả ERD |
+| `docs/KIEM-KE-HE-THONG.md` | Kiểm kê hệ thống |
 
 ---
 
@@ -60,9 +62,9 @@ Backend MERN demo được đặt trong thư mục `backend/`, dùng để phụ
 - **Công nghệ**: Node.js, Express, MongoDB (Mongoose), JWT, `mongodb-memory-server` (có thể chạy không cần cài Mongo cục bộ).
 - **Cấu trúc chính**:
   - `backend/src/server.js`: khởi động Express, mount tất cả routes dưới `/api`.
-  - `backend/src/models/`: `User.js`, `Listing.js`, `Order.js`, `Errors.js`.
-  - `backend/src/controllers/`: `authController`, `bikesController`, `buyerController`, `sellerController`, `inspectorController`, `paymentController`.
-  - `backend/src/routes/`: `authRoutes`, `bikesRoutes`, `buyerRoutes`, `sellerRoutes`, `inspectorRoutes`.
+  - `backend/src/models/`: `User.js`, `Listing.js`, `Order.js`, `Review.js`, `Errors.js`.
+  - `backend/src/controllers/`: `authController`, `bikesController`, `buyerController`, `sellerController`, `inspectorController`, `adminController`, `paymentController`, `reviewController`.
+  - `backend/src/routes/`: `authRoutes`, `bikesRoutes`, `buyerRoutes`, `sellerRoutes`, `inspectorRoutes`, `adminRoutes`.
   - `backend/src/middlewares/` + `backend/src/middleware/auth.js`: auth JWT, error handling.
   - `backend/src/seed.js`: seed demo data cho Buyer/Seller/Inspector/Admin.
 - **Endpoints chính (phục vụ FE2)** – chi tiết hơn xem:

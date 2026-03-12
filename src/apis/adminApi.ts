@@ -2,6 +2,7 @@ import apiClient from "@/lib/apiClient";
 import { API_PATHS } from "@/lib/apiConfig";
 import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
+import type { Role } from "@/types/auth";
 
 export type OrderWithListing = Order & { listing?: Listing };
 
@@ -13,6 +14,17 @@ export type AdminStats = {
   totalOrders: number;
   ordersPendingWarehouse: number;
   ordersReInspection: number;
+};
+
+export type AdminUser = {
+  id: string;
+  email: string;
+  displayName?: string;
+  role: Role;
+  isHidden?: boolean;
+  hiddenAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export const adminApi = {
@@ -39,6 +51,36 @@ export const adminApi = {
   getStats: (): Promise<AdminStats> =>
     apiClient
       .get(API_PATHS.ADMIN.STATS)
+      .then((r) => r.data?.data ?? r.data),
+
+  getUsers: (): Promise<AdminUser[]> =>
+    apiClient
+      .get(API_PATHS.ADMIN.USERS)
+      .then((r) => r.data?.data ?? r.data ?? []),
+
+  hideUser: (id: string): Promise<AdminUser> =>
+    apiClient
+      .put(API_PATHS.ADMIN.HIDE_USER(id))
+      .then((r) => r.data?.data ?? r.data),
+
+  unhideUser: (id: string): Promise<AdminUser> =>
+    apiClient
+      .put(API_PATHS.ADMIN.UNHIDE_USER(id))
+      .then((r) => r.data?.data ?? r.data),
+
+  getListings: (): Promise<Listing[]> =>
+    apiClient
+      .get(API_PATHS.ADMIN.LISTINGS)
+      .then((r) => r.data?.data ?? r.data ?? []),
+
+  hideListing: (id: string): Promise<Listing> =>
+    apiClient
+      .put(API_PATHS.ADMIN.HIDE_LISTING(id))
+      .then((r) => r.data?.data ?? r.data),
+
+  unhideListing: (id: string): Promise<Listing> =>
+    apiClient
+      .put(API_PATHS.ADMIN.UNHIDE_LISTING(id))
       .then((r) => r.data?.data ?? r.data),
 };
 

@@ -3,12 +3,10 @@ import { Link } from "react-router-dom";
 import {
   Users,
   FileCheck,
-  AlertTriangle,
   Tags,
   CreditCard,
   BarChart3,
   Package,
-  CheckCircle,
   Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,21 +15,26 @@ import {
   fetchOrdersForWarehouseConfirm,
   confirmWarehouseArrival,
   fetchAdminStats,
+  fetchAdminUsers,
+  hideAdminUser,
+  unhideAdminUser,
+  fetchAdminListings,
+  hideAdminListing,
+  unhideAdminListing,
   type AdminStats,
 } from "@/services/adminService";
 import { fetchAdminReviews, adminUpdateReview } from "@/services/reviewService";
-import { fetchPendingListings } from "@/services/inspectorService";
 import { ORDER_STATUS_LABEL } from "@/types/order";
 import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
 import type { Review } from "@/types/review";
+import type { AdminUser } from "@/apis/adminApi";
 
 const TABS = [
   { id: "warehouse", label: "Xác nhận xe tới kho", icon: Package },
   { id: "users", label: "Quản lý người dùng", icon: Users },
-  { id: "listings", label: "Kiểm duyệt tin đăng", icon: FileCheck },
-   { id: "reviews", label: "Đánh giá sau mua", icon: Star },
-  { id: "reports", label: "Báo cáo vi phạm / Tranh chấp", icon: AlertTriangle },
+  { id: "listings", label: "Quản lý tin đăng", icon: FileCheck },
+  { id: "reviews", label: "Đánh giá sau mua", icon: Star },
   { id: "categories", label: "Danh mục xe & Thương hiệu", icon: Tags },
   { id: "transactions", label: "Giao dịch & Phí dịch vụ", icon: CreditCard },
   { id: "stats", label: "Thống kê & Báo cáo", icon: BarChart3 },
@@ -49,11 +52,17 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("warehouse");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [warehouseOrders, setWarehouseOrders] = useState<(Order & { listing?: { brand?: string; model?: string } })[]>([]);
-  const [pendingListings, setPendingListings] = useState<Listing[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminListings, setAdminListings] = useState<Listing[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [listingsLoading, setListingsLoading] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [hidingUserId, setHidingUserId] = useState<string | null>(null);
+  const [unhidingUserId, setUnhidingUserId] = useState<string | null>(null);
+  const [hidingListingId, setHidingListingId] = useState<string | null>(null);
+  const [unhidingListingId, setUnhidingListingId] = useState<string | null>(null);
 
   const loadStats = useCallback(() => {
     fetchAdminStats().then(setStats).catch(() => setStats(null));
@@ -65,11 +74,18 @@ export default function AdminDashboardPage() {
       .catch(() => setWarehouseOrders([]))
       .finally(() => setLoading(false));
   }, []);
-  const loadPendingListings = useCallback(() => {
+  const loadAdminUsers = useCallback(() => {
+    setUsersLoading(true);
+    fetchAdminUsers()
+      .then(setAdminUsers)
+      .catch(() => setAdminUsers([]))
+      .finally(() => setUsersLoading(false));
+  }, []);
+  const loadAdminListings = useCallback(() => {
     setListingsLoading(true);
-    fetchPendingListings()
-      .then(setPendingListings)
-      .catch(() => setPendingListings([]))
+    fetchAdminListings()
+      .then(setAdminListings)
+      .catch(() => setAdminListings([]))
       .finally(() => setListingsLoading(false));
   }, []);
   const loadReviews = useCallback(() => {
@@ -85,8 +101,11 @@ export default function AdminDashboardPage() {
     if (activeTab === "warehouse") loadWarehouse();
   }, [activeTab, loadWarehouse]);
   useEffect(() => {
-    if (activeTab === "listings") loadPendingListings();
-  }, [activeTab, loadPendingListings]);
+    if (activeTab === "users") loadAdminUsers();
+  }, [activeTab, loadAdminUsers]);
+  useEffect(() => {
+    if (activeTab === "listings") loadAdminListings();
+  }, [activeTab, loadAdminListings]);
   useEffect(() => {
     if (activeTab === "reviews") loadReviews();
   }, [activeTab, loadReviews]);
@@ -94,11 +113,55 @@ export default function AdminDashboardPage() {
   async function handleConfirmWarehouse(orderId: string) {
     setConfirmingId(orderId);
     try {
-      await confirmWarehouseArrival(orderId);
-      loadWarehouse();
+      const updated = await confirmWarehouseArrival(orderId);
+      setWarehouseOrders((prev) => prev.filter((o) => o.id !== updated.id));
       loadStats();
     } finally {
       setConfirmingId(null);
+    }
+  }
+
+  async function handleHideUser(id: string) {
+    setHidingUserId(id);
+    try {
+      const updated = await hideAdminUser(id);
+      setAdminUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      loadStats();
+    } finally {
+      setHidingUserId(null);
+    }
+  }
+
+  async function handleUnhideUser(id: string) {
+    setUnhidingUserId(id);
+    try {
+      const updated = await unhideAdminUser(id);
+      setAdminUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+      loadStats();
+    } finally {
+      setUnhidingUserId(null);
+    }
+  }
+
+  async function handleHideListing(id: string) {
+    setHidingListingId(id);
+    try {
+      const updated = await hideAdminListing(id);
+      setAdminListings((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+      loadStats();
+    } finally {
+      setHidingListingId(null);
+    }
+  }
+
+  async function handleUnhideListing(id: string) {
+    setUnhidingListingId(id);
+    try {
+      const updated = await unhideAdminListing(id);
+      setAdminListings((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+      loadStats();
+    } finally {
+      setUnhidingListingId(null);
     }
   }
 
@@ -108,7 +171,7 @@ export default function AdminDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Kênh Admin</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Quản lý người dùng, kiểm duyệt tin, xử lý báo cáo, danh mục, giao dịch và xác nhận xe tới kho.
+            Quản lý người dùng, tin đăng, đánh giá, danh mục, giao dịch và xác nhận xe tới kho.
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
@@ -198,18 +261,16 @@ export default function AdminDashboardPage() {
                             {order.listing?.brand} {order.listing?.model ?? order.listingId}
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            Đơn {order.id} · {ORDER_STATUS_LABEL[order.status]} · {formatMoney(order.totalPrice)}
+                            Đơn {order.id} · {ORDER_STATUS_LABEL[order.status] ?? order.status} · {formatMoney(order.totalPrice)}
                           </div>
                         </div>
-                        {(order.status === "SELLER_SHIPPED" || order.status === "AT_WAREHOUSE_PENDING_ADMIN") && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleConfirmWarehouse(order.id)}
-                            disabled={confirmingId === order.id}
-                          >
-                            {confirmingId === order.id ? "Đang xác nhận..." : "Xác nhận xe đã tới kho"}
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          onClick={() => handleConfirmWarehouse(order.id)}
+                          disabled={confirmingId === order.id}
+                        >
+                          {confirmingId === order.id ? "Đang xác nhận..." : "Xác nhận xe đã tới kho"}
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -223,16 +284,55 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Quản lý người dùng (Buyer, Seller)
+                  Quản lý người dùng
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Xem danh sách, khoá/mở khoá tài khoản. (Tích hợp API sau.)
+                  Admin có thể ẩn hoặc hiện lại tài khoản, không xoá dữ liệu.
                 </p>
               </CardHeader>
               <CardContent>
-                <p className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-                  Chức năng sẽ có khi backend cung cấp API quản lý người dùng.
-                </p>
+                {usersLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                ) : adminUsers.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">Không có người dùng.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {adminUsers.map((u) => (
+                      <div
+                        key={u.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-semibold text-foreground">{u.displayName || u.email}</div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {u.email} · {u.role} · {u.isHidden ? "Đã ẩn" : "Đang hoạt động"}
+                          </div>
+                        </div>
+                        {u.isHidden ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUnhideUser(u.id)}
+                            disabled={unhidingUserId === u.id}
+                          >
+                            {unhidingUserId === u.id ? "Đang hiện..." : "Hiện người dùng"}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleHideUser(u.id)}
+                            disabled={hidingUserId === u.id}
+                          >
+                            {hidingUserId === u.id ? "Đang ẩn..." : "Ẩn người dùng"}
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -242,10 +342,10 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileCheck className="h-5 w-5" />
-                  Kiểm duyệt tin đăng
+                  Quản lý tin đăng
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Tin đăng chờ kiểm định từ seller. Duyệt/từ chối tại đây hoặc mở trang Kiểm định viên để thao tác chi tiết.
+                  Admin có thể ẩn hoặc hiện lại tin đăng, không xoá dữ liệu.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -253,13 +353,13 @@ export default function AdminDashboardPage() {
                   <div className="flex justify-center py-8">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   </div>
-                ) : pendingListings.length === 0 ? (
+                ) : adminListings.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    Không có tin đăng nào đang chờ duyệt.
+                    Không có tin đăng nào.
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {pendingListings.map((listing) => (
+                    {adminListings.map((listing) => (
                       <div
                         key={listing.id}
                         className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
@@ -271,21 +371,32 @@ export default function AdminDashboardPage() {
                           <div className="mt-1 text-xs text-muted-foreground">
                             {listing.brand}
                             {listing.model ? ` · ${listing.model}` : ""} · ID: {listing.id} ·{" "}
-                            {listing.state ?? "Chờ kiểm định"} · {formatMoney(listing.price ?? 0)}
+                            {listing.state ?? "N/A"} · {formatMoney(listing.price ?? 0)} · {listing.isHidden ? "Đã ẩn" : "Đang hiển thị"}
                           </div>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to="/inspector">Duyệt trên trang Kiểm định viên →</Link>
-                        </Button>
+                        {listing.isHidden ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUnhideListing(listing.id)}
+                            disabled={unhidingListingId === listing.id}
+                          >
+                            {unhidingListingId === listing.id ? "Đang hiện..." : "Hiện tin đăng"}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleHideListing(listing.id)}
+                            disabled={hidingListingId === listing.id}
+                          >
+                            {hidingListingId === listing.id ? "Đang ẩn..." : "Ẩn tin đăng"}
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
-                <div className="pt-2">
-                  <Button asChild variant="outline">
-                    <Link to="/inspector">Mở trang Kiểm định viên →</Link>
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
@@ -358,25 +469,6 @@ export default function AdminDashboardPage() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          )}
-
-          {activeTab === "reports" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Xử lý báo cáo vi phạm / Tranh chấp
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Xem và xử lý báo cáo vi phạm, tranh chấp giữa buyer và seller. (Tích hợp API sau.)
-                </p>
-              </CardHeader>
-              <CardContent>
-                <p className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-                  Chức năng sẽ có khi backend cung cấp API báo cáo và tranh chấp.
-                </p>
               </CardContent>
             </Card>
           )}

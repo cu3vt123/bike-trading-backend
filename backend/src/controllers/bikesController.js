@@ -5,6 +5,7 @@ export async function listBikes(_req, res) {
   const items = await Listing.find({
     state: "PUBLISHED",
     inspectionResult: "APPROVE",
+    isHidden: { $ne: true },
   })
     .sort({ createdAt: -1 })
     .limit(200);
@@ -16,7 +17,7 @@ export async function listBikes(_req, res) {
 export async function getBike(req, res) {
   const { id } = req.params;
   const item = await Listing.findById(id);
-  if (!item) return notFound(res, "Bike not found");
+  if (!item || item.isHidden) return notFound(res, "Bike not found");
   return ok(res, item.toJSON());
 }
 

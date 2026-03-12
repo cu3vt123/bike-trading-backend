@@ -10,6 +10,8 @@ const UserSchema = new mongoose.Schema(
       enum: ["BUYER", "SELLER", "INSPECTOR", "ADMIN"],
     },
     displayName: { type: String, default: "" },
+    isHidden: { type: Boolean, default: false, index: true },
+    hiddenAt: { type: Date, default: null },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpiresAt: { type: Date, default: null },
   },

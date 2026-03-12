@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { z } from "zod";
 import { Listing } from "../models/Listing.js";
 import { Order } from "../models/Order.js";
@@ -22,6 +23,7 @@ export async function createOrder(req, res) {
 
   const listing = await Listing.findById(listingId);
   if (!listing) return notFound(res, "Listing not found");
+  if (listing.isHidden) return badRequest(res, "Listing has been hidden by admin");
   if (listing.state !== "PUBLISHED" || listing.inspectionResult !== "APPROVE") {
     return badRequest(res, "Listing not available for purchase");
   }
@@ -35,7 +37,7 @@ export async function createOrder(req, res) {
   const order = await Order.create({
     buyerId,
     listingId: listing._id,
-    status: "RESERVED",
+    status: "SELLER_SHIPPED",
     plan,
     totalPrice,
     depositAmount,
@@ -45,6 +47,7 @@ export async function createOrder(req, res) {
       city: shippingAddress.city || "",
       postalCode: shippingAddress.postalCode || "",
     },
+    shippedAt: new Date(),
     expiresAt,
     listing: {
       id: String(listing._id),
@@ -86,8 +89,13 @@ export async function createOrder(req, res) {
 }
 
 export async function getMyOrders(req, res) {
-  const buyerId = req.user.id;
-  const orders = await Order.find({ buyerId })
+  const buyerId = req.user?.id;
+  if (!buyerId) return ok(res, []);
+
+  if (!mongoose.isValidObjectId(buyerId)) return ok(res, []);
+  const buyerObjectId = new mongoose.Types.ObjectId(buyerId);
+
+  const orders = await Order.find({ buyerId: buyerObjectId })
     .sort({ createdAt: -1 })
     .limit(50)
     .lean();
@@ -97,8 +105,14 @@ export async function getMyOrders(req, res) {
     obj.id = String(o._id);
     obj.listingId = String(o.listingId);
     obj.buyerId = String(o.buyerId);
-    if (o.expiresAt) obj.expiresAt = o.expiresAt.toISOString();
+    if (o.expiresAt) obj.expiresAt = o.expiresAt.toISOString?.() ?? o.expiresAt;
+    if (o.shippedAt) obj.shippedAt = o.shippedAt.toISOString?.() ?? o.shippedAt;
+    if (o.warehouseConfirmedAt) obj.warehouseConfirmedAt = o.warehouseConfirmedAt.toISOString?.() ?? o.warehouseConfirmedAt;
+    if (o.reInspectionDoneAt) obj.reInspectionDoneAt = o.reInspectionDoneAt.toISOString?.() ?? o.reInspectionDoneAt;
+    if (o.createdAt) obj.createdAt = o.createdAt.toISOString?.() ?? o.createdAt;
+    if (o.updatedAt) obj.updatedAt = o.updatedAt.toISOString?.() ?? o.updatedAt;
     delete obj._id;
+    delete obj.__v;
     return obj;
   });
 
@@ -130,8 +144,11 @@ export async function completeOrder(req, res) {
   if (order.buyerId.toString() !== req.user.id) {
     return forbidden(res, "Not your order");
   }
-  if (order.status !== "RESERVED" && order.status !== "IN_TRANSACTION") {
-    return badRequest(res, `Order cannot be completed (status: ${order.status})`);
+  if (order.status !== "SHIPPING") {
+    return badRequest(
+      res,
+      `Chỉ được hoàn tất khi xe đã giao (đang: ${order.status}). Seller cần gửi xe tới kho, admin xác nhận, inspector kiểm định xong.`,
+    );
   }
 
   order.status = "COMPLETED";

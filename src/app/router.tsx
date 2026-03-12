@@ -35,6 +35,7 @@ import {
 import { InspectorDashboardPage } from "@/features/inspector";
 import ProfilePage from "@/pages/ProfilePage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
+import NotificationsPage from "@/pages/NotificationsPage";
 
 export const router = createBrowserRouter([
   {
@@ -47,7 +48,10 @@ export const router = createBrowserRouter([
 
       {
         element: <RequireAuth />,
-        children: [{ path: "profile", element: <ProfilePage /> }],
+        children: [
+          { path: "profile", element: <ProfilePage /> },
+          { path: "notifications", element: <NotificationsPage /> },
+        ],
       },
 
       {

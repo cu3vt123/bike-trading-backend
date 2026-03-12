@@ -45,24 +45,20 @@ export async function signup(req, res) {
 
 export async function login(req, res) {
   const schema = z.object({
-    role: z.enum(["BUYER", "SELLER", "INSPECTOR", "ADMIN"]),
     emailOrUsername: z.string().min(1),
     password: z.string().min(1),
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return badRequest(res, "Invalid login payload");
 
-  const { role, emailOrUsername, password } = parsed.data;
+  const { emailOrUsername, password } = parsed.data;
   const email = emailOrUsername.trim().toLowerCase();
   const user = await User.findOne({ email });
   if (!user) return unauthorized(res, "Invalid credentials");
+  if (user.isHidden) return unauthorized(res, "Account is hidden");
 
   const okPwd = await bcrypt.compare(password, user.passwordHash);
   if (!okPwd) return unauthorized(res, "Invalid credentials");
-
-  // Demo: allow switching role in UI but enforce stored role
-  if (user.role !== role)
-    return unauthorized(res, "Invalid role for this account");
 
   const accessToken = signToken(String(user._id));
   return ok(res, { accessToken, refreshToken: null, role: user.role });

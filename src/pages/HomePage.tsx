@@ -19,18 +19,9 @@ import { BIKE_CONDITION_LABEL } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 
+import { HERO_SLIDES, HERO_AUTO_SLIDE_MS } from "@/constants/hero";
+
 const SECTION_LISTINGS_ID = "listings";
-
-/** Các ảnh hero slider (đường dẫn từ public) */
-const HERO_SLIDES = [
-  "/hero-shopbike.png",
-  "/1.webp",
-  "/360_F_120572328_HQqbtJPrTOD4WhE3Zr2BpxtLij1VMQST.jpg",
-  "/hq720.jpg",
-  "/woman-on-a-4k-mountain-bike-steep-trail-m5aa7q35ooqc2l0z.jpg",
-];
-
-const HERO_AUTO_SLIDE_MS = 5000;
 
 function scrollToListings() {
   document.getElementById(SECTION_LISTINGS_ID)?.scrollIntoView({
@@ -146,7 +137,7 @@ export default function HomePage() {
       return;
     }
     navigate("/login", {
-      state: { from: { pathname: "/seller" }, presetRole: "SELLER" },
+      state: { from: { pathname: "/seller" } },
       replace: true,
     });
   }
@@ -180,10 +171,12 @@ export default function HomePage() {
             <h1 className="flex justify-center [&_img]:drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
               <Logo variant="hero" />
             </h1>
-            <p className="mx-auto mt-4 max-w-md text-base font-semibold leading-relaxed text-white/95 md:text-lg">
-              Xe đạp thể thao đã kiểm định &amp; duyệt.
+            <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-white/95 md:text-lg">
+              Những chiếc xe đã được kiểm định, sẵn sàng lên đường
               <br />
-              Tìm kiếm chuyến đi tiếp theo với bạn
+              <span className="whitespace-nowrap">
+                Cùng <span className="text-primary">ShopBike</span> bắt đầu hành trình tiếp theo của <span className="text-primary">bạn</span>
+              </span>
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button
@@ -191,7 +184,7 @@ export default function HomePage() {
                 onClick={scrollToListings}
                 className="min-w-[160px] bg-white font-bold text-slate-900 shadow-lg hover:bg-white/95 tracking-tight"
               >
-                Xem danh sách xe
+                Khám phá ngay
               </Button>
               {showSellButton && (
                 <Button

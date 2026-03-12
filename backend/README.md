@@ -69,3 +69,9 @@ API runs at `http://localhost:8081/api`.
 - `PUT /api/inspector/listings/:id/reject`
 - `PUT /api/inspector/listings/:id/need-update`
 
+### Admin
+- `GET /api/admin/users` – danh sách user (admin)
+- `GET /api/admin/listings` – danh sách listing (admin)
+- `PUT /api/admin/users/:id/unhide` – hiện lại user đã ẩn
+- `PUT /api/admin/listings/:id/unhide` – hiện lại listing đã ẩn
+

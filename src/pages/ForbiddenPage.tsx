@@ -29,7 +29,7 @@ export default function ForbiddenPage() {
             <Link to="/">Về trang chủ</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/login">Đăng nhập với vai trò khác</Link>
+            <Link to="/login">Đăng nhập bằng tài khoản khác</Link>
           </Button>
         </CardContent>
       </Card>

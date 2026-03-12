@@ -98,7 +98,7 @@ Sau khi backend và frontend đều đang chạy:
 2. **Chi tiết xe** (`/bikes/:id`)
    - FE gọi `GET /api/bikes/:id`.
 3. **Đăng nhập**
-   - FE gọi `POST /api/auth/login` với `role` = `BUYER` / `SELLER` / `INSPECTOR` / `ADMIN`.
+   - FE gọi `POST /api/auth/login` với email/password; role lấy từ tài khoản (không chọn role).
    - Tài khoản demo: xem `backend/README.md` hoặc `docs/backend/DEMO-BACKEND-GUIDE.md`.
 4. **Seller flow**
    - Trang seller dashboard, tạo listing, submit kiểm định → dùng `/api/seller/...`.

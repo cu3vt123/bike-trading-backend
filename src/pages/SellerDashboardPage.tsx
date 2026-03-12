@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Package, Star } from "lucide-react";
 import type { Listing, ListingState } from "@/types/shopbike";
-import { fetchSellerDashboard } from "@/services/sellerService";
+import { fetchSellerDashboard, syncSellerOrderNotifications } from "@/services/sellerService";
 
 // Mock: orders / deposits
 const MOCK_ORDERS = [
@@ -77,6 +77,7 @@ export default function SellerDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    syncSellerOrderNotifications();
     fetchSellerDashboard()
       .then(({ stats: s, listings: ls }) => {
         setStats(s);

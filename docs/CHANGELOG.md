@@ -4,6 +4,45 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2025-02] Cập nhật UI, Admin, Notifications, VND, Wishlist
+
+### Frontend
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Hero (HomePage)** | Slogan mới: "Những chiếc xe đã được kiểm định, sẵn sàng lên đường" / "Cùng ShopBike bắt đầu hành trình tiếp theo của bạn"; "ShopBike" và "bạn" màu primary; nút "Khám phá ngay" |
+| **LoginPage** | Bỏ chọn role; layout 2 cột (hero trái, form phải); nền hero slider; text branding "Để ShopBike đồng hành cùng Bạn bắt đầu chuyến đi mới"; "Bạn" viết hoa, màu primary |
+| **Wishlist** | ProductDetailPage: nút wishlist chỉ hiện khi role BUYER (đã đăng nhập) |
+| **TransactionPage** | Countdown chỉ chạy khi status SHIPPING; text "Bước tiếp theo" rõ hơn |
+| **ProductDetailPage** | Format tiền VND; dùng `inspectionReport` từ API |
+| **AdminDashboardPage** | Nút "Hiện" (unhide) cho user/listing đã ẩn |
+| **SellerDashboardPage, NotificationsPage** | Gọi sync thông báo khi mount; nút "Kiểm tra đơn mới" |
+| **Header** | Polling thông báo 10s; gọi sync ngay khi mount |
+| **sellerService** | `syncSellerOrderNotifications` |
+| **adminService, adminApi** | Unhide user/listing |
+| **constants/hero.ts** | HERO_SLIDES, HERO_AUTO_SLIDE_MS |
+| **useNotificationStore** | Store thông báo seller |
+
+### Backend
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Listing** | Thêm `inspectionReport`; mặc định `currency: "VND"` |
+| **inspectorController** | Lưu `inspectionReport` khi approve |
+| **adminController** | `unhideUser`, `unhideListing`; `markReInspectionDone` set `expiresAt` |
+| **buyerController** | `completeOrder` chỉ chấp nhận status SHIPPING; bỏ role khỏi login |
+| **authController** | Bỏ role khỏi login payload (role từ tài khoản) |
+| **seed.js** | Đổi `currency` và giá sang VND |
+
+### Docs
+
+| File | Nội dung |
+|------|----------|
+| **docs/ERD-SPEC.md** | Đặc tả ERD – entities, quan hệ (User, Listing, Order, Review) |
+| **docs/KIEM-KE-HE-THONG.md** | Báo cáo kiểm kê hệ thống – cấu trúc, models, routes, logic |
+
+---
+
 ## [2025-02] Wishlist yêu cầu đăng nhập BUYER
 
 ### Thay đổi

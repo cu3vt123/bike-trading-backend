@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Listing } from "../models/Listing.js";
+import { Order } from "../models/Order.js";
 import { ok, created, badRequest, notFound, forbidden } from "../utils/http.js";
 
 function normalizeListing(doc) {
@@ -101,6 +102,38 @@ export async function updateListing(req, res) {
   Object.assign(listing, parsed.data);
   await listing.save();
   return ok(res, normalizeListing(listing));
+}
+
+/** Đơn hàng cần seller gửi xe tới kho (SELLER_SHIPPED = buyer đã mua, chờ seller gửi) */
+export async function listMyOrders(req, res) {
+  const sellerId = req.user.id;
+  const listings = await Listing.find({ "seller.id": sellerId }).select("_id").lean();
+  const listingIds = listings.map((l) => l._id);
+  if (listingIds.length === 0) return ok(res, []);
+
+  const orders = await Order.find({
+    listingId: { $in: listingIds },
+    status: { $in: ["SELLER_SHIPPED", "AT_WAREHOUSE_PENDING_ADMIN"] },
+  })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
+
+  const items = orders.map((o) => {
+    const obj = { ...o };
+    obj.id = String(o._id);
+    obj.listingId = String(o.listingId);
+    obj.buyerId = String(o.buyerId);
+    if (o.expiresAt) obj.expiresAt = o.expiresAt.toISOString?.() ?? o.expiresAt;
+    if (o.shippedAt) obj.shippedAt = o.shippedAt.toISOString?.() ?? o.shippedAt;
+    if (o.createdAt) obj.createdAt = o.createdAt.toISOString?.() ?? o.createdAt;
+    if (o.updatedAt) obj.updatedAt = o.updatedAt.toISOString?.() ?? o.updatedAt;
+    delete obj._id;
+    delete obj.__v;
+    return obj;
+  });
+
+  return ok(res, items);
 }
 
 export async function submitForInspection(req, res) {

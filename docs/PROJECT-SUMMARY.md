@@ -63,7 +63,7 @@
 ### 2.5 Auth & RBAC
 
 - **Register** chỉ cho Buyer / Seller
-- **Login** hỗ trợ 4 role (Buyer, Seller, Inspector, Admin)
+- **Login** không chọn role – role lấy từ tài khoản (Buyer, Seller, Inspector, Admin)
 - Sai role → chuyển về `/403`
 - Buyer không vào `/checkout`, `/transaction`, …; Seller không vào `/checkout/:id`
 
@@ -77,7 +77,7 @@
 Home → Product Detail → Checkout → Transaction → Finalize → Success
 ```
 
-1. **Home** (`/`): Danh sách listing (API / mock)
+1. **Home** (`/`): Hero slogan "Những chiếc xe đã được kiểm định...", danh sách listing (API / mock)
 2. **Product Detail** (`/bikes/:id`): Chi tiết xe, báo cáo kiểm định, nút Buy now
 3. **Checkout** (`/checkout/:id`): Chọn plan (FULL/DEPOSIT), phương thức thanh toán, shipping, đồng ý chính sách
 4. **Transaction** (`/transaction/:id`): Countdown 24h, logistics, Cancel / Finalize
@@ -106,9 +106,13 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 
 ### 3.4 Luồng Auth
 
-- **Login** (`/login`): Chọn role, đăng nhập (API / mock)
+- **Login** (`/login`): Chỉ nhập email/password; role lấy từ tài khoản (API / mock)
 - **Register** (`/register`): Chọn Buyer/Seller, đăng ký (API / mock) → auto login
 - **Logout**: `clearTokens()` → về Home
+
+### 3.5 Luồng Admin
+
+- **Admin Dashboard** (`/admin`): Quản lý user/listing, nút "Hiện" (unhide) cho user/listing đã ẩn
 
 ---
 
@@ -185,6 +189,7 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | `sellerService.ts`| Facade + fallback mock cho Seller                   |
 | `inspectorApi.ts`| pending-listings, approve, reject, need-update (scaffold) |
 | `useAuthStore`   | Tokens, role, persist `auth-storage`                 |
+| `useNotificationStore` | Thông báo seller (polling, sync) |
 
 ### 4.8 Các sửa đổi theo business rules (gần đây)
 
@@ -194,6 +199,10 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | Seller Profile  | Remove confirm, quy tắc DEFAULT khi xóa                         |
 | Transaction     | Cancel dialog ghi rõ: refund 7 ngày, giới hạn 3 lần/kỳ        |
 | Buyer Profile   | Nav: Personal Info, Wishlist (link), Settings; Recent Orders trong nội dung |
+| Wishlist        | Chỉ BUYER đã đăng nhập mới thấy nút wishlist (ProductDetailPage, ListingCard) |
+| Complete order  | Chỉ cho phép complete khi status SHIPPING (sau khi inspector kiểm định) |
+| Tiền tệ         | Mặc định VND (format vi-VN) |
+| Seller notifications | Polling 10s, sync khi mount; nút "Kiểm tra đơn mới" |
 | Seller Dashboard| View all → Link thay vì button                                 |
 | Checkout        | Validation policy → inline error thay alert                    |
 
@@ -212,7 +221,7 @@ src/
 ├── pages/                  # Các trang – features re-export
 ├── components/             # Header, ListingCard, ui
 ├── layouts/                # MainLayout
-├── stores/                 # useAuthStore
+├── stores/                 # useAuthStore, useWishlistStore, useNotificationStore
 ├── types/                  # auth, shopbike, order
 └── mocks/                  # Mock data
 ```
@@ -231,6 +240,8 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/HUONG-DAN-DEMO.md` | Hướng dẫn demo |
 | `docs/README.md` | Mục lục toàn bộ tài liệu trong `docs/` |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |
+| `docs/ERD-SPEC.md` | Đặc tả ERD – entities, quan hệ |
+| `docs/KIEM-KE-HE-THONG.md` | Báo cáo kiểm kê hệ thống |
 | `docs/backend/` | Tài liệu backend (STRUCTURE, DEMO-BACKEND-GUIDE, PORTING-NODE-TO-SPRING-BOOT, SPRING-BOOT-SKELETON) |
 
 ---
@@ -257,4 +268,4 @@ Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
-*Tài liệu cập nhật: Sprint 3 – Inspector Dashboard, Seller API scaffold, chuẩn bị hội đồng*
+*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan*

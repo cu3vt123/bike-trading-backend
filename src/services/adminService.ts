@@ -5,7 +5,12 @@
 import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
 import { setOrderOverride } from "@/lib/orderOverrides";
-import { adminApi, type AdminStats as ApiAdminStats, type OrderWithListing as ApiOrderWithListing } from "@/apis/adminApi";
+import {
+  adminApi,
+  type AdminStats as ApiAdminStats,
+  type OrderWithListing as ApiOrderWithListing,
+  type AdminUser,
+} from "@/apis/adminApi";
 
 type OrderWithListing = Order & { listing?: Listing };
 const _orders: OrderWithListing[] = [
@@ -146,4 +151,36 @@ export async function submitReInspectionDone(orderId: string): Promise<Order> {
     });
     return { ...order };
   }
+}
+
+export async function fetchAdminUsers(): Promise<AdminUser[]> {
+  try {
+    return await adminApi.getUsers();
+  } catch {
+    return [];
+  }
+}
+
+export async function hideAdminUser(id: string): Promise<AdminUser> {
+  return await adminApi.hideUser(id);
+}
+
+export async function unhideAdminUser(id: string): Promise<AdminUser> {
+  return await adminApi.unhideUser(id);
+}
+
+export async function fetchAdminListings(): Promise<Listing[]> {
+  try {
+    return await adminApi.getListings();
+  } catch {
+    return [];
+  }
+}
+
+export async function hideAdminListing(id: string): Promise<Listing> {
+  return await adminApi.hideListing(id);
+}
+
+export async function unhideAdminListing(id: string): Promise<Listing> {
+  return await adminApi.unhideListing(id);
 }

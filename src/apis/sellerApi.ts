@@ -5,6 +5,7 @@
 import apiClient from "@/lib/apiClient";
 import { API_PATHS } from "@/lib/apiConfig";
 import type { Listing, BikeDetail } from "@/types/shopbike";
+import type { Order } from "@/types/order";
 
 export type SellerDashboardStats = {
   total: number;
@@ -35,6 +36,12 @@ export const sellerApi = {
         stats: d.stats ?? { total: 0, published: 0, inReview: 0, needUpdate: 0 },
         listings: Array.isArray(d.listings) ? d.listings : d.content ?? [],
       };
+    }),
+
+  getOrders: (): Promise<Order[]> =>
+    apiClient.get(API_PATHS.SELLER.ORDERS).then((r) => {
+      const raw = r.data?.data ?? r.data ?? [];
+      return Array.isArray(raw) ? raw : [];
     }),
 
   getListings: (): Promise<Listing[]> =>

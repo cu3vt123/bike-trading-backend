@@ -60,6 +60,19 @@ export default function CheckoutPage() {
     "Da Lat",
   ] as const;
 
+  const BANK_OPTIONS = [
+    "Vietcombank",
+    "VietinBank",
+    "BIDV",
+    "Agribank",
+    "Techcombank",
+    "MB Bank",
+    "ACB",
+    "Sacombank",
+    "TPBank",
+    "VPBank",
+  ] as const;
+
   const [ship, setShip] = useState({ street: "", city: "", postalCode: "" });
   const [card, setCard] = useState({ number: "", name: "", exp: "", cvc: "" });
   const [bank, setBank] = useState({
@@ -558,14 +571,30 @@ export default function CheckoutPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Tên ngân hàng *</Label>
-                  <Input
-                    className="mt-1"
-                    placeholder="VD: Vietcombank"
+                  <select
+                    className={cn(
+                      "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      fieldErrors.bankName && "border-destructive",
+                    )}
                     value={bank.bankName}
-                    onChange={(e) =>
-                      setBank((b) => ({ ...b, bankName: e.target.value }))
-                    }
-                  />
+                    onChange={(e) => {
+                      setBank((b) => ({ ...b, bankName: e.target.value }));
+                      if (fieldErrors.bankName)
+                        setFieldErrors((prev) => ({ ...prev, bankName: "" }));
+                    }}
+                  >
+                    <option value="">Chọn ngân hàng</option>
+                    {BANK_OPTIONS.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldErrors.bankName && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {fieldErrors.bankName}
+                    </p>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Chủ tài khoản (tùy chọn)</Label>

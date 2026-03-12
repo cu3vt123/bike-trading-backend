@@ -14,7 +14,7 @@ const ListingSchema = new mongoose.Schema(
     },
     price: { type: Number, required: true },
     msrp: { type: Number, default: null },
-    currency: { type: String, default: "USD", enum: ["USD", "VND"] },
+    currency: { type: String, default: "VND", enum: ["USD", "VND"] },
     location: { type: String, default: "" },
     thumbnailUrl: { type: String, default: "" },
     imageUrls: { type: [String], default: [] },
@@ -39,6 +39,11 @@ const ListingSchema = new mongoose.Schema(
       enum: ["APPROVE", "REJECT", "NEED_UPDATE", null],
     },
     inspectionScore: { type: Number, default: null }, // 0..5 (demo)
+    inspectionReport: {
+      frameIntegrity: { score: { type: Number }, label: { type: String } },
+      drivetrainHealth: { score: { type: Number }, label: { type: String } },
+      brakingSystem: { score: { type: Number }, label: { type: String } },
+    },
     inspectionSummary: { type: String, default: "" },
     inspectionNeedUpdateReason: { type: String, default: "" },
     specs: { type: Array, default: [] },
@@ -48,6 +53,8 @@ const ListingSchema = new mongoose.Schema(
       name: { type: String, default: "" },
       email: { type: String, default: "" },
     },
+    isHidden: { type: Boolean, default: false, index: true },
+    hiddenAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

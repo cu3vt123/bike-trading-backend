@@ -3,7 +3,6 @@ import { API_PATHS } from "@/lib/apiConfig";
 import type { Role } from "@/types/auth";
 
 export type LoginRequest = {
-  role: Role;
   emailOrUsername: string;
   password: string;
 };

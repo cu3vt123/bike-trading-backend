@@ -3,6 +3,7 @@ import { requireAuth, requireRole } from "../middlewares/auth.middlewares.js";
 import {
   dashboard,
   listMyListings,
+  listMyOrders,
   getMyListing,
   createListing,
   updateListing,
@@ -15,6 +16,7 @@ const sellerRoutes = Router();
 sellerRoutes.use(requireAuth, requireRole(["SELLER"]));
 
 sellerRoutes.get("/dashboard", wrapAsync(dashboard));
+sellerRoutes.get("/orders", wrapAsync(listMyOrders));
 sellerRoutes.get("/listings", wrapAsync(listMyListings));
 sellerRoutes.get("/listings/:id", wrapAsync(getMyListing));
 sellerRoutes.post("/listings", wrapAsync(createListing));

@@ -4,6 +4,7 @@
  */
 import { sellerApi, type SellerDashboardStats, type CreateListingRequest } from "@/apis/sellerApi";
 import type { Listing } from "@/types/shopbike";
+import { useNotificationStore } from "@/stores/useNotificationStore";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 
@@ -86,6 +87,37 @@ export async function fetchListingById(id: string): Promise<Listing | null> {
     const found = SELLER_MOCK.find((l) => l.id === id);
     return found ?? null;
   }
+}
+
+export async function fetchSellerOrders(): Promise<
+  { id: string; listingId: string; listing?: { brand?: string; model?: string }; status: string }[]
+> {
+  try {
+    return await sellerApi.getOrders();
+  } catch {
+    return [];
+  }
+}
+
+/** Đồng bộ đơn cần gửi xe sang thông báo seller (gọi từ Header, SellerDashboard, NotificationsPage) */
+export async function syncSellerOrderNotifications(): Promise<void> {
+  const { addNotification } = useNotificationStore.getState();
+  const orders = await fetchSellerOrders();
+  const needShip = orders.filter(
+    (o) => o.status === "SELLER_SHIPPED" || o.status === "AT_WAREHOUSE_PENDING_ADMIN",
+  );
+  needShip.forEach((o) => {
+    const bikeName =
+      o.listing?.brand && o.listing?.model ? `${o.listing.brand} ${o.listing.model}` : "xe";
+    addNotification({
+      role: "SELLER",
+      type: "success",
+      title: "Buyer đã mua hàng – cần gửi xe tới kho",
+      message: `Đơn ${o.id} (${bikeName}). Vui lòng vận chuyển xe tới kho.`,
+      link: "/seller",
+      sourceKey: `seller-order-${o.id}`,
+    });
+  });
 }
 
 export async function fetchSellerDashboard(): Promise<{
