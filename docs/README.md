@@ -15,6 +15,8 @@ Toàn bộ tài liệu dự án nằm trong **một folder** `docs/`.
 | [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi |
 | [ERD-SPEC.md](ERD-SPEC.md) | Đặc tả ERD – entities, quan hệ (User, Listing, Order, Review) |
 | [KIEM-KE-HE-THONG.md](KIEM-KE-HE-THONG.md) | Báo cáo kiểm kê hệ thống – cấu trúc, models, routes, logic |
+| [CHUYEN-GIAO-NODE-SANG-SPRING-BOOT.md](CHUYEN-GIAO-NODE-SANG-SPRING-BOOT.md) | **Hướng dẫn chuyển giao Node → Spring Boot** – chi tiết cho BE Java & AI |
+| [NHANH-UI-UX-SHIPPING.md](NHANH-UI-UX-SHIPPING.md) | Hướng dẫn nhánh ui-ux+shipping – thứ tự đọc cho BE |
 
 ## Tài liệu Backend (NodeJS demo & Spring Boot)
 

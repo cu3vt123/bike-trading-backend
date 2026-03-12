@@ -4,6 +4,18 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2025-02] Chuyển giao Node → Spring Boot (nhánh ui-ux+shipping)
+
+### Thay đổi docs
+
+| File | Nội dung |
+|------|----------|
+| **docs/CHUYEN-GIAO-NODE-SANG-SPRING-BOOT.md** | Tài liệu chuyển giao công nghệ đầy đủ: tổng quan, models, API endpoints, Auth/JWT, luồng Order & Shipping, Admin hide/unhide, checklist Spring Boot. Dành cho BE Java và AI. |
+| **docs/HUONG-DAN-BACKEND.md** | Cập nhật Login: không gửi role, role lấy từ tài khoản; user ẩn trả 401 "Account is hidden" |
+| **docs/README.md** | Thêm tham chiếu CHUYEN-GIAO-NODE-SANG-SPRING-BOOT |
+
+---
+
 ## [2025-02] Cập nhật UI, Admin, Notifications, VND, Wishlist
 
 ### Frontend

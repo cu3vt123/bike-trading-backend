@@ -79,7 +79,6 @@ Làm lần lượt để FE test từng bước:
 
 ```json
 {
-  "role": "BUYER",
   "emailOrUsername": "buyer@example.com",
   "password": "password123"
 }
@@ -87,9 +86,10 @@ Làm lần lượt để FE test từng bước:
 
 | Field | Type | Bắt buộc | Ghi chú |
 |-------|------|----------|---------|
-| role | string | Có | `BUYER` \| `SELLER` \| `INSPECTOR` \| `ADMIN` |
 | emailOrUsername | string | Có | Email hoặc username |
 | password | string | Có | Mật khẩu |
+
+**Lưu ý:** FE không gửi `role` – role lấy từ tài khoản trong DB. User ẩn (isHidden) trả 401 `"Account is hidden"`.
 
 **Response 200 OK:**
 

@@ -52,6 +52,7 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/CHANGELOG.md` | Lịch sử thay đổi |
 | `docs/ERD-SPEC.md` | Đặc tả ERD |
 | `docs/KIEM-KE-HE-THONG.md` | Kiểm kê hệ thống |
+| `docs/CHUYEN-GIAO-NODE-SANG-SPRING-BOOT.md` | **Chuyển giao Node → Spring Boot** (chi tiết cho BE) |
 
 ---
 
