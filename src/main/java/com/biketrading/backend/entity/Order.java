@@ -1,7 +1,9 @@
 package com.biketrading.backend.entity;
 
+import com.biketrading.backend.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -21,21 +23,39 @@ public class Order {
     @JoinColumn(name = "listing_id", nullable = false)
     private Listing listing;
 
-    private String status = "PENDING"; // PENDING, RESERVED, IN_TRANSACTION, COMPLETED, CANCELLED
-    private String plan = "DEPOSIT"; // DEPOSIT hoặc FULL
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.PENDING;
 
+    // --- TIỀN BẠC & THANH TOÁN ---
     private BigDecimal totalPrice;
     private BigDecimal depositAmount;
     private Boolean depositPaid = false;
+    private String paymentMethod; // CARD hoặc BANK_TRANSFER
+    private String paymentPlan;   // DEPOSIT hoặc FULL
 
-    // Địa chỉ giao hàng
+    // --- ĐỊA CHỈ GIAO HÀNG ---
     private String shippingStreet;
     private String shippingCity;
     private String shippingPostalCode;
 
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
+    // --- TRACKING THỜI GIAN LUỒNG KHO ---
+    private LocalDateTime shippedAt;              // Lúc Seller gửi xe
+    private LocalDateTime warehouseConfirmedAt;   // Lúc Kho (Admin) nhận xe
+    private LocalDateTime reInspectionDoneAt;     // Lúc Inspector kiểm định xong
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
