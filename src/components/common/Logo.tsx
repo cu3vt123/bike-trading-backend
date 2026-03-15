@@ -10,10 +10,10 @@ const variantClasses: Record<LogoVariant, string> = {
     "h-9 w-auto max-w-[140px] object-contain object-left drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] sm:h-10 sm:max-w-[160px]",
   /** Header stacked: chỉ ảnh logo to gấp ~3 lần (không chữ ShopBike), chữ xác minh ở dưới */
   headerStacked:
-    "h-16 w-auto max-w-[180px] object-contain object-center drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] sm:h-20 sm:max-w-[220px] md:h-24 md:max-w-[280px]",
+    "h-16 w-auto max-w-[180px] object-contain object-center dark:mix-blend-screen sm:h-20 sm:max-w-[220px] md:h-24 md:max-w-[280px]",
   hero: "h-24 w-auto max-w-[380px] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)] sm:h-32 sm:max-w-[500px] md:h-40 md:max-w-[600px]",
   heroBar: "h-8 w-auto max-w-[120px] object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] md:h-9 md:max-w-[140px]",
-  auth: "h-9 w-auto max-w-[140px] object-contain sm:h-10 sm:max-w-[160px]",
+  auth: "h-9 w-auto max-w-[140px] object-contain dark:mix-blend-screen sm:h-10 sm:max-w-[160px]",
 };
 
 const fallbackClasses: Record<LogoVariant, string> = {
@@ -55,7 +55,7 @@ export function Logo({ variant = "header", className = "", showLabel = false }: 
           </span>
         )}
         {showLabel && isStacked && (
-          <span className="text-[10px] text-white/70 sm:text-xs">Đã xác minh &amp; kiểm định</span>
+          <span className="text-[10px] text-muted-foreground sm:text-xs">Đã xác minh &amp; kiểm định</span>
         )}
       </span>
     );
@@ -72,7 +72,7 @@ export function Logo({ variant = "header", className = "", showLabel = false }: 
         onError={() => setFailed(true)}
       />
       {showLabel && isStacked && (
-        <span className="text-[10px] text-white/70 sm:text-xs">Đã xác minh &amp; kiểm định</span>
+        <span className="text-[10px] text-muted-foreground sm:text-xs">Đã xác minh &amp; kiểm định</span>
       )}
       {showLabel && !isStacked && (
         <span className="hidden flex-col leading-tight min-w-0 sm:flex">

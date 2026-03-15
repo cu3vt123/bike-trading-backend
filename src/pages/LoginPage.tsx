@@ -9,6 +9,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 import type { Role } from "@/types/auth";
 import { authApi } from "@/apis/authApi";
+import { useTheme } from "@/app/providers/ThemeProvider";
+import { Sun, Moon } from "lucide-react";
 
 type LocationState = {
   from?: { pathname?: string };
@@ -61,6 +63,7 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroIndex, setHeroIndex] = useState(0);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const t = setInterval(
@@ -74,6 +77,7 @@ export default function LoginPage() {
     const p = state.from?.pathname;
     return p && p !== "/login" ? p : "/";
   }, [state.from?.pathname]);
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -131,20 +135,34 @@ export default function LoginPage() {
       </div>
 
       {/* Top bar */}
-      <header className="relative z-10 border-b border-white/10 bg-black/30 backdrop-blur-md">
+      <header
+        className="relative z-10 bg-black/30 backdrop-blur-md"
+      >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
             <Logo variant="auth" showLabel />
           </Link>
 
-          <nav className="flex items-center gap-4 text-sm text-white/90">
-            <Link to="/#listings" className="transition-colors hover:text-white">
-              Khám phá
-            </Link>
-            <Link to="/support" className="transition-colors hover:text-white">
-              Hỗ trợ
-            </Link>
-          </nav>
+          <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-4 text-sm text-white/90">
+              <Link to="/#listings" className="transition-colors hover:text-white">
+                Khám phá
+              </Link>
+              <Link to="/support" className="transition-colors hover:text-white">
+                Hỗ trợ
+              </Link>
+            </nav>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full border border-white/15 bg-white/10 text-white/90 hover:bg-white/20 hover:text-white"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -162,22 +180,24 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right: Form */}
-        <div className="flex flex-1 items-center justify-center bg-black/50 p-6 backdrop-blur-sm lg:max-w-[440px] lg:flex-shrink-0">
+        {/* Right: Form — nền luôn tối (bg-black/50), dùng màu trắng/sáng hard-code */}
+        <div
+          className="flex flex-1 items-center justify-center bg-black/50 p-6 backdrop-blur-sm lg:max-w-[440px] lg:flex-shrink-0"
+        >
           <div className="w-full max-w-[340px]">
-            <h2 className="mb-6 text-lg font-semibold leading-snug text-foreground sm:text-xl">
+            <h2 className="mb-6 text-lg font-semibold leading-snug text-white sm:text-xl">
               Chào mừng trở lại, hành trình mới đang đợi{" "}
               <span className="text-primary">Bạn</span> cùng với{" "}
               <span className="font-bold tracking-wide text-primary">ShopBike</span>
             </h2>
             {error && (
-              <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="mb-4 rounded-lg border border-red-400/50 bg-red-500/20 px-3 py-2 text-sm text-red-300">
                 {error}
               </div>
             )}
             <form onSubmit={onSubmit} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm">
+                <Label htmlFor="email" className="text-sm text-white/80">
                   Email / Tên đăng nhập
                 </Label>
                 <Input
@@ -187,11 +207,11 @@ export default function LoginPage() {
                   onChange={(e) => setEmailOrUsername(e.target.value)}
                   placeholder="e.g. rider_01@shopbike.com"
                   autoComplete="username"
-                  className="h-10"
+                  className="h-10 border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-sm">
+                <Label htmlFor="password" className="text-sm text-white/80">
                   Mật khẩu
                 </Label>
                 <Input
@@ -201,7 +221,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className="h-10"
+                  className="h-10 border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary"
                 />
               </div>
               <Button type="submit" className="h-10 w-full" disabled={submitting}>
@@ -213,13 +233,23 @@ export default function LoginPage() {
               >
                 Quên mật khẩu?
               </Link>
-              <div className="border-t border-border pt-3">
-                <Button type="button" variant="outline" className="h-10 w-full" asChild>
+              <div className="border-t border-white/15 pt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  asChild
+                >
                   <Link to="/register">Tạo tài khoản mới</Link>
                 </Button>
               </div>
             </form>
-            <Button type="button" variant="ghost" className="mt-4 w-full" asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-4 w-full text-white/70 hover:bg-white/10 hover:text-white"
+              asChild
+            >
               <Link to="/">Tiếp tục xem</Link>
             </Button>
           </div>

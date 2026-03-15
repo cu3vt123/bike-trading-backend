@@ -1,8 +1,8 @@
-export { default as Button } from "@/components/ui/Button";
-export { default as Card } from "@/components/ui/Card";
-export { default as Badge } from "@/components/ui/Badge";
-export { default as Input } from "@/components/ui/input";
-export { default as Label } from "@/components/ui/label";
-export { default as Checkbox } from "@/components/ui/checkbox";
-export { default as Select } from "@/components/ui/select";
-export { default as Dialog } from "@/components/ui/dialog";
+export { Button } from "@/components/ui/button";
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+export { Badge } from "@/components/ui/badge";
+export { Input } from "@/components/ui/input";
+export { Label } from "@/components/ui/label";
+export { Checkbox } from "@/components/ui/checkbox";
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
+export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
