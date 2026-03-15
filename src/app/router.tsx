@@ -25,7 +25,6 @@ import {
   TransactionPage,
   FinalizePurchasePage,
   PurchaseSuccessPage,
-  CartPage,
 } from "@/features/buyer";
 import {
   SellerDashboardPage,
@@ -71,7 +70,6 @@ export const router = createBrowserRouter([
           { path: "transaction/:id", element: <TransactionPage /> },
           { path: "finalize/:id", element: <FinalizePurchasePage /> },
           { path: "success/:id", element: <PurchaseSuccessPage /> },
-          { path: "cart", element: <CartPage /> },
         ],
       },
 

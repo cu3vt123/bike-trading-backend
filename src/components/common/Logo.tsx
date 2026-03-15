@@ -29,9 +29,11 @@ export interface LogoProps {
   className?: string;
   /** Hiển thị dòng phụ "Đã xác minh & kiểm định" bên cạnh (header/auth) */
   showLabel?: boolean;
+  /** Luôn dùng chữ trắng cho label (dùng trên nền tối, ví dụ header login) */
+  alwaysWhite?: boolean;
 }
 
-export function Logo({ variant = "header", className = "", showLabel = false }: LogoProps) {
+export function Logo({ variant = "header", className = "", showLabel = false, alwaysWhite = false }: LogoProps) {
   const [failed, setFailed] = useState(false);
 
   const imgClass = variantClasses[variant];
@@ -50,12 +52,12 @@ export function Logo({ variant = "header", className = "", showLabel = false }: 
         </span>
         {showLabel && !isStacked && (
           <span className="hidden flex-col leading-tight sm:flex">
-            <span className="text-sm font-bold text-foreground">ShopBike</span>
-            <span className="text-xs text-muted-foreground">Đã xác minh &amp; kiểm định</span>
+            <span className={`text-sm font-bold ${alwaysWhite ? "text-white" : "text-foreground"}`}>ShopBike</span>
+            <span className={`text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
           </span>
         )}
         {showLabel && isStacked && (
-          <span className="text-[10px] text-muted-foreground sm:text-xs">Đã xác minh &amp; kiểm định</span>
+          <span className={`text-[10px] sm:text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
         )}
       </span>
     );
@@ -72,12 +74,12 @@ export function Logo({ variant = "header", className = "", showLabel = false }: 
         onError={() => setFailed(true)}
       />
       {showLabel && isStacked && (
-        <span className="text-[10px] text-muted-foreground sm:text-xs">Đã xác minh &amp; kiểm định</span>
+        <span className={`text-[10px] sm:text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
       )}
       {showLabel && !isStacked && (
         <span className="hidden flex-col leading-tight min-w-0 sm:flex">
-          <span className="text-sm font-bold text-foreground truncate">ShopBike</span>
-          <span className="text-xs text-muted-foreground">Đã xác minh &amp; kiểm định</span>
+          <span className={`text-sm font-bold truncate ${alwaysWhite ? "text-white" : "text-foreground"}`}>ShopBike</span>
+          <span className={`text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
         </span>
       )}
     </span>

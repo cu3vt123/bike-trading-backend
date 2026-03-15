@@ -5,18 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { syncSellerOrderNotifications } from "@/services/sellerService";
+import { Trash2 } from "lucide-react";
 
 export default function NotificationsPage() {
   const role = useAuthStore((s) => s.role);
   const items = useNotificationStore((s) => s.items);
   const markRead = useNotificationStore((s) => s.markRead);
-  const markAllReadForRole = useNotificationStore((s) => s.markAllReadForRole);
-  const clearForRole = useNotificationStore((s) => s.clearForRole);
+  const clearReadForRole = useNotificationStore((s) => s.clearReadForRole);
+  const removeItem = useNotificationStore((s) => s.removeItem);
   const [syncing, setSyncing] = useState(false);
+  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
   if (!role) return null;
 
   const myItems = items.filter((x) => x.role === role);
+  const displayedItems = showUnreadOnly ? myItems.filter((x) => !x.read) : myItems;
+  const readCount = myItems.filter((x) => x.read).length;
 
   async function handleCheckNewOrders() {
     if (role !== "SELLER") return;
@@ -52,11 +56,20 @@ export default function NotificationsPage() {
               {syncing ? "Đang kiểm tra..." : "Kiểm tra đơn mới"}
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => markAllReadForRole(role)}>
-            Đánh dấu đã đọc
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowUnreadOnly((v) => !v)}
+          >
+            {showUnreadOnly ? "Hiển thị tất cả" : "Hiển thị thông báo chưa đọc"}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => clearForRole(role)}>
-            Xoá kho thông báo
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => clearReadForRole(role)}
+            disabled={readCount === 0}
+          >
+            Xóa tin đã đọc
           </Button>
         </div>
       </div>
@@ -66,19 +79,34 @@ export default function NotificationsPage() {
           <CardTitle>Danh sách thông báo</CardTitle>
         </CardHeader>
         <CardContent>
-          {myItems.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">Chưa có thông báo nào.</p>
+          {displayedItems.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              {showUnreadOnly ? "Không còn thông báo chưa đọc." : "Chưa có thông báo nào."}
+            </p>
           ) : (
             <div className="space-y-3">
-              {myItems.map((n) => (
+              {displayedItems.map((n) => (
                 <div
                   key={n.id}
                   className={`rounded-xl border p-4 ${n.read ? "border-border bg-card" : "border-primary/40 bg-primary/5"}`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="font-semibold text-foreground">{n.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(n.createdAt).toLocaleString()}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </span>
+                      {n.read && (
+                        <button
+                          type="button"
+                          onClick={() => removeItem(n.id)}
+                          className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          title="Xóa"
+                          aria-label="Xóa thông báo"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">{n.message}</div>

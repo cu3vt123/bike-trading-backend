@@ -140,7 +140,7 @@ export default function LoginPage() {
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-            <Logo variant="auth" showLabel />
+            <Logo variant="auth" showLabel alwaysWhite />
           </Link>
 
           <div className="flex items-center gap-3">
@@ -174,30 +174,34 @@ export default function LoginPage() {
               <Logo variant="hero" />
             </Link>
             <p className="mt-6 text-lg font-bold leading-snug text-white sm:text-xl">
-              Để <span className="font-bold tracking-wide text-primary">ShopBike</span> đồng hành
+              Để <span className="font-bold tracking-wide text-white">ShopBike</span> đồng hành
               cùng <span className="text-primary">Bạn</span> bắt đầu chuyến đi mới
             </p>
           </div>
         </div>
 
-        {/* Right: Form — nền luôn tối (bg-black/50), dùng màu trắng/sáng hard-code */}
+        {/* Right: Form — nền và chữ đổi theo theme (light/dark); chữ ShopBike ở header giữ trắng */}
         <div
-          className="flex flex-1 items-center justify-center bg-black/50 p-6 backdrop-blur-sm lg:max-w-[440px] lg:flex-shrink-0"
+          className={theme === "dark"
+            ? "flex flex-1 items-center justify-center bg-black/50 p-6 text-white backdrop-blur-sm lg:max-w-[440px] lg:flex-shrink-0"
+            : "flex flex-1 items-center justify-center bg-background/95 p-6 text-foreground backdrop-blur-sm lg:max-w-[440px] lg:flex-shrink-0"}
         >
           <div className="w-full max-w-[340px]">
-            <h2 className="mb-6 text-lg font-semibold leading-snug text-white sm:text-xl">
+            <h2 className={`mb-6 text-lg font-semibold leading-snug sm:text-xl ${theme === "dark" ? "text-white" : "text-foreground"}`}>
               Chào mừng trở lại, hành trình mới đang đợi{" "}
               <span className="text-primary">Bạn</span> cùng với{" "}
               <span className="font-bold tracking-wide text-primary">ShopBike</span>
             </h2>
             {error && (
-              <div className="mb-4 rounded-lg border border-red-400/50 bg-red-500/20 px-3 py-2 text-sm text-red-300">
+              <div className={theme === "dark"
+                ? "mb-4 rounded-lg border border-red-400/50 bg-red-500/20 px-3 py-2 text-sm text-red-300"
+                : "mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"}>
                 {error}
               </div>
             )}
             <form onSubmit={onSubmit} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm text-white/80">
+                <Label htmlFor="email" className={`text-sm ${theme === "dark" ? "text-white/80" : "text-foreground"}`}>
                   Email / Tên đăng nhập
                 </Label>
                 <Input
@@ -207,11 +211,13 @@ export default function LoginPage() {
                   onChange={(e) => setEmailOrUsername(e.target.value)}
                   placeholder="e.g. rider_01@shopbike.com"
                   autoComplete="username"
-                  className="h-10 border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary"
+                  className={theme === "dark"
+                    ? "h-10 border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary"
+                    : "h-10"}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-sm text-white/80">
+                <Label htmlFor="password" className={`text-sm ${theme === "dark" ? "text-white/80" : "text-foreground"}`}>
                   Mật khẩu
                 </Label>
                 <Input
@@ -221,7 +227,9 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className="h-10 border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary"
+                  className={theme === "dark"
+                    ? "h-10 border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary"
+                    : "h-10"}
                 />
               </div>
               <Button type="submit" className="h-10 w-full" disabled={submitting}>
@@ -233,11 +241,13 @@ export default function LoginPage() {
               >
                 Quên mật khẩu?
               </Link>
-              <div className="border-t border-white/15 pt-3">
+              <div className={theme === "dark" ? "border-t border-white/15 pt-3" : "border-t border-border pt-3"}>
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 w-full border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  className={theme === "dark"
+                    ? "h-10 w-full border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                    : "h-10 w-full"}
                   asChild
                 >
                   <Link to="/register">Tạo tài khoản mới</Link>
@@ -247,7 +257,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="ghost"
-              className="mt-4 w-full text-white/70 hover:bg-white/10 hover:text-white"
+              className={theme === "dark" ? "mt-4 w-full text-white/70 hover:bg-white/10 hover:text-white" : "mt-4 w-full"}
               asChild
             >
               <Link to="/">Tiếp tục xem</Link>

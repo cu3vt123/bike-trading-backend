@@ -19,7 +19,9 @@ type NotificationState = {
   addNotification: (input: Omit<AppNotification, "id" | "read" | "createdAt">) => void;
   markRead: (id: string) => void;
   markAllReadForRole: (role: Role) => void;
-  clearForRole: (role: Role) => void;
+  /** Xóa chỉ những tin đã đọc (theo role) */
+  clearReadForRole: (role: Role) => void;
+  removeItem: (id: string) => void;
 };
 
 export const useNotificationStore = create<NotificationState>()(
@@ -47,9 +49,13 @@ export const useNotificationStore = create<NotificationState>()(
         set((state) => ({
           items: state.items.map((x) => (x.role === role ? { ...x, read: true } : x)),
         })),
-      clearForRole: (role) =>
+      clearReadForRole: (role) =>
         set((state) => ({
-          items: state.items.filter((x) => x.role !== role),
+          items: state.items.filter((x) => !(x.role === role && x.read)),
+        })),
+      removeItem: (id) =>
+        set((state) => ({
+          items: state.items.filter((x) => x.id !== id),
         })),
     }),
     { name: "app-notifications" },

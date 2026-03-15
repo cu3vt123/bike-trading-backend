@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useState, useRef, useEffect } from "react";
-import { Search, Heart, ShoppingCart, Bell, Sun, Moon } from "lucide-react";
+import { Search, ShoppingCart, Bell, Sun, Moon } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 import { useNotificationStore } from "@/stores/useNotificationStore";
@@ -82,9 +82,6 @@ export function Header() {
     navigate("/inspector");
   }, [navigate]);
 
-  const onCart = useCallback(() => {
-    navigate("/cart");
-  }, [navigate]);
 
   const onNotifications = useCallback(() => {
     navigate("/notifications");
@@ -184,27 +181,16 @@ export function Header() {
               <Moon className="h-4 w-4" />
             )}
           </Button>
-          {/* Nếu là buyer: yêu thích + giỏ hàng */}
+          {/* Buyer: giỏ hàng (dẫn tới danh sách yêu thích) */}
           {role === "BUYER" && (
-            <div className="flex items-center gap-2 rounded-full bg-muted/60 px-2 py-1">
-              <Link
-                to="/wishlist"
-                className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                title="Yêu thích"
-                aria-label="Yêu thích"
-              >
-                <Heart className="h-4 w-4" strokeWidth={1.6} />
-              </Link>
-              <button
-                type="button"
-                onClick={onCart}
-                className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                title="Giỏ hàng"
-                aria-label="Giỏ hàng"
-              >
-                <ShoppingCart className="h-4 w-4" strokeWidth={1.6} />
-              </button>
-            </div>
+            <Link
+              to="/wishlist"
+              className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Yêu thích"
+              aria-label="Yêu thích"
+            >
+              <ShoppingCart className="h-4 w-4" strokeWidth={1.6} />
+            </Link>
           )}
 
           {!accessToken ? (
