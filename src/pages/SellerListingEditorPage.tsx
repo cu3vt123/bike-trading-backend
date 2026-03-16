@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   createListing,
   updateListing,
@@ -35,18 +36,12 @@ const CITY_OPTIONS = [
   "Da Lat",
 ] as const;
 
-/** Đúng 5 ảnh bắt buộc theo checklist */
-const PHOTO_SLOT_LABELS = [
-  "Toàn xe (góc tổng thể)",
-  "Toàn xe (góc khác / hai bên)",
-  "Serial khung",
-  "Hệ truyền động",
-  "Phanh & bánh xe",
-] as const;
+const PHOTO_SLOT_KEYS = ["seller.photo1", "seller.photo2", "seller.photo3", "seller.photo4", "seller.photo5"] as const;
 
 const REQUIRED_PHOTO_COUNT = 5;
 
 export default function SellerListingEditorPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -119,7 +114,7 @@ export default function SellerListingEditorPage() {
         navigate(`/seller/listings/${created.id}/edit`, { replace: true });
       }
     } catch {
-      setError("Không lưu được nháp. Vui lòng thử lại.");
+      setError(t("seller.saveDraftError"));
     } finally {
       setSubmitting(false);
     }
@@ -128,7 +123,7 @@ export default function SellerListingEditorPage() {
   async function onSubmitForInspection() {
     const filled = photoSlots.filter(Boolean).length;
     if (filled < REQUIRED_PHOTO_COUNT) {
-      setPhotoError(`Vui lòng tải đủ ${REQUIRED_PHOTO_COUNT} ảnh theo checklist (hiện có ${filled}/5).`);
+      setPhotoError(t("seller.photoCountError", { current: filled }));
       return;
     }
     setError(null);
@@ -147,14 +142,14 @@ export default function SellerListingEditorPage() {
       addNotification({
         role: "SELLER",
         type: "success",
-        title: "Đã gửi tin đăng kiểm định",
-        message: "Tin đăng đang chờ inspector duyệt.",
+        title: t("seller.submitSuccessTitle"),
+        message: t("seller.submitSuccessMessage"),
         link: "/seller",
         sourceKey: `listing-submit-${targetId}`,
       });
       navigate("/seller", { replace: true });
     } catch {
-      setError("Không gửi được kiểm định. Vui lòng thử lại.");
+      setError(t("seller.submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -213,10 +208,10 @@ export default function SellerListingEditorPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-2xl font-bold text-foreground">
-            {isEdit ? "Chỉnh sửa tin" : "Tạo tin đăng"}
+            {isEdit ? t("seller.editListing") : t("seller.createListing")}
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
-            Nháp → Gửi kiểm định → (Duyệt) Xuất bản.
+            {t("seller.workflow")}
           </div>
         </div>
 
@@ -224,7 +219,7 @@ export default function SellerListingEditorPage() {
           to="/seller"
           className="inline-flex rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
         >
-          ← Về bảng điều khiển
+          {t("seller.backToDashboard")}
         </Link>
       </div>
 
@@ -236,17 +231,17 @@ export default function SellerListingEditorPage() {
 
       {locked && (
         <div className="mt-4 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning">
-          Tin này <b>đang chờ kiểm định</b>. Không thể sửa cho đến khi có kết quả.
+          {t("seller.pendingInspectionWarning")}
         </div>
       )}
       {!locked && needUpdateReason && (
         <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          <div className="font-semibold">Kiểm định viên yêu cầu cập nhật</div>
+          <div className="font-semibold">{t("seller.inspectorRequiresUpdate")}</div>
           <p className="mt-1">
             {needUpdateReason}
           </p>
           <p className="mt-1 text-xs text-destructive/90">
-            Vui lòng sửa theo nội dung trên, lưu nháp rồi gửi kiểm định lại.
+            {t("seller.pleaseUpdateAndResubmit")}
           </p>
         </div>
       )}
@@ -255,7 +250,7 @@ export default function SellerListingEditorPage() {
         <div className="lg:col-span-7 space-y-4">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="text-sm font-semibold text-foreground">
-              Thông tin xe
+              {t("seller.vehicleInfo")}
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -264,7 +259,7 @@ export default function SellerListingEditorPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={locked}
                 className="sm:col-span-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                placeholder="Tiêu đề tin đăng"
+                placeholder={t("seller.listingTitlePlaceholder")}
               />
               <select
                 value={brand}
@@ -272,7 +267,7 @@ export default function SellerListingEditorPage() {
                 disabled={locked}
                 className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
-                <option value="">Chọn hãng</option>
+                <option value="">{t("seller.selectBrand")}</option>
                 {BRAND_OPTIONS.map((b) => (
                   <option key={b} value={b}>
                     {b}
@@ -281,10 +276,15 @@ export default function SellerListingEditorPage() {
               </select>
               <input
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^\d]/g, "");
+                  setPrice(raw);
+                }}
+                inputMode="numeric"
+                pattern="[0-9]*"
                 disabled={locked}
                 className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                placeholder="Giá (VNĐ)"
+                placeholder={t("seller.priceVND")}
               />
               <select
                 value={location}
@@ -292,7 +292,7 @@ export default function SellerListingEditorPage() {
                 disabled={locked}
                 className="sm:col-span-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
-                <option value="">Chọn thành phố</option>
+                <option value="">{t("seller.selectCity")}</option>
                 {CITY_OPTIONS.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -306,9 +306,9 @@ export default function SellerListingEditorPage() {
                 disabled={locked}
                 className="sm:col-span-2 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
-                <option value="MINT_USED">Rất tốt (đã dùng)</option>
-                <option value="GOOD_USED">Tốt (đã dùng)</option>
-                <option value="FAIR_USED">Khá (đã dùng)</option>
+                <option value="MINT_USED">{t("listing.conditionMintUsed")}</option>
+                <option value="GOOD_USED">{t("listing.conditionGoodUsed")}</option>
+                <option value="FAIR_USED">{t("listing.conditionFairUsed")}</option>
               </select>
             </div>
           </div>
@@ -316,10 +316,10 @@ export default function SellerListingEditorPage() {
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div>
               <div className="text-sm font-semibold text-foreground">
-                Ảnh (bắt buộc đủ 5 theo checklist)
+                {t("seller.imagesRequired")}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                Mỗi ô tương ứng một nội dung trong checklist. Bắt buộc trước khi gửi kiểm định.
+                {t("seller.imagesHint")}
               </div>
             </div>
 
@@ -339,7 +339,8 @@ export default function SellerListingEditorPage() {
             )}
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {PHOTO_SLOT_LABELS.map((label, idx) => {
+              {PHOTO_SLOT_KEYS.map((labelKey, idx) => {
+                const label = t(labelKey);
                 const item = photoSlots[idx];
                 return (
                   <div
@@ -363,9 +364,9 @@ export default function SellerListingEditorPage() {
                               type="button"
                               onClick={() => removePhoto(idx)}
                               className="absolute right-2 top-2 rounded-lg bg-primary/90 px-2 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary"
-                              aria-label="Xóa ảnh"
+                              aria-label={t("seller.removeImage")}
                             >
-                              Xóa
+                              {t("seller.remove")}
                             </button>
                           )}
                         </>
@@ -376,8 +377,8 @@ export default function SellerListingEditorPage() {
                           onClick={() => onPickSlot(idx)}
                           className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-none text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <span className="text-sm font-medium">Chọn ảnh</span>
-                          <span className="text-[10px]">(bấm để tải lên)</span>
+                          <span className="text-sm font-medium">{t("seller.selectImage")}</span>
+                          <span className="text-[10px]">{t("seller.clickToUpload")}</span>
                         </button>
                       )}
                     </div>
@@ -387,21 +388,21 @@ export default function SellerListingEditorPage() {
             </div>
 
             <div className="mt-3 text-xs text-muted-foreground">
-              {photoSlots.filter(Boolean).length}/{REQUIRED_PHOTO_COUNT} ảnh đã tải
+              {t("seller.photosUploaded", { count: photoSlots.filter(Boolean).length })}
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-5">
           <div className="sticky top-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="text-sm font-semibold text-foreground">Thao tác</div>
+            <div className="text-sm font-semibold text-foreground">{t("seller.action")}</div>
 
             <button
               onClick={onSaveDraft}
               disabled={locked || submitting}
               className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Đang lưu..." : "Lưu nháp"}
+              {submitting ? t("seller.saving") : t("seller.saveDraft")}
             </button>
 
             <button
@@ -409,11 +410,11 @@ export default function SellerListingEditorPage() {
               disabled={locked || submitting}
               className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Đang gửi..." : "Gửi kiểm định →"}
+              {submitting ? t("seller.submitting") : t("seller.submitInspection")}
             </button>
 
             <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground">
-              Tin sẽ được xuất bản lên sàn sau khi kiểm định viên duyệt.
+              {t("seller.publishNote")}
             </div>
           </div>
         </div>

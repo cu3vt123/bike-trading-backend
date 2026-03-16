@@ -2,8 +2,14 @@
  * Seller service – gọi API thật hoặc fallback mock khi BE chưa sẵn sàng.
  * Có timeout để tránh load mãi khi backend treo.
  */
-import { sellerApi, type SellerDashboardStats, type CreateListingRequest } from "@/apis/sellerApi";
+import {
+  sellerApi,
+  type SellerDashboardStats,
+  type CreateListingRequest,
+  type SellerRatingsSummary,
+} from "@/apis/sellerApi";
 import type { Listing } from "@/types/shopbike";
+import type { Order } from "@/types/order";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
@@ -99,8 +105,10 @@ export async function fetchSellerOrders(): Promise<
   }
 }
 
-/** Đồng bộ đơn cần gửi xe sang thông báo seller (gọi từ Header, SellerDashboard, NotificationsPage) */
-export async function syncSellerOrderNotifications(): Promise<void> {
+type TFunction = (key: string, params?: Record<string, string | number>) => string;
+
+/** Đồng bộ đơn cần gửi xe sang thông báo seller (gọi từ Header, SellerDashboard, NotificationsPage). Pass t() for i18n. */
+export async function syncSellerOrderNotifications(t: TFunction): Promise<void> {
   const { addNotification } = useNotificationStore.getState();
   const orders = await fetchSellerOrders();
   const needShip = orders.filter(
@@ -112,13 +120,46 @@ export async function syncSellerOrderNotifications(): Promise<void> {
     addNotification({
       role: "SELLER",
       type: "success",
-      title: "Buyer đã mua hàng – cần gửi xe tới kho",
-      message: `Đơn ${o.id} (${bikeName}). Vui lòng vận chuyển xe tới kho.`,
+      title: t("notifications.buyerPurchasedTitle"),
+      message: t("notifications.buyerPurchasedMessage", { orderId: o.id, bikeName }),
+      titleKey: "notifications.buyerPurchasedTitle",
+      messageKey: "notifications.buyerPurchasedMessage",
+      messageParams: { orderId: o.id, bikeName },
       link: "/seller",
       sourceKey: `seller-order-${o.id}`,
     });
   });
 }
+
+const MOCK_DASHBOARD_ORDERS: Order[] = [
+  {
+    id: "ORD-101",
+    listingId: "L1",
+    listing: { id: "L1", title: "Trek Domane SL", brand: "Trek", model: "Domane SL", price: 3100, location: "", state: "PUBLISHED" },
+    buyerId: "buyer_01",
+    status: "RESERVED",
+    totalPrice: 3100,
+    depositAmount: 248,
+    depositPaid: false,
+  },
+  {
+    id: "ORD-102",
+    listingId: "L2",
+    listing: { id: "L2", title: "Cervelo S5", brand: "Cervelo", model: "S5", price: 6900, location: "", state: "PUBLISHED" },
+    buyerId: "rider_99",
+    status: "RESERVED",
+    totalPrice: 6900,
+    depositAmount: 552,
+    depositPaid: true,
+  },
+];
+
+const MOCK_RATINGS: SellerRatingsSummary = {
+  averageRating: 4.8,
+  totalReviews: 12,
+  positivePercent: 97,
+  breakdown: { 5: 10, 4: 2 },
+};
 
 export async function fetchSellerDashboard(): Promise<{
   stats: SellerDashboardStats;
@@ -133,6 +174,26 @@ export async function fetchSellerDashboard(): Promise<{
     );
   } catch (_) {
     return mockStats();
+  }
+}
+
+/** Đơn hàng / đặt cọc cho dashboard seller. API thật hoặc mock khi BE chưa có. */
+export async function fetchSellerDashboardOrders(): Promise<Order[]> {
+  if (USE_MOCK) return MOCK_DASHBOARD_ORDERS;
+  try {
+    return await withTimeout(sellerApi.getOrders(), FETCH_TIMEOUT_MS, "Timeout");
+  } catch {
+    return MOCK_DASHBOARD_ORDERS;
+  }
+}
+
+/** Đánh giá & uy tín seller. API thật hoặc null khi BE chưa có endpoint. */
+export async function fetchSellerRatings(): Promise<SellerRatingsSummary | null> {
+  if (USE_MOCK) return MOCK_RATINGS;
+  try {
+    return await withTimeout(sellerApi.getRatings(), FETCH_TIMEOUT_MS, "Timeout");
+  } catch {
+    return null;
   }
 }
 

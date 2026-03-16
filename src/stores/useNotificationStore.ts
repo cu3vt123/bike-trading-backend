@@ -12,6 +12,11 @@ export type AppNotification = {
   createdAt: string;
   link?: string;
   sourceKey?: string;
+  /** If set, title is resolved at display time with t(titleKey, titleParams) for i18n */
+  titleKey?: string;
+  titleParams?: Record<string, string | number>;
+  messageKey?: string;
+  messageParams?: Record<string, string | number>;
 };
 
 type NotificationState = {

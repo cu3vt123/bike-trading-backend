@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Users,
   FileCheck,
@@ -24,20 +25,19 @@ import {
   type AdminStats,
 } from "@/services/adminService";
 import { fetchAdminReviews, adminUpdateReview } from "@/services/reviewService";
-import { ORDER_STATUS_LABEL } from "@/types/order";
 import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
 import type { Review } from "@/types/review";
 import type { AdminUser } from "@/apis/adminApi";
 
 const TABS = [
-  { id: "warehouse", label: "Xác nhận xe tới kho", icon: Package },
-  { id: "users", label: "Quản lý người dùng", icon: Users },
-  { id: "listings", label: "Quản lý tin đăng", icon: FileCheck },
-  { id: "reviews", label: "Đánh giá sau mua", icon: Star },
-  { id: "categories", label: "Danh mục xe & Thương hiệu", icon: Tags },
-  { id: "transactions", label: "Giao dịch & Phí dịch vụ", icon: CreditCard },
-  { id: "stats", label: "Thống kê & Báo cáo", icon: BarChart3 },
+  { id: "warehouse" as const, key: "admin.tabWarehouse", icon: Package },
+  { id: "users" as const, key: "admin.tabUsers", icon: Users },
+  { id: "listings" as const, key: "admin.tabListings", icon: FileCheck },
+  { id: "reviews" as const, key: "admin.tabReviews", icon: Star },
+  { id: "categories" as const, key: "admin.tabCategories", icon: Tags },
+  { id: "transactions" as const, key: "admin.tabTransactions", icon: CreditCard },
+  { id: "stats" as const, key: "admin.tabStats", icon: BarChart3 },
 ] as const;
 
 function formatMoney(value: number) {
@@ -49,9 +49,45 @@ function formatMoney(value: number) {
 }
 
 export default function AdminDashboardPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("warehouse");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [warehouseOrders, setWarehouseOrders] = useState<(Order & { listing?: { brand?: string; model?: string } })[]>([]);
+  const [categories, setCategories] = useState<
+    { id: string; name: string; slug: string; type: "ROAD" | "MTB" | "GRAVEL" | "CITY"; brandCount: number; active: boolean }[]
+  >([
+    { id: "cat-road", name: "Road / Đua", slug: "road", type: "ROAD", brandCount: 8, active: true },
+    { id: "cat-mtb", name: "MTB / Địa hình", slug: "mtb", type: "MTB", brandCount: 6, active: true },
+    { id: "cat-gravel", name: "Gravel", slug: "gravel", type: "GRAVEL", brandCount: 3, active: true },
+  ]);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | "new" | null>(null);
+  const [categoryDraft, setCategoryDraft] = useState<{ name: string; slug: string; type: "ROAD" | "MTB" | "GRAVEL" | "CITY"; brandCount: number; active: boolean } | null>(null);
+  const [platformFee, setPlatformFee] = useState<number>(5);
+  const [inspectionFee, setInspectionFee] = useState<number>(150_000);
+  const [transactions] = useState<
+    { id: string; orderId: string; buyer: string; seller: string; amount: number; fee: number; status: string; createdAt: string }[]
+  >([
+    {
+      id: "TX-101",
+      orderId: "ORD-101",
+      buyer: "buyer_01",
+      seller: "seller_01",
+      amount: 95_000_000,
+      fee: 4_750_000,
+      status: "COMPLETED",
+      createdAt: "2026-03-10T09:15:00Z",
+    },
+    {
+      id: "TX-102",
+      orderId: "ORD-102",
+      buyer: "buyer_02",
+      seller: "seller_02",
+      amount: 62_000_000,
+      fee: 3_100_000,
+      status: "COMPLETED",
+      createdAt: "2026-03-12T14:30:00Z",
+    },
+  ]);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [adminListings, setAdminListings] = useState<Listing[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -169,13 +205,13 @@ export default function AdminDashboardPage() {
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Kênh Admin</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("admin.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Quản lý người dùng, tin đăng, đánh giá, danh mục, giao dịch và xác nhận xe tới kho.
+            {t("admin.subtitle")}
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link to="/">← Trang chủ</Link>
+          <Link to="/">{t("admin.goHome")}</Link>
         </Button>
       </div>
 
@@ -184,25 +220,25 @@ export default function AdminDashboardPage() {
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-foreground">{stats.totalUsers}</div>
-              <div className="text-xs text-muted-foreground">Tổng người dùng</div>
+              <div className="text-xs text-muted-foreground">{t("admin.totalUsers")}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-foreground">{stats.totalListings}</div>
-              <div className="text-xs text-muted-foreground">Tin đăng</div>
+              <div className="text-xs text-muted-foreground">{t("admin.totalListings")}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-primary">{stats.ordersPendingWarehouse}</div>
-              <div className="text-xs text-muted-foreground">Chờ xác nhận tới kho</div>
+              <div className="text-xs text-muted-foreground">{t("admin.pendingWarehouse")}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <div className="text-2xl font-bold text-foreground">{stats.ordersReInspection}</div>
-              <div className="text-xs text-muted-foreground">Đang kiểm định lại</div>
+              <div className="text-xs text-muted-foreground">{t("admin.reInspection")}</div>
             </CardContent>
           </Card>
         </div>
@@ -210,7 +246,7 @@ export default function AdminDashboardPage() {
 
       <div className="flex flex-col gap-6 lg:flex-row">
         <nav className="flex shrink-0 flex-wrap gap-1 lg:w-56 lg:flex-col">
-          {TABS.map(({ id, label, icon: Icon }) => (
+          {TABS.map(({ id, key, icon: Icon }) => (
             <button
               key={id}
               type="button"
@@ -222,7 +258,7 @@ export default function AdminDashboardPage() {
               }`}
             >
               <Icon className="h-4 w-4" />
-              {label}
+              {t(key)}
             </button>
           ))}
         </nav>
@@ -233,11 +269,10 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Xác nhận xe đã tới kho
+                  {t("admin.warehouseTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Khi seller đã gửi xe tới kho, admin xác nhận tại đây. Sau đó inspector sẽ kiểm định lại xe; xác nhận đúng
-                  như mô tả thì đơn chuyển sang &quot;Đang giao hàng&quot;.
+                  {t("admin.warehouseDesc")}
                 </p>
               </CardHeader>
               <CardContent>
@@ -247,7 +282,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ) : warehouseOrders.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    Không có đơn nào đang chờ xác nhận tới kho.
+                    {t("admin.noWarehouseOrders")}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -261,7 +296,7 @@ export default function AdminDashboardPage() {
                             {order.listing?.brand} {order.listing?.model ?? order.listingId}
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            Đơn {order.id} · {ORDER_STATUS_LABEL[order.status] ?? order.status} · {formatMoney(order.totalPrice)}
+                            Đơn {order.id} · {t(`order.status${order.status}` as "order.statusRESERVED") ?? order.status} · {formatMoney(order.totalPrice)}
                           </div>
                         </div>
                         <Button
@@ -284,10 +319,10 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Quản lý người dùng
+                  {t("admin.usersTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Admin có thể ẩn hoặc hiện lại tài khoản, không xoá dữ liệu.
+                  {t("admin.usersDesc")}
                 </p>
               </CardHeader>
               <CardContent>
@@ -296,7 +331,7 @@ export default function AdminDashboardPage() {
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   </div>
                 ) : adminUsers.length === 0 ? (
-                  <p className="py-6 text-center text-sm text-muted-foreground">Không có người dùng.</p>
+                  <p className="py-6 text-center text-sm text-muted-foreground">{t("admin.noUsers")}</p>
                 ) : (
                   <div className="space-y-3">
                     {adminUsers.map((u) => (
@@ -307,7 +342,7 @@ export default function AdminDashboardPage() {
                         <div className="min-w-0">
                           <div className="font-semibold text-foreground">{u.displayName || u.email}</div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            {u.email} · {u.role} · {u.isHidden ? "Đã ẩn" : "Đang hoạt động"}
+                            {u.email} · {u.role} · {u.isHidden ? t("admin.hidden") : t("admin.active")}
                           </div>
                         </div>
                         {u.isHidden ? (
@@ -317,7 +352,7 @@ export default function AdminDashboardPage() {
                             onClick={() => handleUnhideUser(u.id)}
                             disabled={unhidingUserId === u.id}
                           >
-                            {unhidingUserId === u.id ? "Đang hiện..." : "Hiện người dùng"}
+                            {unhidingUserId === u.id ? t("admin.unhiding") : t("admin.unhideUser")}
                           </Button>
                         ) : (
                           <Button
@@ -326,7 +361,7 @@ export default function AdminDashboardPage() {
                             onClick={() => handleHideUser(u.id)}
                             disabled={hidingUserId === u.id}
                           >
-                            {hidingUserId === u.id ? "Đang ẩn..." : "Ẩn người dùng"}
+                            {hidingUserId === u.id ? t("admin.hiding") : t("admin.hideUser")}
                           </Button>
                         )}
                       </div>
@@ -342,10 +377,10 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileCheck className="h-5 w-5" />
-                  Quản lý tin đăng
+                  {t("admin.listingsTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Admin có thể ẩn hoặc hiện lại tin đăng, không xoá dữ liệu.
+                  {t("admin.listingsDesc")}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -355,7 +390,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ) : adminListings.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    Không có tin đăng nào.
+                    {t("admin.noListings")}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -371,7 +406,7 @@ export default function AdminDashboardPage() {
                           <div className="mt-1 text-xs text-muted-foreground">
                             {listing.brand}
                             {listing.model ? ` · ${listing.model}` : ""} · ID: {listing.id} ·{" "}
-                            {listing.state ?? "N/A"} · {formatMoney(listing.price ?? 0)} · {listing.isHidden ? "Đã ẩn" : "Đang hiển thị"}
+                            {listing.state ?? "N/A"} · {formatMoney(listing.price ?? 0)} · {listing.isHidden ? t("admin.hidden") : t("admin.visible")}
                           </div>
                         </div>
                         {listing.isHidden ? (
@@ -381,7 +416,7 @@ export default function AdminDashboardPage() {
                             onClick={() => handleUnhideListing(listing.id)}
                             disabled={unhidingListingId === listing.id}
                           >
-                            {unhidingListingId === listing.id ? "Đang hiện..." : "Hiện tin đăng"}
+                            {unhidingListingId === listing.id ? t("admin.unhiding") : t("admin.unhideListing")}
                           </Button>
                         ) : (
                           <Button
@@ -390,7 +425,7 @@ export default function AdminDashboardPage() {
                             onClick={() => handleHideListing(listing.id)}
                             disabled={hidingListingId === listing.id}
                           >
-                            {hidingListingId === listing.id ? "Đang ẩn..." : "Ẩn tin đăng"}
+                            {hidingListingId === listing.id ? t("admin.hiding") : t("admin.hideListing")}
                           </Button>
                         )}
                       </div>
@@ -406,16 +441,16 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="h-5 w-5" />
-                  Đánh giá sau mua
+                  {t("admin.reviewsTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Tổng hợp đánh giá của người mua. Admin có thể xem, chỉnh sửa hoặc ẩn đánh giá nếu phát hiện nội dung không hợp lý.
+                  {t("admin.reviewsDesc")}
                 </p>
               </CardHeader>
               <CardContent>
                 {reviews.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    Chưa có đánh giá nào.
+                    {t("admin.noReviews")}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -427,14 +462,14 @@ export default function AdminDashboardPage() {
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
                             <div className="font-semibold text-foreground">
-                              Đơn {r.orderId} · Seller {r.sellerId}
+                              {t("admin.order")} {r.orderId} · {t("admin.seller")} {r.sellerId}
                             </div>
                             <div className="mt-0.5 text-xs text-muted-foreground">
                               Listing {r.listingId} · {r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground mr-1">Điểm:</span>
+                            <span className="text-xs text-muted-foreground mr-1">{t("admin.rating")}:</span>
                             {[1, 2, 3, 4, 5].map((v) => (
                               <button
                                 key={v}
@@ -452,7 +487,7 @@ export default function AdminDashboardPage() {
                                 className={`text-lg ${
                                   v <= r.rating ? "text-primary" : "text-muted-foreground"
                                 }`}
-                                aria-label={`Chỉnh thành ${v} sao`}
+                                aria-label={t("admin.setRating", { n: v })}
                               >
                                 ★
                               </button>
@@ -463,7 +498,7 @@ export default function AdminDashboardPage() {
                           </div>
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
-                          {r.comment || "Không có nội dung bình luận."}
+                          {r.comment || t("admin.noComment")}
                         </div>
                       </div>
                     ))}
@@ -478,16 +513,246 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Tags className="h-5 w-5" />
-                  Quản lý danh mục xe & Thương hiệu
+                  {t("admin.categoriesTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Thêm/sửa/xoá danh mục xe, thương hiệu. (Tích hợp API sau.)
+                  {t("admin.categoriesDesc")}
                 </p>
               </CardHeader>
               <CardContent>
-                <p className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-                  Chức năng sẽ có khi backend cung cấp API danh mục và thương hiệu.
-                </p>
+                <div className="mb-4 flex justify-between gap-3">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setEditingCategoryId("new");
+                      setCategoryDraft({
+                        name: "",
+                        slug: "",
+                        type: "ROAD",
+                        brandCount: 0,
+                        active: true,
+                      });
+                    }}
+                  >
+                    {t("admin.categoriesAdd")}
+                  </Button>
+                </div>
+                {categories.length === 0 ? (
+                  <p className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+                    {t("admin.categoriesPlaceholder")}
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="min-w-full text-sm">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-semibold">{t("admin.categoriesName")}</th>
+                          <th className="px-3 py-2 text-left font-semibold">{t("admin.categoriesSlug")}</th>
+                          <th className="px-3 py-2 text-left font-semibold">{t("admin.categoriesType")}</th>
+                          <th className="px-3 py-2 text-right font-semibold">{t("admin.categoriesBrandCount")}</th>
+                          <th className="px-3 py-2 text-center font-semibold">{t("admin.categoriesStatus")}</th>
+                          <th className="px-3 py-2 text-right font-semibold"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(editingCategoryId === "new" && categoryDraft ? [{ id: "new", ...categoryDraft }, ...categories] : categories).map(
+                          (c) => {
+                            const isDraft = c.id === "new";
+                            const isEditing = editingCategoryId === c.id;
+                            const draft = isEditing || isDraft ? categoryDraft ?? { ...c } : c;
+                            return (
+                              <tr key={c.id} className="border-t border-border">
+                                <td className="px-3 py-2 align-middle">
+                                  {isEditing || isDraft ? (
+                                    <input
+                                      className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+                                      value={draft?.name ?? ""}
+                                      onChange={(e) =>
+                                        setCategoryDraft((prev) => ({
+                                          ...(prev ?? { ...c }),
+                                          name: e.target.value,
+                                          slug:
+                                            prev?.slug && prev.slug.length > 0
+                                              ? prev.slug
+                                              : e.target.value
+                                                  .toLowerCase()
+                                                  .normalize("NFD")
+                                                  .replace(/[\u0300-\u036f]/g, "")
+                                                  .replace(/[^a-z0-9]+/g, "-")
+                                                  .replace(/^-+|-+$/g, ""),
+                                        }))
+                                      }
+                                    />
+                                  ) : (
+                                    <span>{c.name}</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 align-middle">
+                                  {isEditing || isDraft ? (
+                                    <input
+                                      className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+                                      value={draft?.slug ?? ""}
+                                      onChange={(e) =>
+                                        setCategoryDraft((prev) => ({
+                                          ...(prev ?? { ...c }),
+                                          slug: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">{c.slug}</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 align-middle">
+                                  {isEditing || isDraft ? (
+                                    <select
+                                      className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+                                      value={draft?.type ?? "ROAD"}
+                                      onChange={(e) =>
+                                        setCategoryDraft((prev) => ({
+                                          ...(prev ?? { ...c }),
+                                          type: e.target.value as "ROAD" | "MTB" | "GRAVEL" | "CITY",
+                                        }))
+                                      }
+                                    >
+                                      <option value="ROAD">{t("admin.categoriesTypeRoad")}</option>
+                                      <option value="MTB">{t("admin.categoriesTypeMtb")}</option>
+                                      <option value="GRAVEL">{t("admin.categoriesTypeGravel")}</option>
+                                      <option value="CITY">{t("admin.categoriesTypeCity")}</option>
+                                    </select>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">
+                                      {c.type === "ROAD"
+                                        ? t("admin.categoriesTypeRoad")
+                                        : c.type === "MTB"
+                                          ? t("admin.categoriesTypeMtb")
+                                          : c.type === "GRAVEL"
+                                            ? t("admin.categoriesTypeGravel")
+                                            : t("admin.categoriesTypeCity")}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 text-right align-middle">
+                                  {isEditing || isDraft ? (
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      className="w-20 rounded-md border border-input bg-background px-2 py-1 text-xs text-right"
+                                      value={draft?.brandCount ?? 0}
+                                      onChange={(e) =>
+                                        setCategoryDraft((prev) => ({
+                                          ...(prev ?? { ...c }),
+                                          brandCount: Number(e.target.value) || 0,
+                                        }))
+                                      }
+                                    />
+                                  ) : (
+                                    <span>{c.brandCount}</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 text-center align-middle">
+                                  {isEditing || isDraft ? (
+                                    <button
+                                      type="button"
+                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                        draft?.active
+                                          ? "bg-emerald-500/10 text-emerald-500"
+                                          : "bg-muted text-muted-foreground"
+                                      }`}
+                                      onClick={() =>
+                                        setCategoryDraft((prev) => ({
+                                          ...(prev ?? { ...c }),
+                                          active: !prev?.active,
+                                        }))
+                                      }
+                                    >
+                                      {draft?.active ? t("admin.categoriesActive") : t("admin.categoriesInactive")}
+                                    </button>
+                                  ) : (
+                                    <span
+                                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                        c.active ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
+                                      }`}
+                                    >
+                                      {c.active ? t("admin.categoriesActive") : t("admin.categoriesInactive")}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 text-right align-middle">
+                                  {isEditing || isDraft ? (
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        size="xs"
+                                        variant="outline"
+                                        onClick={() => {
+                                          if (!categoryDraft) {
+                                            setEditingCategoryId(null);
+                                            return;
+                                          }
+                                          if (isDraft) {
+                                            setCategories((prev) => [
+                                              {
+                                                id: `cat-${Date.now()}`,
+                                                ...categoryDraft,
+                                              },
+                                              ...prev,
+                                            ]);
+                                          } else {
+                                            setCategories((prev) =>
+                                              prev.map((item) => (item.id === c.id ? { ...item, ...categoryDraft } : item)),
+                                            );
+                                          }
+                                          setEditingCategoryId(null);
+                                          setCategoryDraft(null);
+                                        }}
+                                      >
+                                        {t("admin.categoriesSave")}
+                                      </Button>
+                                      <Button
+                                        size="xs"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          setEditingCategoryId(null);
+                                          setCategoryDraft(null);
+                                        }}
+                                      >
+                                        {t("admin.categoriesCancel")}
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        size="xs"
+                                        variant="outline"
+                                        onClick={() => {
+                                          setEditingCategoryId(c.id);
+                                          setCategoryDraft({ ...c });
+                                        }}
+                                      >
+                                        {t("admin.categoriesSave")}
+                                      </Button>
+                                      <Button
+                                        size="xs"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          if (window.confirm(t("admin.categoriesDeleteConfirm"))) {
+                                            setCategories((prev) => prev.filter((item) => item.id !== c.id));
+                                          }
+                                        }}
+                                      >
+                                        {t("admin.categoriesDelete")}
+                                      </Button>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          },
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -497,16 +762,116 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Quản lý giao dịch & Phí dịch vụ
+                  {t("admin.transactionsTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Xem lịch sử giao dịch, cấu hình phí dịch vụ. (Tích hợp API sau.)
+                  {t("admin.transactionsDesc")}
                 </p>
               </CardHeader>
               <CardContent>
-                <p className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-                  Chức năng sẽ có khi backend cung cấp API giao dịch và phí.
-                </p>
+                <div className="space-y-6">
+                  <div className="rounded-lg border border-border bg-card p-4">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {t("admin.transactionsFeesTitle")}
+                    </h3>
+                    <div className="mt-3 space-y-3 text-sm">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <label className="text-muted-foreground sm:w-1/2">
+                          {t("admin.transactionsPlatformFee")}
+                        </label>
+                        <div className="flex items-center gap-2 sm:w-1/2">
+                          <input
+                            type="number"
+                            min={0}
+                            max={30}
+                            value={platformFee}
+                            onChange={(e) => setPlatformFee(Number(e.target.value) || 0)}
+                            className="w-24 rounded-md border border-input bg-background px-2 py-1 text-right text-sm"
+                          />
+                          <span className="text-xs text-muted-foreground">%</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <label className="text-muted-foreground sm:w-1/2">
+                          {t("admin.transactionsInspectionFee")}
+                        </label>
+                        <div className="flex items-center gap-2 sm:w-1/2">
+                          <input
+                            type="number"
+                            min={0}
+                            step={50000}
+                            value={inspectionFee}
+                            onChange={(e) => setInspectionFee(Number(e.target.value) || 0)}
+                            className="w-32 rounded-md border border-input bg-background px-2 py-1 text-right text-sm"
+                          />
+                          <span className="text-xs text-muted-foreground">VND</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground">
+                        {t("admin.transactionsHistoryTitle")}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        {transactions.length} {t("admin.transactionsOrder")}
+                      </span>
+                    </div>
+                    {transactions.length === 0 ? (
+                      <p className="py-4 text-center text-sm text-muted-foreground">
+                        {t("admin.transactionsPlaceholder")}
+                      </p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-xs sm:text-sm">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-semibold">{t("admin.transactionsOrder")}</th>
+                              <th className="px-3 py-2 text-left font-semibold">{t("admin.transactionsBuyer")}</th>
+                              <th className="px-3 py-2 text-left font-semibold">{t("admin.transactionsSeller")}</th>
+                              <th className="px-3 py-2 text-right font-semibold">{t("admin.transactionsAmount")}</th>
+                              <th className="px-3 py-2 text-right font-semibold">{t("admin.transactionsFee")}</th>
+                              <th className="px-3 py-2 text-center font-semibold">{t("admin.transactionsStatus")}</th>
+                              <th className="px-3 py-2 text-right font-semibold">{t("admin.transactionsDate")}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {transactions.map((tx) => (
+                              <tr key={tx.id} className="border-t border-border">
+                                <td className="px-3 py-2 align-middle">
+                                  <div className="font-medium text-foreground">{tx.orderId}</div>
+                                  <div className="text-[11px] text-muted-foreground">{tx.id}</div>
+                                </td>
+                                <td className="px-3 py-2 align-middle text-xs text-muted-foreground">
+                                  {tx.buyer}
+                                </td>
+                                <td className="px-3 py-2 align-middle text-xs text-muted-foreground">
+                                  {tx.seller}
+                                </td>
+                                <td className="px-3 py-2 align-middle text-right">
+                                  {formatMoney(tx.amount)}
+                                </td>
+                                <td className="px-3 py-2 align-middle text-right">
+                                  {formatMoney(tx.fee)}
+                                </td>
+                                <td className="px-3 py-2 align-middle text-center">
+                                  <span className="inline-flex rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-500">
+                                    {tx.status}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 align-middle text-right text-xs text-muted-foreground">
+                                  {new Date(tx.createdAt).toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -516,10 +881,10 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Thống kê & Báo cáo hệ thống
+                  {t("admin.statsTitle")}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Tổng quan doanh thu, đơn hàng, người dùng. (Tích hợp API sau.)
+                  {t("admin.statsDesc")}
                 </p>
               </CardHeader>
               <CardContent>
@@ -527,15 +892,15 @@ export default function AdminDashboardPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-lg border border-border p-3">
                       <div className="text-lg font-semibold text-foreground">{stats.totalBuyers}</div>
-                      <div className="text-xs text-muted-foreground">Buyer</div>
+                      <div className="text-xs text-muted-foreground">{t("admin.buyer")}</div>
                     </div>
                     <div className="rounded-lg border border-border p-3">
                       <div className="text-lg font-semibold text-foreground">{stats.totalSellers}</div>
-                      <div className="text-xs text-muted-foreground">Seller</div>
+                      <div className="text-xs text-muted-foreground">{t("admin.seller")}</div>
                     </div>
                     <div className="rounded-lg border border-border p-3">
                       <div className="text-lg font-semibold text-foreground">{stats.totalOrders}</div>
-                      <div className="text-xs text-muted-foreground">Tổng đơn hàng</div>
+                      <div className="text-xs text-muted-foreground">{t("admin.totalOrders")}</div>
                     </div>
                   </div>
                 )}

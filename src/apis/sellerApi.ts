@@ -28,6 +28,13 @@ export type CreateListingRequest = {
   imageUrls?: string[];
 };
 
+export type SellerRatingsSummary = {
+  averageRating: number;
+  totalReviews: number;
+  positivePercent: number;
+  breakdown: Record<number, number>;
+};
+
 export const sellerApi = {
   getDashboard: (): Promise<{ stats: SellerDashboardStats; listings: Listing[] }> =>
     apiClient.get(API_PATHS.SELLER.DASHBOARD).then((r) => {
@@ -42,6 +49,17 @@ export const sellerApi = {
     apiClient.get(API_PATHS.SELLER.ORDERS).then((r) => {
       const raw = r.data?.data ?? r.data ?? [];
       return Array.isArray(raw) ? raw : [];
+    }),
+
+  getRatings: (): Promise<SellerRatingsSummary> =>
+    apiClient.get(API_PATHS.SELLER.RATINGS).then((r) => {
+      const d = r.data?.data ?? r.data ?? {};
+      return {
+        averageRating: Number(d.averageRating) || 0,
+        totalReviews: Number(d.totalReviews) || 0,
+        positivePercent: Number(d.positivePercent) || 0,
+        breakdown: typeof d.breakdown === "object" && d.breakdown !== null ? d.breakdown : {},
+      };
     }),
 
   getListings: (): Promise<Listing[]> =>

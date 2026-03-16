@@ -51,6 +51,7 @@ export const API_PATHS = {
   SELLER: {
     DASHBOARD: "/seller/dashboard",
     ORDERS: "/seller/orders",
+    RATINGS: "/seller/ratings",
     LISTINGS: "/seller/listings",
     LISTING_BY_ID: (id: string) => `/seller/listings/${id}`,
     LISTING_SUBMIT: (id: string) => `/seller/listings/${id}/submit`,
