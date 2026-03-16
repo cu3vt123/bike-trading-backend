@@ -1,11 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useState, useRef, useEffect } from "react";
-import { Search, ShoppingCart, Bell, Sun, Moon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Search, ShoppingCart, Bell, Sun, Moon, Globe, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { syncSellerOrderNotifications } from "@/services/sellerService";
 import { useTheme } from "@/app/providers/ThemeProvider";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -19,14 +21,31 @@ export function Header() {
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [langOpen, setLangOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.role);
   const clearTokens = useAuthStore((s) => s.clearTokens);
   const items = useNotificationStore((s) => s.items);
+  const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
+  const { lang, setLang } = useLanguageStore();
   const [isAtTop, setIsAtTop] = useState(true);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.lang = lang === "vi" ? "vi" : "en";
+  }, [lang]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    if (langOpen) document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [langOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,10 +108,10 @@ export function Header() {
 
   useEffect(() => {
     if (!accessToken || role !== "SELLER") return;
-    syncSellerOrderNotifications();
-    const intervalId = setInterval(syncSellerOrderNotifications, 10_000);
+    syncSellerOrderNotifications(t);
+    const intervalId = setInterval(() => syncSellerOrderNotifications(t), 10_000);
     return () => clearInterval(intervalId);
-  }, [accessToken, role]);
+  }, [accessToken, role, t]);
 
 
   const unreadCount = role ? items.filter((x) => x.role === role && !x.read).length : 0;
@@ -113,8 +132,8 @@ export function Header() {
             type="button"
             onClick={() => setSearchOpen((o) => !o)}
             className="flex shrink-0 rounded-lg p-1.5 text-muted-foreground transition-all duration-200 hover:bg-muted/40 hover:text-foreground"
-            title="Tìm kiếm"
-            aria-label="Tìm kiếm"
+            title={t("header.search")}
+            aria-label={t("header.search")}
           >
             <Search className="h-5 w-5" strokeWidth={1.5} />
           </button>
@@ -130,23 +149,57 @@ export function Header() {
                   setSearchQuery("");
                   setSearchOpen(false);
                 }}
-                placeholder="Tìm xe..."
+                placeholder={t("common.searchPlaceholder")}
                 className="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring/40"
-                aria-label="Tìm kiếm xe"
+                aria-label={t("header.searchBikes")}
               />
             </form>
           )}
         </div>
 
-        {/* Giữa: Hỗ trợ | Logo | Danh sách xe – hai bên cùng rộng để logo căn giữa đều */}
+        {/* Giữa: Ngôn ngữ | Hỗ trợ | Logo | Danh sách xe */}
         <nav
           className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-sm text-muted-foreground"
         >
+          <div className="relative" ref={langRef}>
+            <button
+              type="button"
+              onClick={() => setLangOpen((o) => !o)}
+              className="flex items-center gap-1 rounded-lg py-1.5 pl-2 pr-1.5 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground"
+              title={t("common.language")}
+              aria-label={t("common.language")}
+              aria-expanded={langOpen}
+            >
+              <Globe className="h-4 w-4" strokeWidth={1.5} />
+              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", langOpen && "rotate-180")} />
+            </button>
+            {langOpen && (
+              <div className="absolute left-0 top-full z-50 mt-1 min-w-[8rem] rounded-lg border border-border bg-popover py-1 shadow-md">
+                {(["vi", "en"] as const).map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => {
+                      setLang(l);
+                      setLangOpen(false);
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                      lang === l && "bg-accent/80 font-medium text-accent-foreground",
+                    )}
+                  >
+                    {l === "vi" ? t("common.vietnamese") : t("common.english")}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <span className="text-muted-foreground/50">|</span>
           <Link
             to="/support"
             className="min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground sm:min-w-[6rem]"
           >
-            Hỗ trợ
+            {t("common.support")}
           </Link>
           <span className="text-muted-foreground/50">|</span>
           <Link
@@ -161,7 +214,7 @@ export function Header() {
             onClick={onListings}
             className="min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground sm:min-w-[6rem]"
           >
-            Danh sách xe
+            {t("common.vehicleList")}
           </button>
         </nav>
 
@@ -173,7 +226,7 @@ export function Header() {
             size="icon"
             className="h-8 w-8 rounded-full border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={toggleTheme}
-            aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
+            aria-label={theme === "dark" ? t("header.themeLight") : t("header.themeDark")}
           >
             {theme === "dark" ? (
               <Sun className="h-4 w-4" />
@@ -186,8 +239,8 @@ export function Header() {
             <Link
               to="/wishlist"
               className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              title="Yêu thích"
-              aria-label="Yêu thích"
+              title={t("common.wishlist")}
+              aria-label={t("common.wishlist")}
             >
               <ShoppingCart className="h-4 w-4" strokeWidth={1.6} />
             </Link>
@@ -199,13 +252,13 @@ export function Header() {
                 to="/register"
                 className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
               >
-                Đăng ký
+                {t("common.register")}
               </Link>
               <button
                 onClick={onLogin}
                 className="rounded-lg border border-border bg-card px-4 py-2 font-light tracking-wide text-foreground backdrop-blur-sm transition-all duration-200 hover:border-ring hover:bg-muted hover:text-foreground"
               >
-                Đăng nhập
+                {t("common.login")}
               </button>
             </>
           ) : (
@@ -216,7 +269,7 @@ export function Header() {
                     onClick={onSellerDashboard}
                     className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
                   >
-                    Kênh người bán
+                    {t("header.sellerChannel")}
                   </button>
                   <span className="text-muted-foreground/50">|</span>
                 </>
@@ -227,7 +280,7 @@ export function Header() {
                     onClick={() => navigate("/admin")}
                     className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
                   >
-                    Kênh admin
+                    {t("header.adminChannel")}
                   </button>
                   <span className="text-muted-foreground/50">|</span>
                 </>
@@ -238,7 +291,7 @@ export function Header() {
                     onClick={onInspectorDashboard}
                     className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
                   >
-                    Kiểm định viên
+                    {t("header.inspector")}
                   </button>
                   <span className="text-muted-foreground/50">|</span>
                 </>
@@ -247,8 +300,8 @@ export function Header() {
                 type="button"
                 onClick={onNotifications}
                 className="relative rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                title="Thông báo"
-                aria-label="Thông báo"
+                title={t("header.notifications")}
+                aria-label={t("header.notifications")}
               >
                 <Bell className="h-4 w-4" strokeWidth={1.6} />
                 {unreadCount > 0 && (
@@ -261,13 +314,13 @@ export function Header() {
                 onClick={onProfile}
                 className="rounded-lg border border-border bg-card px-3 py-2 font-light tracking-wide text-muted-foreground backdrop-blur-sm transition-all duration-200 hover:border-ring hover:bg-muted hover:text-foreground"
               >
-                Hồ sơ
+                {t("header.profile")}
               </button>
               <button
                 onClick={onLogout}
                 className="rounded-lg border border-border bg-card px-4 py-2 font-light tracking-wide text-muted-foreground backdrop-blur-sm transition-all duration-200 hover:border-ring hover:bg-muted hover:text-foreground"
               >
-                Đăng xuất
+                {t("common.logout")}
               </button>
             </>
           )}

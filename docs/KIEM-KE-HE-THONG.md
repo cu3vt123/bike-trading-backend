@@ -28,6 +28,7 @@ c:\SWP\frontend\
 │   ├── features/          # auth, bikes, buyer, landing, seller, support, inspector
 │   ├── layouts/           # MainLayout
 │   ├── lib/               # apiConfig, apiClient, orderOverrides, workflow, validateExpiry
+│   ├── locales/           # vi.json, en.json – i18n (react-i18next)
 │   ├── mocks/             # mockListings, bikeApi.mock
 │   ├── pages/             # AdminDashboard, InspectorDashboard, Checkout, Profile, ...
 │   ├── services/          # buyerService, sellerService, adminService, inspectorService, reviewService

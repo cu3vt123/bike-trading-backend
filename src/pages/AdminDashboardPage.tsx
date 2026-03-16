@@ -22,7 +22,12 @@ import {
   fetchAdminListings,
   hideAdminListing,
   unhideAdminListing,
+  fetchAdminBrands,
+  createAdminBrand,
+  updateAdminBrand,
+  deleteAdminBrand,
   type AdminStats,
+  type AdminBrand,
 } from "@/services/adminService";
 import { fetchAdminReviews, adminUpdateReview } from "@/services/reviewService";
 import type { Order } from "@/types/order";
@@ -99,6 +104,12 @@ export default function AdminDashboardPage() {
   const [unhidingUserId, setUnhidingUserId] = useState<string | null>(null);
   const [hidingListingId, setHidingListingId] = useState<string | null>(null);
   const [unhidingListingId, setUnhidingListingId] = useState<string | null>(null);
+  const [brands, setBrands] = useState<AdminBrand[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+  const [addingBrand, setAddingBrand] = useState(false);
+  const [editingBrandId, setEditingBrandId] = useState<string | null>(null);
+  const [editingBrandName, setEditingBrandName] = useState("");
 
   const loadStats = useCallback(() => {
     fetchAdminStats().then(setStats).catch(() => setStats(null));
@@ -129,6 +140,13 @@ export default function AdminDashboardPage() {
       .then(setReviews)
       .catch(() => setReviews([]));
   }, []);
+  const loadBrands = useCallback(() => {
+    setBrandsLoading(true);
+    fetchAdminBrands()
+      .then(setBrands)
+      .catch(() => setBrands([]))
+      .finally(() => setBrandsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadStats();
@@ -145,6 +163,9 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (activeTab === "reviews") loadReviews();
   }, [activeTab, loadReviews]);
+  useEffect(() => {
+    if (activeTab === "categories") loadBrands();
+  }, [activeTab, loadBrands]);
 
   async function handleConfirmWarehouse(orderId: string) {
     setConfirmingId(orderId);
@@ -198,6 +219,42 @@ export default function AdminDashboardPage() {
       loadStats();
     } finally {
       setUnhidingListingId(null);
+    }
+  }
+
+  async function handleAddBrand() {
+    const name = newBrandName.trim();
+    if (!name) return;
+    setAddingBrand(true);
+    try {
+      const created = await createAdminBrand({ name });
+      setBrands((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewBrandName("");
+    } finally {
+      setAddingBrand(false);
+    }
+  }
+
+  async function handleSaveBrand(id: string) {
+    const name = editingBrandName.trim();
+    if (!name) return;
+    try {
+      const updated = await updateAdminBrand(id, { name });
+      setBrands((prev) => prev.map((b) => (b.id === id ? updated : b)).sort((a, b) => a.name.localeCompare(b.name)));
+      setEditingBrandId(null);
+      setEditingBrandName("");
+    } catch {
+      // ignore
+    }
+  }
+
+  async function handleDeleteBrand(id: string) {
+    if (!window.confirm(t("admin.brandsDeleteConfirm"))) return;
+    try {
+      await deleteAdminBrand(id);
+      setBrands((prev) => prev.filter((b) => b.id !== id));
+    } catch {
+      // ignore
     }
   }
 
@@ -296,7 +353,7 @@ export default function AdminDashboardPage() {
                             {order.listing?.brand} {order.listing?.model ?? order.listingId}
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            Đơn {order.id} · {t(`order.status${order.status}` as "order.statusRESERVED") ?? order.status} · {formatMoney(order.totalPrice)}
+                            {t("admin.order")} {order.id} · {t(`order.status${order.status}` as "order.statusRESERVED") ?? order.status} · {formatMoney(order.totalPrice)}
                           </div>
                         </div>
                         <Button
@@ -304,7 +361,7 @@ export default function AdminDashboardPage() {
                           onClick={() => handleConfirmWarehouse(order.id)}
                           disabled={confirmingId === order.id}
                         >
-                          {confirmingId === order.id ? "Đang xác nhận..." : "Xác nhận xe đã tới kho"}
+                          {confirmingId === order.id ? t("admin.confirming") : t("admin.confirmArrival")}
                         </Button>
                       </div>
                     ))}
@@ -753,6 +810,72 @@ export default function AdminDashboardPage() {
                     </table>
                   </div>
                 )}
+
+                <div className="mt-6 rounded-lg border border-border bg-card p-4">
+                  <h3 className="text-sm font-semibold text-foreground">{t("admin.brandsTitle")}</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t("admin.brandsDesc")}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <input
+                      type="text"
+                      value={newBrandName}
+                      onChange={(e) => setNewBrandName(e.target.value)}
+                      placeholder={t("admin.brandsAddPlaceholder")}
+                      className="flex-1 min-w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      onKeyDown={(e) => e.key === "Enter" && handleAddBrand()}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleAddBrand}
+                      disabled={!newBrandName.trim() || addingBrand}
+                    >
+                      {addingBrand ? t("admin.brandsAdding") : t("admin.brandsAdd")}
+                    </Button>
+                  </div>
+                  {brandsLoading ? (
+                    <div className="mt-3 flex justify-center py-4">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  ) : brands.length === 0 ? (
+                    <p className="mt-3 text-sm text-muted-foreground">{t("admin.brandsEmpty")}</p>
+                  ) : (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {brands.filter((b) => b.active !== false).map((b) => (
+                        <div
+                          key={b.id}
+                          className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm"
+                        >
+                          {editingBrandId === b.id ? (
+                            <>
+                              <input
+                                type="text"
+                                value={editingBrandName}
+                                onChange={(e) => setEditingBrandName(e.target.value)}
+                                className="w-32 rounded border border-input bg-background px-2 py-1 text-xs"
+                                autoFocus
+                              />
+                              <Button size="xs" variant="outline" onClick={() => handleSaveBrand(b.id)}>
+                                {t("admin.categoriesSave")}
+                              </Button>
+                              <Button size="xs" variant="ghost" onClick={() => { setEditingBrandId(null); setEditingBrandName(""); }}>
+                                {t("admin.categoriesCancel")}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-medium">{b.name}</span>
+                              <Button size="xs" variant="ghost" onClick={() => { setEditingBrandId(b.id); setEditingBrandName(b.name); }}>
+                                {t("admin.brandsEdit")}
+                              </Button>
+                              <Button size="xs" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDeleteBrand(b.id)}>
+                                {t("admin.categoriesDelete")}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}

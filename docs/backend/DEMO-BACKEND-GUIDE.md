@@ -121,6 +121,7 @@ Response chi tiết và ví dụ JSON: xem `docs/HUONG-DAN-BACKEND.md`.
 - `POST /api/seller/listings`
 - `PUT /api/seller/listings/:id`
 - `PUT /api/seller/listings/:id/submit`
+- `GET /api/seller/ratings` – tổng hợp điểm đánh giá seller (average, breakdown, positivePercent) từ collection Review
 
 Luồng chính:
 
@@ -128,7 +129,15 @@ Luồng chính:
 2. Gửi `submit` → backend set `state = PENDING_INSPECTION`.
 3. Inspector thấy listing trong danh sách pending.
 
-### 5.5 Inspector (FE2)
+### 5.5 Brands (public + admin)
+
+- `GET /api/brands` – danh sách brand đang active cho seller form & filter Home.
+- `GET /api/admin/brands` – danh sách đầy đủ cho Admin Dashboard.
+- `POST /api/admin/brands` – tạo brand mới.
+- `PUT /api/admin/brands/:id` – cập nhật brand.
+- `DELETE /api/admin/brands/:id` – xóa brand.
+
+### 5.6 Inspector (FE2)
 
 - `GET /api/inspector/pending-listings`
 - `GET /api/inspector/listings/:id`

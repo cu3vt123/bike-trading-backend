@@ -1,14 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Listing, BikeCondition } from "@/types/shopbike";
-
-const CONDITION_VI: Partial<Record<BikeCondition, string>> = {
-  NEW: "Mới",
-  LIKE_NEW: "Như mới",
-  MINT_USED: "Rất tốt",
-  GOOD_USED: "Tốt",
-  FAIR_USED: "Khá",
-};
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
 import { Button } from "@/components/ui/button";
@@ -27,7 +20,16 @@ type Props = {
   showWishlist?: boolean;
 };
 
+const CONDITION_KEYS: Partial<Record<BikeCondition, string>> = {
+  NEW: "listing.conditionNew",
+  LIKE_NEW: "listing.conditionLikeNew",
+  MINT_USED: "listing.conditionMintShort",
+  GOOD_USED: "listing.conditionGoodShort",
+  FAIR_USED: "listing.conditionFairShort",
+};
+
 export default function ListingCard({ listing, showWishlist = true }: Props) {
+  const { t } = useTranslation();
   const role = useAuthStore((s) => s.role);
   const inWishlist = useWishlistStore((s) => s.ids.has(listing.id));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
@@ -59,7 +61,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
 
         {isVerified && (
           <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
-            Đã kiểm định
+            {t("listing.inspected")}
           </div>
         )}
         {canWishlist && (
@@ -73,7 +75,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
                 e.stopPropagation();
                 toggleWishlist(listing.id);
               }}
-              aria-label={inWishlist ? "Bỏ khỏi yêu thích" : "Thêm vào yêu thích"}
+              aria-label={inWishlist ? t("listing.removeFromWishlist") : t("listing.addToWishlist")}
             >
               <Heart
                 className={`h-4 w-4 transition-colors ${inWishlist ? "fill-primary text-primary" : ""}`}
@@ -109,8 +111,8 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {listing.year && <span>{listing.year}</span>}
-          {listing.frameSize && <span>Kích thước {listing.frameSize}</span>}
-          {listing.condition && <span>{CONDITION_VI[listing.condition] ?? listing.condition}</span>}
+          {listing.frameSize && <span>{t("listing.frameSizePrefix")} {listing.frameSize}</span>}
+          {listing.condition && <span>{CONDITION_KEYS[listing.condition] ? t(CONDITION_KEYS[listing.condition]) : listing.condition}</span>}
           {listing.location && (
             <span className="truncate">• {listing.location}</span>
           )}

@@ -31,8 +31,14 @@ export const useAuthStore = create<AuthState>()(
           role,
         }),
 
-      clearTokens: () =>
-        set({ accessToken: null, refreshToken: null, role: null }),
+      clearTokens: () => {
+        set({ accessToken: null, refreshToken: null, role: null });
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("auth-storage");
+          } catch {}
+        }
+      },
     }),
     {
       name: "auth-storage",

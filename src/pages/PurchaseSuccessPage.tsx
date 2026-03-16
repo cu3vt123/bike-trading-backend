@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -29,13 +30,14 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   }).format(value);
 }
 
-function formatPaymentMethod(pm?: PaymentMethod) {
+function formatPaymentMethod(pm: PaymentMethod | undefined, t: (k: string) => string) {
   if (!pm) return "—";
   if (pm.type === "CARD") return `${pm.brand} •••• ${pm.last4}`;
-  return "Chuyển khoản ngân hàng";
+  return t("checkout.successBankTransfer");
 }
 
 export default function PurchaseSuccessPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,7 +65,7 @@ export default function PurchaseSuccessPage() {
         if (!cancelled) setListing(data ?? null);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? "Không tải được tin đăng.");
+        if (!cancelled) setError(err?.message ?? t("checkout.successLoadError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -71,7 +73,7 @@ export default function PurchaseSuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     if (loading || error || !listing) return;
@@ -80,13 +82,13 @@ export default function PurchaseSuccessPage() {
       addNotification({
         role: "BUYER",
         type: "success",
-        title: "Mua hàng thành công",
-        message: "Đơn hàng của bạn đã được xác nhận.",
+        title: t("checkout.successPurchaseTitle"),
+        message: t("checkout.successOrderConfirmedMsg"),
         link: "/profile",
         sourceKey: `order-success-${state.orderId}`,
       });
     }
-  }, [loading, error, listing, state.orderId, addNotification]);
+  }, [loading, error, listing, state.orderId, addNotification, t]);
 
   const currency = (listing?.currency ?? "VND") as "VND" | "USD";
   const total = state.totalPrice ?? listing?.price ?? 0;
@@ -96,11 +98,11 @@ export default function PurchaseSuccessPage() {
   async function handleSubmitReview() {
     setFormError(null);
     if (!state.orderId || !listing?.id || !listing.seller?.id) {
-      setFormError("Thiếu thông tin đơn hàng để đánh giá.");
+      setFormError(t("checkout.successMissingOrder"));
       return;
     }
     if (!rating || rating < 1 || rating > 5) {
-      setFormError("Vui lòng chọn số sao từ 1 đến 5.");
+      setFormError(t("checkout.successErrRating"));
       return;
     }
     setSubmittingReview(true);
@@ -116,19 +118,19 @@ export default function PurchaseSuccessPage() {
       addNotification({
         role: "BUYER",
         type: "success",
-        title: "Đánh giá đã được gửi",
-        message: "Cảm ơn bạn đã phản hồi trải nghiệm mua hàng.",
+        title: t("checkout.successReviewSubmittedTitle"),
+        message: t("checkout.successReviewSubmittedMsg"),
         link: "/profile",
       });
     } catch (err) {
       const msg = err instanceof Error
         ? err.message
-        : "Không gửi được đánh giá. Vui lòng thử lại.";
+        : t("checkout.successSubmitReviewError");
       setFormError(msg);
       addNotification({
         role: "BUYER",
         type: "error",
-        title: "Gửi đánh giá thất bại",
+        title: t("checkout.successReviewFailTitle"),
         message: msg,
         link: "/profile",
       });
@@ -141,7 +143,7 @@ export default function PurchaseSuccessPage() {
     return (
       <div className="mx-auto flex max-w-4xl flex-col items-center justify-center gap-3 py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Đang tải...</p>
+        <p className="text-sm text-muted-foreground">{t("checkout.successLoading")}</p>
       </div>
     );
   }
@@ -150,12 +152,12 @@ export default function PurchaseSuccessPage() {
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Không thể mở trang thành công</h1>
+          <h1 className="text-lg font-semibold">{t("checkout.successPageError")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {error ?? "Thiếu thông tin tin đăng."}
+            {error ?? t("checkout.successLoadError")}
           </p>
           <Button asChild variant="link" className="mt-4">
-            <Link to="/">Về trang chủ</Link>
+            <Link to="/">{t("checkout.goHome")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -170,26 +172,26 @@ export default function PurchaseSuccessPage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1 text-xs font-semibold text-primary">
                 <CheckCircle className="h-4 w-4" />
-                Thanh toán thành công
+                {t("checkout.successPaymentSuccess")}
               </div>
               <h1 className="mt-3 text-2xl font-semibold">
-                Đơn hàng đã hoàn tất
+                {t("checkout.successOrderCompleted")}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Giao dịch của bạn đã được xác nhận.
+                {t("checkout.successTransactionConfirmed")}
               </p>
               {state.orderId && (
                 <p className="mt-3 text-sm">
-                  Order ID: <span className="font-semibold">{state.orderId}</span>
+                  {t("checkout.successOrderId")}: <span className="font-semibold">{state.orderId}</span>
                 </p>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => navigate("/profile", { replace: true })} variant="outline">
-                Xem đơn hàng của tôi
+                {t("checkout.successViewMyOrders")}
               </Button>
               <Button onClick={() => navigate("/", { replace: true })}>
-                Tiếp tục mua sắm
+                {t("checkout.successContinueShopping")}
               </Button>
             </div>
           </div>
@@ -197,39 +199,39 @@ export default function PurchaseSuccessPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold">Xe</div>
+                <div className="text-sm font-semibold">{t("checkout.successBike")}</div>
                 <p className="mt-2 text-sm">{listing.brand} {listing.model ?? ""}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {listing.year ?? "—"} • {listing.frameSize ?? "—"} •{" "}
                   {listing.location ?? "—"}
                 </p>
                 <Button asChild variant="outline" size="sm" className="mt-4">
-                  <Link to={`/bikes/${listing.id}`}>Xem tin đăng</Link>
+                  <Link to={`/bikes/${listing.id}`}>{t("checkout.successViewListing")}</Link>
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold">Thanh toán</div>
+                <div className="text-sm font-semibold">{t("checkout.successPayment")}</div>
                 <div className="mt-3 space-y-2 rounded-lg border p-4 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tổng</span>
+                    <span className="text-muted-foreground">{t("checkout.successTotal")}</span>
                     <span className="font-semibold">{formatMoney(total, currency)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Đã đặt cọc</span>
+                    <span className="text-muted-foreground">{t("checkout.successDepositPaid")}</span>
                     <span className="font-semibold">{formatMoney(deposit, currency)}</span>
                   </div>
                   <div className="flex justify-between border-t pt-2">
-                    <span className="text-muted-foreground">Số dư</span>
+                    <span className="text-muted-foreground">{t("checkout.successBalanceDue")}</span>
                     <span className="font-semibold">{formatMoney(due, currency)}</span>
                   </div>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Phương thức:{" "}
+                  {t("checkout.successPaymentMethod")}:{" "}
                   <span className="font-semibold">
-                    {formatPaymentMethod(state.paymentMethod)}
+                    {formatPaymentMethod(state.paymentMethod, t)}
                   </span>
                 </p>
               </CardContent>
@@ -242,9 +244,9 @@ export default function PurchaseSuccessPage() {
         <CardContent className="pt-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <div className="text-sm font-semibold">Đánh giá trải nghiệm mua hàng</div>
+              <div className="text-sm font-semibold">{t("checkout.successReviewTitle")}</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Đánh giá của bạn giúp người mua khác và ảnh hưởng tới điểm uy tín của người bán. Admin có thể xem và duyệt các đánh giá.
+                {t("checkout.successReviewDesc")}
               </p>
             </div>
           </div>
@@ -258,7 +260,7 @@ export default function PurchaseSuccessPage() {
                   className={`text-2xl ${
                     v <= rating ? "text-primary" : "text-muted-foreground"
                   }`}
-                  aria-label={`Đánh giá ${v} sao`}
+                  aria-label={t("checkout.successRatingAria", { count: v })}
                 >
                   ★
                 </button>
@@ -271,7 +273,7 @@ export default function PurchaseSuccessPage() {
               <textarea
                 className="mt-2 w-full rounded-md border border-border bg-background p-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/40"
                 rows={2}
-                placeholder="Chia sẻ ngắn gọn về xe, giao dịch, giao hàng..."
+                placeholder={t("checkout.successReviewPlaceholder")}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
@@ -282,7 +284,7 @@ export default function PurchaseSuccessPage() {
           )}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Đánh giá sẽ hiển thị sau khi được hệ thống ghi nhận. Admin có thể chỉnh sửa hoặc ẩn đánh giá nếu phát hiện vi phạm.
+              {t("checkout.successReviewDisclaimer")}
             </p>
             <Button
               size="sm"
@@ -290,23 +292,23 @@ export default function PurchaseSuccessPage() {
               disabled={submittingReview || reviewSubmitted}
             >
               {reviewSubmitted
-                ? "Đã gửi đánh giá"
+                ? t("checkout.successReviewSubmitted")
                 : submittingReview
-                  ? "Đang gửi..."
-                  : "Gửi đánh giá"}
+                  ? t("checkout.successSubmitting")
+                  : t("checkout.successSubmitReview")}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Cảm ơn bạn đã mua sắm tại ShopBike. Đơn hàng được lưu tại{" "}
+        {t("checkout.successThankYou")}{" "}
         <button
           type="button"
           onClick={() => navigate("/profile")}
           className="font-medium text-primary hover:underline"
         >
-          Hồ sơ → Đơn hàng của tôi
+          {t("checkout.successProfileOrders")}
         </button>
         .
       </p>

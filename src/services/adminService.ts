@@ -184,3 +184,25 @@ export async function hideAdminListing(id: string): Promise<Listing> {
 export async function unhideAdminListing(id: string): Promise<Listing> {
   return await adminApi.unhideListing(id);
 }
+
+export type AdminBrand = { id: string; name: string; slug?: string; active?: boolean };
+
+export async function fetchAdminBrands(): Promise<AdminBrand[]> {
+  try {
+    return await adminApi.getBrands();
+  } catch {
+    return [];
+  }
+}
+
+export async function createAdminBrand(data: { name: string; slug?: string }): Promise<AdminBrand> {
+  return await adminApi.createBrand(data);
+}
+
+export async function updateAdminBrand(id: string, data: { name?: string; slug?: string; active?: boolean }): Promise<AdminBrand> {
+  return await adminApi.updateBrand(id, data);
+}
+
+export async function deleteAdminBrand(id: string): Promise<void> {
+  await adminApi.deleteBrand(id);
+}

@@ -11,6 +11,7 @@ import { buyerRoutes } from "./routes/buyerRoutes.js";
 import { sellerRoutes } from "./routes/sellerRoutes.js";
 import { inspectorRoutes } from "./routes/inspectorRoutes.js";
 import { adminRoutes } from "./routes/adminRoutes.js";
+import { brandsRoutes } from "./routes/brandsRoutes.js";
 import { notFound } from "./utils/http.js";
 import { defaultErrorHandler } from "./middlewares/error.middlewares.js";
 
@@ -35,6 +36,7 @@ app.use("/api/buyer", buyerRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/inspector", inspectorRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/brands", brandsRoutes);
 
 app.use((_req, res) => notFound(res, "Route not found"));
 

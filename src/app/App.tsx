@@ -1,7 +1,10 @@
 import { RouterProvider } from "@/app/providers";
+import { ThemeProvider } from "@/app/providers/ThemeProvider";
 
 export default function App() {
   return (
-    <RouterProvider />
+    <ThemeProvider>
+      <RouterProvider />
+    </ThemeProvider>
   );
 }

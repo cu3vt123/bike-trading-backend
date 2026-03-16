@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
-import type { BikeDetail } from "@/types/shopbike";
+import type { BikeDetail, BikeCondition } from "@/types/shopbike";
 import { fetchListingById } from "@/services/buyerService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,7 +15,12 @@ import {
 } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
-import { INSPECTION_ROW_LABELS, INSPECTION_OVERALL_LABEL } from "@/constants/inspection";
+
+const INSPECTION_ROW_KEYS = {
+  frameIntegrity: "listing.inspectionFrameIntegrity",
+  drivetrainHealth: "listing.inspectionDrivetrain",
+  brakingSystem: "listing.inspectionBraking",
+} as const;
 
 type NavState = { listing?: BikeDetail };
 
@@ -32,17 +38,26 @@ function Stars({ value }: { value: number }) {
   return <span className="text-primary">{stars}</span>;
 }
 
-function scoreToLevelLabel(score: number): string {
-  if (!score || Number.isNaN(score)) return "—";
-  if (score >= 4.7) return "Xuất sắc";
-  if (score >= 4.0) return "Tốt";
-  if (score >= 3.3) return "Khá tốt";
-  if (score >= 2.3) return "Trung bình";
-  if (score > 0) return "Kém";
-  return "—";
+function getScoreLabelKey(score: number): string | null {
+  if (!score || Number.isNaN(score)) return null;
+  if (score >= 4.7) return "listing.scoreExcellent";
+  if (score >= 4.0) return "listing.scoreGood";
+  if (score >= 3.3) return "listing.scoreFair";
+  if (score >= 2.3) return "listing.scoreAverage";
+  if (score > 0) return "listing.scorePoor";
+  return null;
 }
 
+const CONDITION_KEYS: Partial<Record<BikeCondition, string>> = {
+  NEW: "listing.conditionNew",
+  LIKE_NEW: "listing.conditionLikeNew",
+  MINT_USED: "listing.conditionMintUsed",
+  GOOD_USED: "listing.conditionGoodUsed",
+  FAIR_USED: "listing.conditionFairUsed",
+};
+
 export default function ProductDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -74,7 +89,7 @@ export default function ProductDetailPage() {
         if (!cancelled) setListing(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? "Không tải được tin đăng.");
+        if (!cancelled) setError(err?.message ?? t("listing.loadError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -114,19 +129,11 @@ export default function ProductDetailPage() {
     return [];
   }, [listing]);
 
-  const CONDITION_VI: Record<string, string> = {
-    NEW: "Mới",
-    LIKE_NEW: "Như mới",
-    MINT_USED: "Rất tốt (đã dùng)",
-    GOOD_USED: "Tốt (đã dùng)",
-    FAIR_USED: "Khá (đã dùng)",
-  };
-
   if (loading) {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 py-28">
         <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm font-medium text-muted-foreground">Đang tải tin đăng...</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("listing.loading")}</p>
       </div>
     );
   }
@@ -135,12 +142,12 @@ export default function ProductDetailPage() {
     return (
       <Card className="mx-auto max-w-6xl border-border">
         <CardContent className="py-16 text-center">
-          <h1 className="text-xl font-bold">Không tìm thấy tin đăng</h1>
+          <h1 className="text-xl font-bold">{t("listing.notFound")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {error ?? "Tin đăng xe bạn tìm không tồn tại."}
+            {error ?? t("listing.notFoundDesc")}
           </p>
           <Button asChild variant="outline" className="mt-6">
-            <Link to="/">Về trang chủ</Link>
+            <Link to="/">{t("listing.goHome")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -159,14 +166,15 @@ export default function ProductDetailPage() {
   const isVerified =
     listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
   /** Luôn hiển thị đủ 3 hạng mục: có báo cáo thật thì dùng, không thì dùng điểm tổng thể cho cả 3 dòng */
+  const scoreKey = getScoreLabelKey(score);
   const displayReport =
     hasInspectionReport
       ? inspectionReport!
-      : isVerified && score > 0
+      : isVerified && score > 0 && scoreKey
         ? {
-            frameIntegrity: { score, label: scoreToLevelLabel(score) },
-            drivetrainHealth: { score, label: scoreToLevelLabel(score) },
-            brakingSystem: { score, label: scoreToLevelLabel(score) },
+            frameIntegrity: { score, label: t(scoreKey) },
+            drivetrainHealth: { score, label: t(scoreKey) },
+            brakingSystem: { score, label: t(scoreKey) },
           }
         : undefined;
   /** Hiển thị badge "Đã kiểm định" chỉ khi đã có báo cáo hoặc điểm, tránh mâu thuẫn với "Chưa có điểm kiểm định" */
@@ -179,7 +187,7 @@ export default function ProductDetailPage() {
       {/* breadcrumb */}
       <div className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to="/" className="transition-colors hover:text-foreground">
-          Trang chủ
+          {t("listing.home")}
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="font-medium text-foreground">
@@ -227,7 +235,7 @@ export default function ProductDetailPage() {
                   </div>
                   {images.length > 4 && (
                     <p className="mt-3 text-xs text-muted-foreground">
-                      +{images.length - 4} ảnh khác
+                      {t("listing.morePhotos", { count: images.length - 4 })}
                     </p>
                   )}
                 </div>
@@ -241,7 +249,7 @@ export default function ProductDetailPage() {
               {showVerifiedBadge && (
                 <Badge variant="default">
                   <Shield className="mr-1 h-3 w-3" />
-                  Sàn đã xác minh • Đã kiểm định
+                  {t("listing.verifiedAndInspected")}
                 </Badge>
               )}
               <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${showVerifiedBadge ? "bg-primary/10" : "bg-muted/80"}`}>
@@ -249,9 +257,9 @@ export default function ProductDetailPage() {
                 <span className="font-semibold text-foreground">
                   {score > 0 ? score.toFixed(1) : "0.0"}/5
                 </span>
-                <span className="text-muted-foreground">báo cáo nhà kiểm định</span>
+                <span className="text-muted-foreground">{t("listing.inspectionReport")}</span>
                 {!hasInspectionReport && !isVerified && (
-                  <span className="text-muted-foreground"> (Chưa có báo cáo)</span>
+                  <span className="text-muted-foreground"> {t("listing.noReportYet")}</span>
                 )}
               </div>
             </div>
@@ -265,14 +273,14 @@ export default function ProductDetailPage() {
           <Card className="border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
-                <span className="text-sm font-semibold">Báo cáo kiểm định</span>
+                <span className="text-sm font-semibold">{t("listing.inspectionReportTitle")}</span>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Nội dung do kiểm định viên điền khi duyệt tin, hiển thị cho người mua.
+                  {t("listing.inspectionReportDesc")}
                 </p>
               </div>
               {hasInspectionReport && (
                 <Button variant="link" size="sm" className="text-primary shrink-0" onClick={() => setReportOpen(true)}>
-                  Xem báo cáo đầy đủ
+                  {t("listing.viewFullReport")}
                 </Button>
               )}
             </CardHeader>
@@ -288,7 +296,7 @@ export default function ProductDetailPage() {
                       ] as const
                     ).map(({ key, label: value, score: s }) => (
                       <div key={key} className="rounded-xl border border-border bg-muted/50 p-4">
-                        <div className="text-xs text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</div>
+                        <div className="text-xs text-muted-foreground">{t(INSPECTION_ROW_KEYS[key])}</div>
                         <div className="mt-2 text-sm font-semibold text-foreground">{value}</div>
                         <div className="mt-1 text-xs">
                           <Stars value={s ?? 0} />{" "}
@@ -298,7 +306,7 @@ export default function ProductDetailPage() {
                     ))}
                   </div>
                   <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3">
-                    <span className="text-sm text-muted-foreground">{INSPECTION_OVERALL_LABEL}</span>
+                    <span className="text-sm text-muted-foreground">{t("listing.inspectionOverall")}</span>
                     <div className="flex items-center gap-2">
                       <Stars value={score} />
                       <span className="text-sm font-semibold text-foreground">{score.toFixed(1)}/5</span>
@@ -306,21 +314,21 @@ export default function ProductDetailPage() {
                   </div>
                   {!hasInspectionReport && isVerified && score > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      Điểm từng hạng mục trên dùng tạm từ điểm tổng thể. Mô tả chi tiết (nhận xét kiểm định viên) sẽ hiển thị khi có báo cáo đầy đủ.
+                      {t("listing.scoreFromOverall")}
                     </p>
                   )}
                 </div>
               ) : isPendingInspection ? (
                 <p className="py-2 text-sm text-muted-foreground">
-                  Đang chờ kiểm định. Kiểm định viên sẽ xem xét tin này và thêm báo cáo.
+                  {t("listing.pendingInspection")}
                 </p>
               ) : !isVerified ? (
                 <p className="py-2 text-sm text-muted-foreground">
-                  Chưa có báo cáo kiểm định.
+                  {t("listing.noInspectionReport")}
                 </p>
               ) : (
                 <p className="py-2 text-sm text-muted-foreground">
-                  Chưa có điểm kiểm định. Tin sẽ được cập nhật sau khi kiểm định viên duyệt.
+                  {t("listing.noInspectionScore")}
                 </p>
               )}
             </CardContent>
@@ -329,16 +337,16 @@ export default function ProductDetailPage() {
           {/* Specs */}
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Thông số kỹ thuật</span>
+              <span className="text-sm font-semibold">{t("listing.specsTitle")}</span>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
-                <SpecRow label="Hãng" value={listing.brand} />
-                <SpecRow label="Dòng xe" value={listing.model ?? "—"} />
-                <SpecRow label="Năm" value={listing.year ? String(listing.year) : "—"} />
-                <SpecRow label="Kích thước khung" value={listing.frameSize ?? "—"} />
-                <SpecRow label="Tình trạng" value={listing.condition ? (CONDITION_VI[listing.condition] ?? listing.condition) : "—"} />
-                <SpecRow label="Khu vực" value={listing.location ?? "—"} />
+                <SpecRow label={t("listing.brand")} value={listing.brand} />
+                <SpecRow label={t("listing.model")} value={listing.model ?? "—"} />
+                <SpecRow label={t("listing.year")} value={listing.year ? String(listing.year) : "—"} />
+                <SpecRow label={t("listing.frameSize")} value={listing.frameSize ?? "—"} />
+                <SpecRow label={t("listing.condition")} value={listing.condition ? (CONDITION_KEYS[listing.condition] ? t(CONDITION_KEYS[listing.condition]) : listing.condition) : "—"} />
+                <SpecRow label={t("listing.area")} value={listing.location ?? "—"} />
                 {specs.map((s, idx) => (
                   <SpecRow key={`${s.label}-${idx}`} label={s.label} value={String(s.value)} />
                 ))}
@@ -351,7 +359,7 @@ export default function ProductDetailPage() {
             <Dialog open={reportOpen} onOpenChange={setReportOpen}>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Báo cáo kiểm định</DialogTitle>
+                  <DialogTitle>{t("listing.inspectionReportTitle")}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   {(
@@ -362,7 +370,7 @@ export default function ProductDetailPage() {
                     ] as const
                   ).map(({ key, label: value, score: s }) => (
                     <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
-                      <span className="text-sm text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</span>
+                      <span className="text-sm text-muted-foreground">{t(INSPECTION_ROW_KEYS[key])}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-foreground">{value}</span>
                         <Stars value={s ?? 0} />
@@ -371,7 +379,7 @@ export default function ProductDetailPage() {
                     </div>
                   ))}
                   <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
-                    <span className="text-sm text-muted-foreground">{INSPECTION_OVERALL_LABEL}</span>
+                    <span className="text-sm text-muted-foreground">{t("listing.inspectionOverall")}</span>
                     <div className="flex items-center gap-2">
                       <Stars value={score} />
                       <span className="text-sm font-semibold">({score.toFixed(1)})</span>
@@ -390,18 +398,18 @@ export default function ProductDetailPage() {
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-xs text-muted-foreground">Tổng giá</div>
+                    <div className="text-xs text-muted-foreground">{t("listing.totalPrice")}</div>
                     <div className="mt-1 text-2xl font-bold">{formatMoney(price, currency)}</div>
                     {msrp && msrp > price && (
                       <div className="mt-1 text-xs text-muted-foreground line-through">
                         {formatMoney(msrp, currency)}
                       </div>
                     )}
-                    <p className="mt-2 text-xs text-primary">Đã bao gồm phí dịch vụ</p>
+                    <p className="mt-2 text-xs text-primary">{t("listing.serviceFeeIncluded")}</p>
                   </div>
                   <div className={`rounded-lg px-3 py-2 text-center ${isVerified ? "bg-primary/10 text-primary" : isPendingInspection ? "bg-warning/15 text-warning" : "bg-muted text-muted-foreground"}`}>
                     <div className="text-[10px] font-semibold">
-                      {isVerified ? "ĐÃ KIỂM ĐỊNH" : isPendingInspection ? "ĐANG CHỜ" : "KHÔNG BÁN"}
+                      {isVerified ? t("listing.statusInspected") : isPendingInspection ? t("listing.statusPending") : t("listing.statusNotAvailable")}
                     </div>
                     {isVerified && (
                       <div className="mt-1 text-xs">
@@ -418,7 +426,7 @@ export default function ProductDetailPage() {
                       size="icon"
                       className="shrink-0"
                       onClick={() => toggleWishlist(listing.id)}
-                      aria-label={inWishlist ? "Bỏ khỏi yêu thích" : "Thêm vào yêu thích"}
+                      aria-label={inWishlist ? t("listing.removeFromWishlist") : t("listing.addToWishlist")}
                     >
                       <Heart
                         className={`h-4 w-4 ${inWishlist ? "fill-primary text-primary" : ""}`}
@@ -432,7 +440,7 @@ export default function ProductDetailPage() {
                       onClick={() => setChatOpen(true)}
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
-                      Nhắn tin người bán
+                      {t("listing.messageSeller")}
                     </Button>
                   )}
                 </div>
@@ -442,35 +450,34 @@ export default function ProductDetailPage() {
                       className="mt-3 w-full"
                       onClick={() => navigate(`/checkout/${listing.id}`)}
                     >
-                      Mua ngay →
+                      {t("listing.buyNow")}
                     </Button>
                     <p className="mt-3 text-xs text-muted-foreground">
-                      Đặt chỗ có hiệu lực sau khi <span className="font-semibold">thanh toán đặt cọc</span>{" "}
-                      tại bước thanh toán và được giữ <span className="font-semibold">24 giờ</span>.
+                      {t("listing.reservationNote")}
                     </p>
                   </>
                 ) : isPendingInspection ? (
                   <div className="mt-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
-                    <span className="font-semibold">Đang chờ kiểm định.</span> Tin này đang được xem xét và chưa mở bán.
+                    {t("listing.pendingBlock")}
                   </div>
                 ) : (
                   <div className="mt-3 rounded-lg border border-muted bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-                    Tin này không khả dụng để mua.
+                    {t("listing.notAvailable")}
                   </div>
                 )}
 
                 <div className="mt-4 space-y-2 text-xs">
-                  <InfoLine title="Thanh toán an toàn" desc="Giao dịch được bảo vệ qua sàn" />
-                  <InfoLine title="Giao hàng bảo hiểm" desc="Hỗ trợ vận chuyển & bàn giao" />
+                  <InfoLine title={t("listing.securePayment")} desc={t("listing.securePaymentDesc")} />
+                  <InfoLine title={t("listing.insuredShipping")} desc={t("listing.insuredShippingDesc")} />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold">Người bán</div>
+                <div className="text-sm font-semibold">{t("listing.seller")}</div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {listing.seller?.name ?? "ProCyclist SF"} • 97% phản hồi • Đã xác minh
+                  {t("listing.sellerInfo", { name: listing.seller?.name ?? "ProCyclist SF" })}
                 </p>
                 <Button
                   variant="outline"
@@ -479,7 +486,7 @@ export default function ProductDetailPage() {
                   onClick={() => setChatOpen(true)}
                 >
                   <MessageCircle className="mr-2 h-3.5 w-3.5" />
-                  Nhắn tin
+                  {t("listing.message")}
                 </Button>
               </CardContent>
             </Card>
@@ -488,10 +495,10 @@ export default function ProductDetailPage() {
             <Dialog open={chatOpen} onOpenChange={setChatOpen}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Nhắn tin với người bán</DialogTitle>
+                  <DialogTitle>{t("listing.messageSellerTitle")}</DialogTitle>
                 </DialogHeader>
                 <div className="py-6 text-center text-sm text-muted-foreground">
-                  Chat trực tuyến sẽ có khi tích hợp Backend. Hiện bạn có thể liên hệ qua email{" "}
+                  {t("listing.chatPlaceholder")}{" "}
                   <a href="mailto:support@shopbike.example.com" className="ml-1 text-primary hover:underline">
                     support@shopbike.example.com
                   </a>.

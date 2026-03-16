@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { KeyRound, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,18 +23,21 @@ const PASSWORD_MAX = 64;
 const PASSWORD_UPPERCASE = /[A-Z]/;
 const PASSWORD_SPECIAL = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
 
-function validatePassword(password: string): string | null {
+function validatePassword(
+  password: string,
+  t: (key: string, opts?: object) => string
+): string | null {
   if (password.length < PASSWORD_MIN) {
-    return `Password must be ${PASSWORD_MIN}–${PASSWORD_MAX} characters.`;
+    return t("auth.errPasswordLength", { min: PASSWORD_MIN, max: PASSWORD_MAX });
   }
   if (password.length > PASSWORD_MAX) {
-    return `Password must be at most ${PASSWORD_MAX} characters.`;
+    return t("auth.errPasswordMax", { max: PASSWORD_MAX });
   }
   if (!PASSWORD_UPPERCASE.test(password)) {
-    return "Password must have at least 1 uppercase letter.";
+    return t("auth.errPasswordUppercase");
   }
   if (!PASSWORD_SPECIAL.test(password)) {
-    return "Password must have at least 1 special character.";
+    return t("auth.errPasswordSpecial");
   }
   return null;
 }
@@ -55,17 +59,17 @@ export default function ResetPasswordPage() {
 
     const token = tokenFromUrl?.trim();
     if (!token) {
-      setError("Reset link is invalid or expired.");
+      setError(t("auth.errResetLinkInvalid"));
       return;
     }
 
-    const pwdErr = validatePassword(password);
+    const pwdErr = validatePassword(password, t);
     if (pwdErr) {
       setError(pwdErr);
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("auth.errPasswordsMatch"));
       return;
     }
 
@@ -79,8 +83,7 @@ export default function ResetPasswordPage() {
       await authApi.resetPassword({ token, newPassword: password });
       setSuccess(true);
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Link may have expired. Please request a new one.";
+      const msg = err instanceof Error ? err.message : t("auth.errResetLinkExpired");
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -104,12 +107,12 @@ export default function ResetPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <KeyRound className="h-6 w-6" />
               </div>
-              <CardTitle>Đặt mật khẩu thành công</CardTitle>
-              <CardDescription>Bạn có thể đăng nhập bằng mật khẩu mới.</CardDescription>
+              <CardTitle>{t("auth.resetSuccessTitle")}</CardTitle>
+              <CardDescription>{t("auth.resetSuccessDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => navigate("/login", { replace: true })}>
-                Đăng nhập ngay
+                {t("auth.resetLoginNow")}
               </Button>
             </CardContent>
           </Card>
@@ -132,14 +135,12 @@ export default function ResetPasswordPage() {
         <main className="mx-auto flex min-h-[calc(100vh-56px)] max-w-6xl items-center justify-center px-4 py-10">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <CardTitle>Link không hợp lệ</CardTitle>
-              <CardDescription>
-                Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới từ trang Quên mật khẩu.
-              </CardDescription>
+              <CardTitle>{t("auth.resetInvalidTitle")}</CardTitle>
+              <CardDescription>{t("auth.resetInvalidDesc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" className="w-full" asChild>
-                <Link to="/forgot-password">Yêu cầu link mới</Link>
+                <Link to="/forgot-password">{t("auth.resetRequestNew")}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -167,10 +168,8 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Set new password</CardTitle>
-              <CardDescription>
-                Enter a new password for your account. Password must be 8–64 characters with at least 1 uppercase letter and 1 special character.
-              </CardDescription>
+              <CardTitle>{t("auth.resetFormTitle")}</CardTitle>
+              <CardDescription>{t("auth.resetFormSubtitle")}</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -182,7 +181,7 @@ export default function ResetPasswordPage() {
 
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">New password</Label>
+                  <Label htmlFor="password">{t("auth.newPasswordLabel")}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -193,7 +192,7 @@ export default function ResetPasswordPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm">Confirm password</Label>
+                  <Label htmlFor="confirm">{t("auth.confirmPasswordLabelReset")}</Label>
                   <Input
                     id="confirm"
                     type="password"
@@ -205,13 +204,13 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Processing..." : "Set new password"}
+                  {submitting ? t("auth.resetSubmitting") : t("auth.resetSubmit")}
                 </Button>
 
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Về trang đăng nhập
+                    {t("auth.resetBackToLogin")}
                   </Link>
                 </Button>
               </form>

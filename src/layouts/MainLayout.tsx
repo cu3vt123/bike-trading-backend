@@ -1,6 +1,7 @@
 // src/layouts/MainLayout.tsx
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Header } from "@/components/common/Header";
 
 type LayoutNavState = {
@@ -8,6 +9,7 @@ type LayoutNavState = {
 };
 
 export default function MainLayout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -39,14 +41,14 @@ export default function MainLayout() {
       <footer className="w-full border-t border-border bg-card">
         <div className="flex w-full flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6">
           <span className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ShopBike — Sàn đã xác minh &amp; kiểm định
+            © {new Date().getFullYear()} ShopBike — {t("footer.slogan")}
           </span>
           <div className="flex gap-6 text-sm">
             <Link to="/support" className="text-muted-foreground transition-colors hover:text-primary">
-              Hỗ trợ
+              {t("common.support")}
             </Link>
             <Link to="/#listings" className="text-muted-foreground transition-colors hover:text-primary">
-              Xem xe
+              {t("common.viewBikes")}
             </Link>
           </div>
         </div>

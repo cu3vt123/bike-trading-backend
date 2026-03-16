@@ -8,10 +8,11 @@
 src/
 ├── app/                    # App root, router, providers
 │   ├── App.tsx
-│   ├── router.tsx         # createBrowserRouter
+│   ├── router.tsx         # createBrowserRouter (không có route /cart)
 │   └── providers/
 │       ├── index.ts
-│       └── RouterProvider.tsx
+│       ├── RouterProvider.tsx
+│       └── ThemeProvider.tsx   # Dark/light mode, class "dark" trên html
 │
 ├── features/              # Theo từng tính năng
 │   ├── auth/              # Login, Register, Forgot, Reset
@@ -35,14 +36,19 @@ src/
 │   ├── env.ts             # env.API_URL, env.USE_MOCK_API
 │   ├── apiClient.ts
 │   ├── apiConfig.ts
-│   └── utils.ts
+│   ├── utils.ts
+│   └── validateExpiry.ts  # Kiểm tra ngày hết hạn thẻ (trả errorKey cho i18n)
+│
+├── locales/               # i18n (react-i18next)
+│   ├── vi.json            # Tiếng Việt
+│   └── en.json            # English
 │
 ├── apis/                  # (giữ tạm) authApi, bikeApi, buyerApi, ...
 ├── services/              # (giữ tạm) buyerService, sellerService, ...
 ├── pages/                 # (giữ tạm) Các page – features re-export từ đây
 ├── components/            # (giữ tạm) Header, ListingCard, ui
 ├── layouts/               # (giữ tạm) MainLayout
-├── stores/                # useAuthStore, useWishlistStore, useNotificationStore
+├── stores/                # useAuthStore, useWishlistStore, useNotificationStore, useLanguageStore
 ├── types/                 # auth, shopbike, order
 └── mocks/                 # Mock data
 ```

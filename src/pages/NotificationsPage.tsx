@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -8,6 +9,7 @@ import { syncSellerOrderNotifications } from "@/services/sellerService";
 import { Trash2 } from "lucide-react";
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const role = useAuthStore((s) => s.role);
   const items = useNotificationStore((s) => s.items);
   const markRead = useNotificationStore((s) => s.markRead);
@@ -26,23 +28,23 @@ export default function NotificationsPage() {
     if (role !== "SELLER") return;
     setSyncing(true);
     try {
-      await syncSellerOrderNotifications();
+      await syncSellerOrderNotifications(t);
     } finally {
       setSyncing(false);
     }
   }
 
   useEffect(() => {
-    if (role === "SELLER") syncSellerOrderNotifications();
-  }, [role]);
+    if (role === "SELLER") syncSellerOrderNotifications(t);
+  }, [role, t]);
 
   return (
     <div className="mx-auto w-full max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Thông báo</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("notifications.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Kho lưu trữ toàn bộ thông báo hệ thống của bạn.
+            {t("notifications.archive")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -53,7 +55,7 @@ export default function NotificationsPage() {
               onClick={handleCheckNewOrders}
               disabled={syncing}
             >
-              {syncing ? "Đang kiểm tra..." : "Kiểm tra đơn mới"}
+              {syncing ? t("notifications.checking") : t("notifications.checkNewOrders")}
             </Button>
           )}
           <Button
@@ -61,7 +63,7 @@ export default function NotificationsPage() {
             size="sm"
             onClick={() => setShowUnreadOnly((v) => !v)}
           >
-            {showUnreadOnly ? "Hiển thị tất cả" : "Hiển thị thông báo chưa đọc"}
+            {showUnreadOnly ? t("common.showAll") : t("common.showUnreadOnly")}
           </Button>
           <Button
             variant="outline"
@@ -69,19 +71,19 @@ export default function NotificationsPage() {
             onClick={() => clearReadForRole(role)}
             disabled={readCount === 0}
           >
-            Xóa tin đã đọc
+            {t("notifications.deleteRead")}
           </Button>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách thông báo</CardTitle>
+          <CardTitle>{t("notifications.listTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           {displayedItems.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              {showUnreadOnly ? "Không còn thông báo chưa đọc." : "Chưa có thông báo nào."}
+              {showUnreadOnly ? t("notifications.noUnread") : t("notifications.noNotifications")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -91,7 +93,9 @@ export default function NotificationsPage() {
                   className={`rounded-xl border p-4 ${n.read ? "border-border bg-card" : "border-primary/40 bg-primary/5"}`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-semibold text-foreground">{n.title}</div>
+                    <div className="font-semibold text-foreground">
+                      {n.titleKey ? t(n.titleKey, n.titleParams) : n.title}
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
                         {new Date(n.createdAt).toLocaleString()}
@@ -101,24 +105,26 @@ export default function NotificationsPage() {
                           type="button"
                           onClick={() => removeItem(n.id)}
                           className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                          title="Xóa"
-                          aria-label="Xóa thông báo"
+                          title={t("notifications.delete")}
+                          aria-label={t("notifications.deleteAria")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="mt-1 text-sm text-muted-foreground">{n.message}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {n.messageKey ? t(n.messageKey, n.messageParams) : n.message}
+                  </div>
                   <div className="mt-3 flex gap-2">
                     {!n.read && (
                       <Button variant="outline" size="sm" onClick={() => markRead(n.id)}>
-                        Đã đọc
+                        {t("notifications.markRead")}
                       </Button>
                     )}
                     {n.link && (
                       <Button asChild variant="outline" size="sm" onClick={() => markRead(n.id)}>
-                        <Link to={n.link}>Mở</Link>
+                        <Link to={n.link}>{t("notifications.open")}</Link>
                       </Button>
                     )}
                   </div>

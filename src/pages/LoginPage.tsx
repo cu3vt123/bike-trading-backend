@@ -10,6 +10,7 @@ import { Logo } from "@/components/common/Logo";
 import type { Role } from "@/types/auth";
 import { authApi } from "@/apis/authApi";
 import { useTheme } from "@/app/providers/ThemeProvider";
+import { useTranslation } from "react-i18next";
 import { Sun, Moon } from "lucide-react";
 
 type LocationState = {
@@ -57,12 +58,14 @@ export default function LoginPage() {
   const state = (location.state || {}) as LocationState;
 
   const setTokens = useAuthStore((s) => s.setTokens);
+  const clearTokens = useAuthStore((s) => s.clearTokens);
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroIndex, setHeroIndex] = useState(0);
+  const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -91,6 +94,7 @@ export default function LoginPage() {
         : await authApi.login({ emailOrUsername, password });
 
       const resolvedRole = (res as { role?: Role }).role ?? "BUYER";
+      clearTokens(); // Xóa state cũ + localStorage, tránh role cũ khi đổi tài khoản
       setTokens({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
@@ -98,7 +102,8 @@ export default function LoginPage() {
       });
 
       const target = resolvePostLoginPath(fromPath, resolvedRole);
-      navigate(target, { replace: true });
+      // Defer navigate để store update kịp propagate, tránh guard đọc role cũ
+      queueMicrotask(() => navigate(target, { replace: true }));
     } catch (err: any) {
       const backendMsg = err?.response?.data?.message;
       const msg =
@@ -106,7 +111,7 @@ export default function LoginPage() {
           ? backendMsg
           : err instanceof Error
             ? err.message
-            : "Sai thông tin đăng nhập. Vui lòng kiểm tra và thử lại.";
+            : t("auth.loginError");
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -146,10 +151,10 @@ export default function LoginPage() {
           <div className="flex items-center gap-3">
             <nav className="flex items-center gap-4 text-sm text-white/90">
               <Link to="/#listings" className="transition-colors hover:text-white">
-                Khám phá
+                {t("common.explore")}
               </Link>
               <Link to="/support" className="transition-colors hover:text-white">
-                Hỗ trợ
+                {t("common.support")}
               </Link>
             </nav>
             <Button
@@ -158,7 +163,7 @@ export default function LoginPage() {
               size="icon"
               className="h-8 w-8 rounded-full border border-white/15 bg-white/10 text-white/90 hover:bg-white/20 hover:text-white"
               onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
+              aria-label={theme === "dark" ? t("header.themeLight") : t("header.themeDark")}
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
@@ -174,8 +179,9 @@ export default function LoginPage() {
               <Logo variant="hero" />
             </Link>
             <p className="mt-6 text-lg font-bold leading-snug text-white sm:text-xl">
-              Để <span className="font-bold tracking-wide text-white">ShopBike</span> đồng hành
-              cùng <span className="text-primary">Bạn</span> bắt đầu chuyến đi mới
+              {t("auth.heroTaglinePrefix")}
+              <span className="text-primary">{t("auth.you")}</span>
+              {t("auth.heroTaglineSuffix")}
             </p>
           </div>
         </div>
@@ -188,8 +194,8 @@ export default function LoginPage() {
         >
           <div className="w-full max-w-[340px]">
             <h2 className={`mb-6 text-lg font-semibold leading-snug sm:text-xl ${theme === "dark" ? "text-white" : "text-foreground"}`}>
-              Chào mừng trở lại, hành trình mới đang đợi{" "}
-              <span className="text-primary">Bạn</span> cùng với{" "}
+              {t("auth.welcomeBack")}{" "}
+              <span className="text-primary">{t("auth.you")}</span> {t("auth.with")}{" "}
               <span className="font-bold tracking-wide text-primary">ShopBike</span>
             </h2>
             {error && (
@@ -202,7 +208,7 @@ export default function LoginPage() {
             <form onSubmit={onSubmit} className="space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="email" className={`text-sm ${theme === "dark" ? "text-white/80" : "text-foreground"}`}>
-                  Email / Tên đăng nhập
+                  {t("auth.emailOrUsername")}
                 </Label>
                 <Input
                   id="email"
@@ -218,7 +224,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password" className={`text-sm ${theme === "dark" ? "text-white/80" : "text-foreground"}`}>
-                  Mật khẩu
+                  {t("auth.password")}
                 </Label>
                 <Input
                   id="password"
@@ -233,13 +239,13 @@ export default function LoginPage() {
                 />
               </div>
               <Button type="submit" className="h-10 w-full" disabled={submitting}>
-                {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
+                {submitting ? t("common.loggingIn") : t("common.login")}
               </Button>
               <Link
                 to="/forgot-password"
                 className="block text-center text-sm text-primary hover:underline"
               >
-                Quên mật khẩu?
+                {t("auth.forgotPassword")}
               </Link>
               <div className={theme === "dark" ? "border-t border-white/15 pt-3" : "border-t border-border pt-3"}>
                 <Button
@@ -250,7 +256,7 @@ export default function LoginPage() {
                     : "h-10 w-full"}
                   asChild
                 >
-                  <Link to="/register">Tạo tài khoản mới</Link>
+                  <Link to="/register">{t("auth.createAccount")}</Link>
                 </Button>
               </div>
             </form>
@@ -260,7 +266,7 @@ export default function LoginPage() {
               className={theme === "dark" ? "mt-4 w-full text-white/70 hover:bg-white/10 hover:text-white" : "mt-4 w-full"}
               asChild
             >
-              <Link to="/">Tiếp tục xem</Link>
+              <Link to="/">{t("auth.continueBrowsing")}</Link>
             </Button>
           </div>
         </div>

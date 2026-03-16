@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { Mail, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Logo } from "@/components/common/Logo";
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function ForgotPasswordPage() {
       await authApi.forgotPassword(trimmed);
       setSuccess(true);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "An error occurred. Please try again.";
+      const msg = err instanceof Error ? err.message : t("auth.forgotGenericError");
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -72,20 +74,19 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Mail className="h-6 w-6" />
               </div>
-              <CardTitle>Kiểm tra email</CardTitle>
+              <CardTitle>{t("auth.checkEmailTitle")}</CardTitle>
               <CardDescription>
-                Nếu tài khoản với email <strong>{email}</strong> tồn tại, bạn sẽ nhận được
-                hướng dẫn đặt lại mật khẩu.
+                <Trans i18nKey="auth.checkEmailDesc" values={{ email }} components={{ 1: <strong /> }} />
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
-                Chưa nhận được email? Kiểm tra thư mục spam hoặc thử lại sau vài phút.
+                {t("auth.noEmailHint")}
               </p>
               <Button variant="outline" className="w-full" asChild>
                 <Link to="/login">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Về trang đăng nhập
+                  {t("auth.backToLogin")}
                 </Link>
               </Button>
             </CardContent>
@@ -104,10 +105,10 @@ export default function ForgotPasswordPage() {
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/#listings" className="text-muted-foreground hover:text-foreground">
-              Khám phá
+              {t("common.explore")}
             </Link>
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
-              Đăng nhập
+              {t("common.login")}
             </Link>
           </nav>
         </div>
@@ -117,10 +118,8 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Quên mật khẩu</CardTitle>
-              <CardDescription>
-                Nhập email đã đăng ký. Chúng tôi sẽ gửi link đặt lại mật khẩu.
-              </CardDescription>
+              <CardTitle>{t("auth.forgotTitle")}</CardTitle>
+              <CardDescription>{t("auth.forgotSubtitle")}</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -144,13 +143,13 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Sending..." : "Send reset link"}
+                  {submitting ? t("auth.forgotSending") : t("auth.forgotSendLink")}
                 </Button>
 
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Về trang đăng nhập
+                    {t("auth.backToLogin")}
                   </Link>
                 </Button>
               </form>

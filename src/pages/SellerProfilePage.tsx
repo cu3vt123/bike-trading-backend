@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +38,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
 ];
 
 export default function SellerProfilePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const clearTokens = useAuthStore((s) => s.clearTokens);
 
@@ -75,15 +77,15 @@ export default function SellerProfilePage() {
     const name = editForm.fullName.trim();
     const email = editForm.email.trim();
     if (!name) {
-      setEditError("Full name is required.");
+      setEditError(t("seller.errFullName"));
       return;
     }
     if (!email) {
-      setEditError("Email is required.");
+      setEditError(t("seller.errEmailRequired"));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEditError("Vui lòng nhập địa chỉ email hợp lệ.");
+      setEditError(t("seller.errEmailInvalid"));
       return;
     }
     setEditError("");
@@ -150,13 +152,13 @@ export default function SellerProfilePage() {
     if (addType === "VISA") {
       const last4 = addLast4.replace(/\D/g, "");
       if (last4.length !== 4) {
-        setAddError("Vui lòng nhập 4 chữ số cho số thẻ.");
+        setAddError(t("seller.errCardLast4"));
         return;
       }
     }
     const expValidation = validateExpiry(addExpiry.trim() || "12/26");
     if (!expValidation.valid) {
-      setAddError(expValidation.message ?? "Ngày hết hạn không hợp lệ");
+      setAddError(expValidation.errorKey ? t(expValidation.errorKey) : t("seller.errExpInvalid"));
       return;
     }
     const id = `pm-${Date.now()}`;

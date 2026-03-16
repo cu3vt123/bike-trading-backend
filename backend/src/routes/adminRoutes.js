@@ -17,6 +17,12 @@ import {
   adminListReviews,
   adminUpdateReview,
 } from "../controllers/reviewController.js";
+import {
+  adminListBrands,
+  adminCreateBrand,
+  adminUpdateBrand,
+  adminDeleteBrand,
+} from "../controllers/brandsController.js";
 import { wrapAsync } from "../utils/handler.js";
 
 const adminRoutes = Router();
@@ -36,6 +42,10 @@ adminRoutes.put("/listings/:id/hide", requireRole(["ADMIN"]), wrapAsync(hideList
 adminRoutes.put("/listings/:id/unhide", requireRole(["ADMIN"]), wrapAsync(unhideListing));
 adminRoutes.get("/reviews", requireRole(["ADMIN"]), wrapAsync(adminListReviews));
 adminRoutes.put("/reviews/:id", requireRole(["ADMIN"]), wrapAsync(adminUpdateReview));
+adminRoutes.get("/brands", requireRole(["ADMIN"]), wrapAsync(adminListBrands));
+adminRoutes.post("/brands", requireRole(["ADMIN"]), wrapAsync(adminCreateBrand));
+adminRoutes.put("/brands/:id", requireRole(["ADMIN"]), wrapAsync(adminUpdateBrand));
+adminRoutes.delete("/brands/:id", requireRole(["ADMIN"]), wrapAsync(adminDeleteBrand));
 
 export { adminRoutes };
 

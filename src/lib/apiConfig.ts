@@ -35,6 +35,11 @@ export const API_PATHS = {
     BY_ID: (id: string) => `/bikes/${id}`,
   },
 
+  // Brands (public list for seller form, homepage)
+  BRANDS: {
+    LIST: "/brands",
+  },
+
   // Buyer (requires BUYER role)
   BUYER: {
     ORDERS: "/buyer/orders",
@@ -79,6 +84,8 @@ export const API_PATHS = {
     LISTINGS: "/admin/listings",
     HIDE_LISTING: (id: string) => `/admin/listings/${id}/hide`,
     UNHIDE_LISTING: (id: string) => `/admin/listings/${id}/unhide`,
+    BRANDS: "/admin/brands",
+    BRAND_BY_ID: (id: string) => `/admin/brands/${id}`,
   },
 
   // Reviews (buyer + admin moderation)

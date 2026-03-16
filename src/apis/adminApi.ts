@@ -82,5 +82,25 @@ export const adminApi = {
     apiClient
       .put(API_PATHS.ADMIN.UNHIDE_LISTING(id))
       .then((r) => r.data?.data ?? r.data),
+
+  getBrands: (): Promise<{ id: string; name: string; slug?: string; active?: boolean }[]> =>
+    apiClient
+      .get(API_PATHS.ADMIN.BRANDS)
+      .then((r) => r.data?.data ?? r.data ?? []),
+
+  createBrand: (data: { name: string; slug?: string }): Promise<{ id: string; name: string; slug?: string }> =>
+    apiClient
+      .post(API_PATHS.ADMIN.BRANDS, data)
+      .then((r) => r.data?.data ?? r.data),
+
+  updateBrand: (id: string, data: { name?: string; slug?: string; active?: boolean }): Promise<{ id: string; name: string; slug?: string; active?: boolean }> =>
+    apiClient
+      .put(API_PATHS.ADMIN.BRAND_BY_ID(id), data)
+      .then((r) => r.data?.data ?? r.data),
+
+  deleteBrand: (id: string): Promise<{ deleted: boolean; id: string }> =>
+    apiClient
+      .delete(API_PATHS.ADMIN.BRAND_BY_ID(id))
+      .then((r) => r.data?.data ?? r.data),
 };
 

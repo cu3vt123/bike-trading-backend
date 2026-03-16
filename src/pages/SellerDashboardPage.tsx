@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Package, Star } from "lucide-react";
 import type { Listing, ListingState } from "@/types/shopbike";
-import { fetchSellerDashboard, syncSellerOrderNotifications } from "@/services/sellerService";
-
-// Mock: orders / deposits
-const MOCK_ORDERS = [
-  { id: "ORD-101", bike: "Trek Domane SL", buyer: "buyer_01", amount: 3100, deposit: 248, status: "RESERVED" },
-  { id: "ORD-102", bike: "Cervelo S5", buyer: "rider_99", amount: 6900, deposit: 552, status: "PAID" },
-];
+import type { Order } from "@/types/order";
+import {
+  fetchSellerDashboard,
+  fetchSellerDashboardOrders,
+  fetchSellerRatings,
+  syncSellerOrderNotifications,
+} from "@/services/sellerService";
+import type { SellerRatingsSummary } from "@/apis/sellerApi";
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
@@ -18,38 +20,35 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   }).format(value);
 }
 
-function stateLabel(state: ListingState) {
+const LISTING_STATE_KEYS: Partial<Record<ListingState, string>> = {
+  DRAFT: "seller.stateDraft",
+  PENDING_INSPECTION: "seller.statePendingReview",
+  NEED_UPDATE: "seller.stateNeedUpdate",
+  PUBLISHED: "seller.statePublished",
+  REJECTED: "seller.stateRejected",
+  RESERVED: "order.statusRESERVED",
+  IN_TRANSACTION: "order.statusIN_TRANSACTION",
+};
+
+function stateLabel(state: ListingState, t: (k: string) => string) {
+  const key = LISTING_STATE_KEYS[state];
+  const text = key ? t(key) : state;
   switch (state) {
     case "DRAFT":
-      return {
-        text: "Nháp",
-        cls: "bg-muted text-foreground border-border",
-      };
+      return { text, cls: "bg-muted text-foreground border-border" };
     case "PENDING_INSPECTION":
-      return {
-        text: "Đang duyệt",
-        cls: "bg-warning/15 text-warning border-warning/30",
-      };
+      return { text, cls: "bg-warning/15 text-warning border-warning/30" };
     case "NEED_UPDATE":
-      return {
-        text: "Cần cập nhật",
-        cls: "bg-destructive/10 text-destructive border-destructive/30",
-      };
+      return { text, cls: "bg-destructive/10 text-destructive border-destructive/30" };
     case "PUBLISHED":
-      return {
-        text: "Đã xuất bản",
-        cls: "bg-primary/10 text-primary border-primary/30",
-      };
+      return { text, cls: "bg-primary/10 text-primary border-primary/30" };
     case "REJECTED":
-      return {
-        text: "Từ chối",
-        cls: "bg-muted/80 text-muted-foreground border-border",
-      };
+      return { text, cls: "bg-muted/80 text-muted-foreground border-border" };
+    case "RESERVED":
+    case "IN_TRANSACTION":
+      return { text, cls: "bg-warning/15 text-warning border-warning/30" };
     default:
-      return {
-        text: state,
-        cls: "bg-muted/80 text-muted-foreground border-border",
-      };
+      return { text, cls: "bg-muted/80 text-muted-foreground border-border" };
   }
 }
 
@@ -72,19 +71,28 @@ function StatCard({
 }
 
 export default function SellerDashboardPage() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ total: 0, published: 0, inReview: 0, needUpdate: 0 });
   const [listings, setListings] = useState<Listing[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ratings, setRatings] = useState<SellerRatingsSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    syncSellerOrderNotifications();
-    fetchSellerDashboard()
-      .then(({ stats: s, listings: ls }) => {
-        setStats(s);
-        setListings(ls);
+    syncSellerOrderNotifications(t);
+    Promise.all([
+      fetchSellerDashboard(),
+      fetchSellerDashboardOrders(),
+      fetchSellerRatings(),
+    ])
+      .then(([dashboard, ordersData, ratingsData]) => {
+        setStats(dashboard.stats);
+        setListings(dashboard.listings);
+        setOrders(ordersData);
+        setRatings(ratingsData);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const { total, published, inReview, needUpdate } = stats;
 
@@ -93,7 +101,7 @@ export default function SellerDashboardPage() {
       <div className="mx-auto max-w-6xl py-12">
         <div className="flex flex-col items-center justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">Đang tải bảng điều khiển...</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("seller.loading")}</p>
         </div>
       </div>
     );
@@ -104,10 +112,10 @@ export default function SellerDashboardPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-2xl font-bold text-foreground">
-            Kênh người bán
+            {t("seller.title")}
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
-            Quản lý tin đăng, kiểm định và xuất bản.
+            {t("seller.subtitle")}
           </div>
         </div>
 
@@ -115,19 +123,18 @@ export default function SellerDashboardPage() {
           to="/seller/listings/new"
           className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
-          + Tạo tin mới
+          {t("seller.createNew")}
         </Link>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Tổng tin" value={total} />
+        <StatCard label={t("seller.totalListings")} value={total} />
         <StatCard
-          label="Tin đang bán"
+          label={t("seller.onSale")}
           value={published}
-          hint="Chỉ PUBLISHED + APPROVE"
         />
-        <StatCard label="Đang duyệt" value={inReview} />
-        <StatCard label="Cần cập nhật" value={needUpdate} />
+        <StatCard label={t("seller.pendingReview")} value={inReview} />
+        <StatCard label={t("seller.needUpdate")} value={needUpdate} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
@@ -135,24 +142,24 @@ export default function SellerDashboardPage() {
         <div className="lg:col-span-8 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-foreground">
-              Kho tin của bạn
+              {t("seller.yourInventory")}
             </div>
             <Link to="/seller" className="text-sm font-semibold text-primary hover:underline">
-              Xem tất cả
+              {t("seller.viewAll")}
             </Link>
           </div>
 
           <div className="mt-4 overflow-hidden rounded-xl border border-border">
             <div className="grid grid-cols-12 bg-muted px-4 py-3 text-xs font-semibold text-muted-foreground">
-              <div className="col-span-6">Tin đăng</div>
-              <div className="col-span-2 text-right">Giá</div>
-              <div className="col-span-2 text-center">Trạng thái</div>
-              <div className="col-span-2 text-right">Thao tác</div>
+              <div className="col-span-6">{t("seller.listing")}</div>
+              <div className="col-span-2 text-right">{t("seller.price")}</div>
+              <div className="col-span-2 text-center">{t("seller.status")}</div>
+              <div className="col-span-2 text-right">{t("seller.action")}</div>
             </div>
 
             <div className="divide-y divide-border">
               {listings.map((x) => {
-                const badge = stateLabel(x.state);
+                const badge = stateLabel(x.state, t);
                 const canEdit =
                   x.state === "DRAFT" || x.state === "NEED_UPDATE";
                 const needUpdateReason =
@@ -184,7 +191,7 @@ export default function SellerDashboardPage() {
                         </div>
                         {needUpdateReason && (
                           <div className="mt-1 text-xs text-destructive">
-                            Phản hồi kiểm định: {needUpdateReason}
+                            {t("seller.inspectionFeedback")}: {needUpdateReason}
                           </div>
                         )}
                       </div>
@@ -208,14 +215,14 @@ export default function SellerDashboardPage() {
                           to={`/seller/listings/${x.id}/edit`}
                           className="inline-flex rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
                         >
-                          Sửa
+                          {t("seller.edit")}
                         </Link>
                       ) : (
                         <button
                           disabled
                           className="inline-flex cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
                         >
-                          Khóa
+                          {t("seller.lock")}
                         </button>
                       )}
                     </div>
@@ -226,38 +233,38 @@ export default function SellerDashboardPage() {
           </div>
 
           <div className="mt-3 text-xs text-muted-foreground">
-            Nháp/Cần cập nhật có thể sửa. Đang duyệt khóa sửa. Đã xuất bản giới hạn thay đổi nội dung.
+            {t("seller.inventoryNote")}
           </div>
         </div>
 
         {/* New Listing Draft panel */}
         <div className="lg:col-span-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="text-sm font-semibold text-foreground">
-            Tin nháp mới
+            {t("seller.newDraft")}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            Tạo nháp trước, sau đó gửi kiểm định.
+            {t("seller.newDraftHint")}
           </div>
 
           <div className="mt-4 space-y-3">
             <input
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="Tiêu đề tin"
+              placeholder={t("seller.postTitle")}
             />
             <input
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="Giá (VNĐ)"
+              placeholder={t("seller.priceVND")}
             />
 
             <div className="rounded-xl border border-border bg-muted p-3">
               <div className="text-xs font-semibold text-foreground">
-                Checklist ảnh
+                {t("seller.photoChecklist")}
               </div>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                <li>• Toàn xe (hai bên)</li>
-                <li>• Serial khung</li>
-                <li>• Hệ truyền động</li>
-                <li>• Phanh / bánh</li>
+                <li>• {t("seller.photoFullBike")}</li>
+                <li>• {t("seller.photoSerial")}</li>
+                <li>• {t("seller.photoDrivetrain")}</li>
+                <li>• {t("seller.photoBrakes")}</li>
               </ul>
             </div>
 
@@ -265,7 +272,7 @@ export default function SellerDashboardPage() {
               to="/seller/listings/new"
               className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Tiếp tục soạn tin →
+              {t("seller.continueDraft")}
             </Link>
           </div>
         </div>
@@ -276,66 +283,73 @@ export default function SellerDashboardPage() {
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Đơn hàng / Đặt cọc</span>
+            <span className="text-sm font-semibold text-foreground">{t("seller.ordersDeposits")}</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Quản lý đơn và đặt cọc.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("seller.ordersDepositsDesc")}</p>
           <div className="mt-4 space-y-3">
-            {MOCK_ORDERS.map((o) => (
-              <div
-                key={o.id}
-                className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3"
-              >
-                <div>
-                  <div className="text-sm font-semibold text-foreground">{o.bike}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {o.id} • {o.buyer} • Đặt cọc {formatMoney(o.deposit)}
-                  </div>
-                </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    o.status === "PAID" ? "bg-primary/10 text-primary" : "bg-warning/15 text-warning"
-                  }`}
+            {orders.map((o) => {
+              const isPaid = o.depositPaid === true || o.status === "COMPLETED";
+              return (
+                <div
+                  key={o.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3"
                 >
-                  {o.status === "PAID" ? "Đã thanh toán" : "Chờ xử lý"}
-                </span>
-              </div>
-            ))}
-            {MOCK_ORDERS.length === 0 && (
-              <p className="py-4 text-center text-sm text-muted-foreground">Chưa có đơn nào.</p>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{getBikeLabel(o)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {o.id} • {o.buyerId ?? "—"} • {t("seller.deposit")} {formatMoney(o.depositAmount ?? 0)}
+                    </div>
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      isPaid ? "bg-primary/10 text-primary" : "bg-warning/15 text-warning"
+                    }`}
+                  >
+                    {isPaid ? t("seller.paid") : t("seller.pendingProcess")}
+                  </span>
+                </div>
+              );
+            })}
+            {orders.length === 0 && (
+              <p className="py-4 text-center text-sm text-muted-foreground">{t("seller.noOrders")}</p>
             )}
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Sẽ tích hợp API khi Backend có endpoint quản lý đơn.
-          </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Đánh giá & uy tín</span>
+            <span className="text-sm font-semibold text-foreground">{t("seller.ratingsReputation")}</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Mức độ tin cậy từ người mua.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("seller.ratingsDesc")}</p>
           <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-border bg-muted/50 py-6">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-foreground">4.8</span>
-              <span className="text-primary">★★★★★</span>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">12 đánh giá</p>
-            <p className="mt-1 text-xs text-muted-foreground">97% phản hồi tích cực</p>
+            {ratings ? (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-foreground">{ratings.averageRating.toFixed(1)}</span>
+                  <span className="text-primary">★★★★★</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{t("seller.reviews", { count: ratings.totalReviews })}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("seller.positiveFeedbackPercent", { percent: ratings.positivePercent })}</p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("seller.noRatingsYet")}</p>
+            )}
           </div>
+          {ratings && Object.keys(ratings.breakdown).length > 0 && (
           <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">5 sao</span>
-              <span className="font-semibold">10</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">4 sao</span>
-              <span className="font-semibold">2</span>
-            </div>
+            {[5, 4, 3, 2, 1].map((stars) => {
+              const count = ratings.breakdown[stars] ?? 0;
+              if (count === 0) return null;
+              return (
+                <div key={stars} className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">{t("seller.starsLabel", { count: stars })}</span>
+                  <span className="font-semibold">{count}</span>
+                </div>
+              );
+            })}
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Đánh giá từ giao dịch thành công. Sẽ đồng bộ API khi có.
-          </p>
+          )}
         </div>
       </div>
     </div>

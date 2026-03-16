@@ -7,23 +7,16 @@ import {
   submitForInspection,
   fetchListingById,
 } from "@/services/sellerService";
+import { brandsApi } from "@/apis/brandsApi";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
 type Condition = "MINT_USED" | "GOOD_USED" | "FAIR_USED";
 type Step = "DRAFT" | "PENDING_INSPECTION";
 
-const BRAND_OPTIONS = [
-  "Giant",
-  "Trek",
-  "Specialized",
-  "Cannondale",
-  "Scott",
-  "Bianchi",
-  "Canyon",
-  "Santa Cruz",
-  "Merida",
-  "Other",
-] as const;
+const FALLBACK_BRANDS = [
+  "Giant", "Trek", "Specialized", "Cannondale", "Scott", "Bianchi",
+  "Canyon", "Santa Cruz", "Merida", "Other",
+];
 
 const CITY_OPTIONS = [
   "Ho Chi Minh City",
@@ -59,11 +52,21 @@ export default function SellerListingEditorPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needUpdateReason, setNeedUpdateReason] = useState<string>("");
+  const [brandOptions, setBrandOptions] = useState<string[]>(FALLBACK_BRANDS);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeSlotRef = useRef<number | null>(null);
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   const isEdit = useMemo(() => !!id || !!savedId, [id, savedId]);
+
+  useEffect(() => {
+    brandsApi.getList()
+      .then((list) => {
+        const names = list.map((b) => b.name).filter(Boolean);
+        if (names.length > 0) setBrandOptions(names);
+      })
+      .catch(() => { /* keep fallback */ });
+  }, []);
   const listingId = id ?? savedId ?? "";
 
   useEffect(() => {
@@ -268,7 +271,7 @@ export default function SellerListingEditorPage() {
                 className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
               >
                 <option value="">{t("seller.selectBrand")}</option>
-                {BRAND_OPTIONS.map((b) => (
+                {brandOptions.map((b) => (
                   <option key={b} value={b}>
                     {b}
                   </option>

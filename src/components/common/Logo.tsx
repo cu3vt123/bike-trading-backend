@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const LOGO_SRC = "/logo.png";
 const LOGO_ALT = "ShopBike";
@@ -34,6 +35,7 @@ export interface LogoProps {
 }
 
 export function Logo({ variant = "header", className = "", showLabel = false, alwaysWhite = false }: LogoProps) {
+  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
 
   const imgClass = variantClasses[variant];
@@ -53,11 +55,11 @@ export function Logo({ variant = "header", className = "", showLabel = false, al
         {showLabel && !isStacked && (
           <span className="hidden flex-col leading-tight sm:flex">
             <span className={`text-sm font-bold ${alwaysWhite ? "text-white" : "text-foreground"}`}>ShopBike</span>
-            <span className={`text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
+            <span className={`text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>{t("common.verifiedAndInspected")}</span>
           </span>
         )}
         {showLabel && isStacked && (
-          <span className={`text-[10px] sm:text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
+          <span className={`text-[10px] sm:text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>{t("common.verifiedAndInspected")}</span>
         )}
       </span>
     );
@@ -74,12 +76,12 @@ export function Logo({ variant = "header", className = "", showLabel = false, al
         onError={() => setFailed(true)}
       />
       {showLabel && isStacked && (
-        <span className={`text-[10px] sm:text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
+        <span className={`text-[10px] sm:text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>{t("common.verifiedAndInspected")}</span>
       )}
       {showLabel && !isStacked && (
         <span className="hidden flex-col leading-tight min-w-0 sm:flex">
           <span className={`text-sm font-bold truncate ${alwaysWhite ? "text-white" : "text-foreground"}`}>ShopBike</span>
-          <span className={`text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>Đã xác minh &amp; kiểm định</span>
+          <span className={`text-xs ${alwaysWhite ? "text-white/80" : "text-muted-foreground"}`}>{t("common.verifiedAndInspected")}</span>
         </span>
       )}
     </span>

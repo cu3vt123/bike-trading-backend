@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ShoppingBag, Store } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,10 @@ const REGISTER_ROLES: Role[] = ["BUYER", "SELLER"];
 
 const ROLE_CONFIG: Record<
   (typeof REGISTER_ROLES)[number],
-  { label: string; icon: React.ElementType }
+  { labelKey: string; icon: React.ElementType }
 > = {
-  BUYER: { label: "Buyer", icon: ShoppingBag },
-  SELLER: { label: "Seller", icon: Store },
+  BUYER: { labelKey: "auth.roleBuyer", icon: ShoppingBag },
+  SELLER: { labelKey: "auth.roleSeller", icon: Store },
 };
 
 const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_API === "true";
@@ -44,43 +45,41 @@ const LIMITS = {
   PASSWORD_SPECIAL: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
 } as const;
 
-function validateRegister(data: {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}): string | null {
+function validateRegister(
+  data: { username: string; email: string; password: string; confirmPassword: string },
+  t: (key: string, opts?: object) => string
+): string | null {
   const u = data.username.trim();
   if (u.length < LIMITS.USERNAME_MIN) {
-    return `Username must be ${LIMITS.USERNAME_MIN}–${LIMITS.USERNAME_MAX} characters.`;
+    return t("auth.errUsernameLength", { min: LIMITS.USERNAME_MIN, max: LIMITS.USERNAME_MAX });
   }
   if (u.length > LIMITS.USERNAME_MAX) {
-    return `Username must be at most ${LIMITS.USERNAME_MAX} characters.`;
+    return t("auth.errUsernameMax", { max: LIMITS.USERNAME_MAX });
   }
   if (!LIMITS.USERNAME_PATTERN.test(u)) {
-    return "Username can only contain letters, numbers and underscores (_).";
+    return t("auth.errUsernamePattern");
   }
   const e = data.email.trim();
-  if (!e) return "Email is required.";
+  if (!e) return t("auth.errEmailRequired");
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(e)) return "Invalid email.";
+  if (!emailRegex.test(e)) return t("auth.errEmailInvalid");
   if (data.email.length > LIMITS.EMAIL_MAX) {
-    return `Email must be at most ${LIMITS.EMAIL_MAX} characters.`;
+    return t("auth.errEmailMax", { max: LIMITS.EMAIL_MAX });
   }
   if (data.password.length < LIMITS.PASSWORD_MIN) {
-    return `Password must be ${LIMITS.PASSWORD_MIN}–${LIMITS.PASSWORD_MAX} characters.`;
+    return t("auth.errPasswordLength", { min: LIMITS.PASSWORD_MIN, max: LIMITS.PASSWORD_MAX });
   }
   if (data.password.length > LIMITS.PASSWORD_MAX) {
-    return `Password must be at most ${LIMITS.PASSWORD_MAX} characters.`;
+    return t("auth.errPasswordMax", { max: LIMITS.PASSWORD_MAX });
   }
   if (!LIMITS.PASSWORD_UPPERCASE.test(data.password)) {
-    return "Password must have at least 1 uppercase letter.";
+    return t("auth.errPasswordUppercase");
   }
   if (!LIMITS.PASSWORD_SPECIAL.test(data.password)) {
-    return "Password must have at least 1 special character (!@#$%^&*...).";
+    return t("auth.errPasswordSpecial");
   }
   if (data.password !== data.confirmPassword) {
-    return "Passwords do not match.";
+    return t("auth.errPasswordsMatch");
   }
   return null;
 }
@@ -99,6 +98,7 @@ async function mockSignup(payload: {
 }
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setTokens = useAuthStore((s) => s.setTokens);
 
@@ -114,12 +114,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    const validationError = validateRegister({
-      username,
-      email,
-      password,
-      confirmPassword,
-    });
+    const validationError = validateRegister(
+      { username, email, password, confirmPassword },
+      t
+    );
     if (validationError) {
       setError(validationError);
       return;
@@ -146,9 +144,7 @@ export default function RegisterPage() {
 
       navigate("/", { replace: true });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Signup failed. Please try again.",
-      );
+      setError(err instanceof Error ? err.message : t("auth.signupFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -169,13 +165,13 @@ export default function RegisterPage() {
               to="/#listings"
               className="text-muted-foreground hover:text-foreground"
             >
-              Khám phá
+              {t("common.explore")}
             </Link>
             <Link
               to="/login"
               className="text-muted-foreground hover:text-foreground"
             >
-              Đăng nhập
+              {t("common.login")}
             </Link>
           </nav>
         </div>
@@ -185,10 +181,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle>Tạo tài khoản</CardTitle>
-              <CardDescription>
-                Choose your role and fill in your details to get started.
-              </CardDescription>
+              <CardTitle>{t("auth.registerTitle")}</CardTitle>
+              <CardDescription>{t("auth.registerSubtitle")}</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -200,7 +194,7 @@ export default function RegisterPage() {
 
               {/* 4-role selector */}
               <div className="space-y-2">
-                <Label className="text-sm">Register as</Label>
+                <Label className="text-sm">{t("auth.registerAs")}</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {roles.map((r) => {
                     const config = ROLE_CONFIG[r];
@@ -219,7 +213,7 @@ export default function RegisterPage() {
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{config.label}</span>
+                        <span className="truncate">{t(config.labelKey)}</span>
                       </button>
                     );
                   })}
@@ -228,30 +222,30 @@ export default function RegisterPage() {
 
               <form onSubmit={onSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username *</Label>
+                  <Label htmlFor="username">{t("auth.usernameLabel")}</Label>
                   <Input
                     id="username"
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. rider_01"
+                    placeholder={t("auth.usernamePlaceholder")}
                     autoComplete="username"
                     minLength={LIMITS.USERNAME_MIN}
                     maxLength={LIMITS.USERNAME_MAX}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {LIMITS.USERNAME_MIN}–{LIMITS.USERNAME_MAX} characters, letters, numbers and _
+                    {t("auth.usernameHint", { min: LIMITS.USERNAME_MIN, max: LIMITS.USERNAME_MAX })}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email">{t("auth.emailLabel")}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={t("auth.emailPlaceholder")}
                     autoComplete="email"
                     required
                     maxLength={LIMITS.EMAIL_MAX}
@@ -259,7 +253,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
+                  <Label htmlFor="password">{t("auth.passwordLabel")}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -271,12 +265,12 @@ export default function RegisterPage() {
                     maxLength={LIMITS.PASSWORD_MAX}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {LIMITS.PASSWORD_MIN}–{LIMITS.PASSWORD_MAX} characters, at least 1 uppercase and 1 special char
+                    {t("auth.passwordHint", { min: LIMITS.PASSWORD_MIN, max: LIMITS.PASSWORD_MAX })}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm password *</Label>
+                  <Label htmlFor="confirmPassword">{t("auth.confirmPasswordLabel")}</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -289,7 +283,7 @@ export default function RegisterPage() {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
+                  {submitting ? t("auth.registerSubmitting") : t("auth.registerSubmit")}
                 </Button>
 
                 <Button
@@ -298,17 +292,17 @@ export default function RegisterPage() {
                   className="w-full"
                   asChild
                 >
-                  <Link to="/">Về trang chủ</Link>
+                  <Link to="/">{t("auth.backHome")}</Link>
                 </Button>
               </form>
 
               <p className="text-center text-sm text-muted-foreground">
-                Đã có tài khoản?{" "}
+                {t("auth.haveAccount")}{" "}
                 <Link
                   to="/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Đăng nhập
+                  {t("auth.loginLink")}
                 </Link>
               </p>
             </CardContent>

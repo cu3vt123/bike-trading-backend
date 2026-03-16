@@ -15,13 +15,22 @@ import {
 import { fetchListings } from "@/services/buyerService";
 import ListingCard from "@/components/listing/ListingCard";
 import type { Listing } from "@/types/shopbike";
-import { BIKE_CONDITION_LABEL } from "@/types/shopbike";
+import type { BikeCondition } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useTranslation, Trans } from "react-i18next";
 import { Logo } from "@/components/common/Logo";
 
 import { HERO_SLIDES, HERO_AUTO_SLIDE_MS } from "@/constants/hero";
 
 const SECTION_LISTINGS_ID = "listings";
+
+const CONDITION_I18N_KEYS: Record<BikeCondition, string> = {
+  NEW: "listing.conditionNew",
+  LIKE_NEW: "listing.conditionLikeNew",
+  MINT_USED: "listing.conditionMintUsed",
+  GOOD_USED: "listing.conditionGoodUsed",
+  FAIR_USED: "listing.conditionFairUsed",
+};
 
 function scrollToListings() {
   document.getElementById(SECTION_LISTINGS_ID)?.scrollIntoView({
@@ -33,6 +42,7 @@ function scrollToListings() {
 export default function HomePage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { accessToken, role } = useAuthStore();
 
   const [listings, setListings] = useState<Listing[]>([]);
@@ -57,7 +67,7 @@ export default function HomePage() {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err?.message ?? "Không tải được danh sách. Đang dùng dữ liệu dự phòng.");
+          setError(err?.message ?? t("home.loadError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -172,10 +182,12 @@ export default function HomePage() {
               <Logo variant="hero" />
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-relaxed text-white/95 md:text-lg">
-              Những chiếc xe đã được kiểm định, sẵn sàng lên đường
+              {t("home.heroSlogan1")}
               <br />
               <span className="whitespace-nowrap">
-                Cùng <span className="text-primary">ShopBike</span> bắt đầu hành trình tiếp theo của <span className="text-primary">bạn</span>
+                {t("home.heroSlogan2").split("ShopBike")[0]}
+                <span className="text-primary">ShopBike</span>
+                {t("home.heroSlogan2").split("ShopBike")[1]}
               </span>
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -184,7 +196,7 @@ export default function HomePage() {
                 onClick={scrollToListings}
                 className="min-w-[160px] bg-white font-bold text-slate-900 shadow-lg hover:bg-white/95 tracking-tight"
               >
-                Khám phá ngay
+                {t("home.exploreNow")}
               </Button>
               {showSellButton && (
                 <Button
@@ -193,7 +205,7 @@ export default function HomePage() {
                   onClick={handleSellYourBike}
                   className="min-w-[140px] border-white/70 bg-white/10 font-semibold text-white hover:bg-white/20 tracking-tight"
                 >
-                  Bán xe của bạn
+                  {t("home.sellYourBike")}
                 </Button>
               )}
             </div>
@@ -224,12 +236,12 @@ export default function HomePage() {
           <div className="flex flex-1 flex-wrap gap-3 sm:items-center">
             <Select value={brand} onValueChange={setBrand}>
               <SelectTrigger className="w-full sm:w-[160px]">
-                <SelectValue placeholder="Tất cả hãng" />
+                <SelectValue placeholder={t("home.allBrands")} />
               </SelectTrigger>
               <SelectContent>
                 {brands.map((b) => (
                   <SelectItem key={b} value={b}>
-                    {b === "ALL" ? "Tất cả hãng" : b}
+                    {b === "ALL" ? t("home.allBrands") : b}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -237,13 +249,13 @@ export default function HomePage() {
 
             <Select value={condition} onValueChange={setCondition}>
               <SelectTrigger className="w-full sm:w-[160px]">
-                <SelectValue placeholder="Tất cả tình trạng" />
+                <SelectValue placeholder={t("home.allConditions")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tất cả tình trạng</SelectItem>
-                {Object.entries(BIKE_CONDITION_LABEL).map(([k, v]) => (
+                <SelectItem value="ALL">{t("home.allConditions")}</SelectItem>
+                {(Object.keys(CONDITION_I18N_KEYS) as BikeCondition[]).map((k) => (
                   <SelectItem key={k} value={k}>
-                    {v}
+                    {t(CONDITION_I18N_KEYS[k])}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -251,12 +263,12 @@ export default function HomePage() {
 
             <Select value={frameSize} onValueChange={setFrameSize}>
               <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="Tất cả size" />
+                <SelectValue placeholder={t("home.allSizes")} />
               </SelectTrigger>
               <SelectContent>
                 {frameSizes.map((f) => (
                   <SelectItem key={f} value={f}>
-                    {f === "ALL" ? "Tất cả size" : f}
+                    {f === "ALL" ? t("home.allSizes") : f}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -266,7 +278,7 @@ export default function HomePage() {
               <Input
                 type="number"
                 inputMode="numeric"
-                placeholder="Tối thiểu (VNĐ)"
+                placeholder={t("home.priceMin")}
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 className="w-28 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -274,7 +286,7 @@ export default function HomePage() {
               <Input
                 type="number"
                 inputMode="numeric"
-                placeholder="Tối đa (VNĐ)"
+                placeholder={t("home.priceMax")}
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 className="w-28 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -284,7 +296,7 @@ export default function HomePage() {
 
           <div className="flex items-center justify-between gap-3 md:justify-end">
             <div className="text-sm text-muted-foreground">
-              Hiển thị <span className="font-semibold text-foreground">{filtered.length}</span> kết quả
+              <Trans i18nKey="home.resultsCount" values={{ count: filtered.length }} components={{ 1: <span className="font-semibold text-foreground" /> }} />
             </div>
             <Button
               variant="outline"
@@ -298,7 +310,7 @@ export default function HomePage() {
                 setPriceMax("");
               }}
             >
-              Xóa bộ lọc
+              {t("home.clearFilters")}
             </Button>
           </div>
         </div>
@@ -309,7 +321,7 @@ export default function HomePage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Tìm xe, hãng hoặc khu vực..."
+            placeholder={t("common.searchPlaceholderLong")}
             className="h-11 w-full pl-9 text-base"
           />
         </div>
@@ -319,9 +331,9 @@ export default function HomePage() {
       <section id={SECTION_LISTINGS_ID} className="scroll-mt-24">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Tin nổi bật</h2>
+            <h2 className="text-lg font-semibold">{t("home.listings")}</h2>
             <p className="text-sm text-muted-foreground">
-              Chỉ hiển thị tin đã kiểm định &amp; duyệt.
+              {t("home.listingsDesc")}
             </p>
           </div>
           <Link
@@ -332,7 +344,7 @@ export default function HomePage() {
             }}
             className="text-sm font-semibold text-primary hover:underline"
           >
-            Xem tất cả xe →
+            {t("home.viewAllBikes")}
           </Link>
         </div>
 
@@ -356,9 +368,9 @@ export default function HomePage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                 <Bike className="h-7 w-7 text-muted-foreground" />
               </div>
-              <p className="text-sm font-semibold text-foreground">Không tìm thấy xe phù hợp</p>
+              <p className="text-sm font-semibold text-foreground">{t("home.noResults")}</p>
               <p className="text-xs text-muted-foreground">
-                Thử đổi từ khóa hoặc xóa bộ lọc.
+                {t("home.noResultsHint")}
               </p>
               <Button
                 variant="outline"
@@ -371,7 +383,7 @@ export default function HomePage() {
                   setPriceMax("");
                 }}
               >
-                Xóa bộ lọc
+                {t("home.clearFilters")}
               </Button>
             </CardContent>
           </Card>

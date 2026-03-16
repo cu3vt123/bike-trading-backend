@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Clock, CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,8 +20,7 @@ import {
   cancelOrder,
 } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
-import { ORDER_STATUS_LABEL, type OrderStatus } from "@/types/order";
-import { INSPECTION_ROW_LABELS, INSPECTION_OVERALL_LABEL } from "@/constants/inspection";
+import type { OrderStatus } from "@/types/order";
 
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
@@ -53,11 +53,11 @@ function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function formatPaymentMethod(pm?: PaymentMethod) {
-  if (!pm) return "—";
-  if (pm.type === "CARD") return `${pm.brand} ending in ${pm.last4}`;
-  return "Chuyển khoản ngân hàng";
-}
+const INSPECTION_ROW_KEYS = {
+  frameIntegrity: "listing.inspectionFrameIntegrity",
+  drivetrainHealth: "listing.inspectionDrivetrain",
+  brakingSystem: "listing.inspectionBraking",
+} as const;
 
 const SHIPPING_FLOW_STEPS: OrderStatus[] = [
   "RESERVED",
@@ -82,6 +82,7 @@ function isStepDone(status: OrderStatus | null, step: OrderStatus): boolean {
 }
 
 export default function TransactionPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -134,7 +135,7 @@ export default function TransactionPage() {
         if (!cancelled) setListing(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? "Failed to load listing.");
+        if (!cancelled) setError(err?.message ?? t("transaction.loadError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -201,11 +202,17 @@ export default function TransactionPage() {
     listing?.thumbnailUrl ??
     "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=800&q=60";
 
+  function formatPaymentMethod(pm?: PaymentMethod) {
+    if (!pm) return "—";
+    if (pm.type === "CARD") return `${pm.brand} ending in ${pm.last4}`;
+    return t("transaction.bankTransfer");
+  }
+
   if (loading) {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Đang tải giao dịch...</p>
+        <p className="text-sm text-muted-foreground">{t("transaction.loading")}</p>
       </div>
     );
   }
@@ -214,12 +221,12 @@ export default function TransactionPage() {
     return (
       <Card className="mx-auto max-w-6xl">
         <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Không tìm thấy giao dịch</h1>
+          <h1 className="text-lg font-semibold">{t("transaction.notFound")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {error ?? "Unable to load this transaction."}
+            {error ?? t("transaction.loadError")}
           </p>
           <Button asChild variant="link" className="mt-4">
-            <Link to="/">Về trang chủ</Link>
+            <Link to="/">{t("transaction.goHome")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -230,20 +237,20 @@ export default function TransactionPage() {
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Giao dịch</h1>
+          <h1 className="text-2xl font-bold">{t("transaction.title")}</h1>
           <Badge className="mt-2" variant="default">
             RESERVED / IN TRANSACTION
           </Badge>
           <p className="mt-2 text-sm text-muted-foreground">
-            Updated just now • Order #{orderId}
+            {t("transaction.updatedNow")} • {t("transaction.order")} #{orderId}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate("/profile")}>
-            My orders
+            {t("transaction.myOrders")}
           </Button>
           <Button variant="outline" onClick={() => navigate(`/bikes/${listing.id}`)}>
-            Xem tin đăng
+            {t("transaction.viewListing")}
           </Button>
         </div>
       </div>
@@ -256,31 +263,30 @@ export default function TransactionPage() {
               <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE"
-                  ? "THỜI GIAN CÒN LẠI ĐỂ HOÀN TẤT THANH TOÁN"
-                  : "BƯỚC TIẾP THEO"}
+                  ? t("transaction.timeRemaining")
+                  : t("transaction.nextStep")}
               </span>
             </CardHeader>
             <CardContent>
               {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE" ? (
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { val: hours, label: "Giờ" },
-                    { val: minutes, label: "Phút" },
-                    { val: seconds, label: "Giây" },
-                  ].map(({ val, label }) => (
+                    { val: hours, labelKey: "transaction.hours" },
+                    { val: minutes, labelKey: "transaction.minutes" },
+                    { val: seconds, labelKey: "transaction.seconds" },
+                  ].map(({ val, labelKey }) => (
                     <div
-                      key={label}
-                      className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
-                    >
-                      <div className="text-2xl font-bold text-primary">{pad2(val)}</div>
-                      <div className="mt-1 text-xs text-primary/80">{label}</div>
-                    </div>
+                    key={labelKey}
+                    className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center"
+                  >
+                    <div className="text-2xl font-bold text-primary">{pad2(val)}</div>
+                    <div className="mt-1 text-xs text-primary/80">{t(labelKey)}</div>
+                  </div>
                   ))}
                 </div>
               ) : (
                 <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-                  Bước tiếp theo: Xác nhận và hoàn tất thanh toán. Khung thời gian chỉ bắt đầu khi
-                  admin đã xác nhận xe tới kho và inspector kiểm định xong.
+                  {t("transaction.nextStepDesc")}
                 </p>
               )}
             </CardContent>
@@ -289,31 +295,31 @@ export default function TransactionPage() {
           {/* Progress */}
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Tiến trình giao dịch</span>
+              <span className="text-sm font-semibold">{t("transaction.progress")}</span>
             </CardHeader>
             <CardContent className="space-y-4">
               {(orderStatus ? SHIPPING_FLOW_STEPS : (["RESERVED", "IN_TRANSACTION", "COMPLETED"] as OrderStatus[])).map((step) => {
                 const done = orderStatus ? isStepDone(orderStatus, step) : (step === "RESERVED" || step === "IN_TRANSACTION");
-                const title = ORDER_STATUS_LABEL[step];
+                const title = t(`order.status${step}` as "order.statusRESERVED");
                 const desc =
                   step === "RESERVED"
-                    ? "Đã đặt cọc thành công"
+                    ? t("transaction.depositSuccess")
                     : step === "PENDING_SELLER_SHIP"
-                      ? "Seller sẽ nhận thông báo và gửi xe tới kho"
+                      ? t("transaction.sellerNotify")
                       : step === "SELLER_SHIPPED"
-                        ? "Seller đã gửi xe, đang trên đường tới kho"
+                        ? t("transaction.sellerShipped")
                         : step === "AT_WAREHOUSE_PENDING_ADMIN"
-                          ? "Admin xác nhận xe đã tới kho"
+                          ? t("transaction.adminConfirm")
                           : step === "RE_INSPECTION"
-                            ? "Inspector kiểm định lại tại kho"
+                            ? t("transaction.inspectorReInspect")
                             : step === "RE_INSPECTION_DONE"
-                              ? "Đã xác nhận đúng, chuyển giao hàng"
+                              ? t("transaction.confirmedTransfer")
                               : step === "SHIPPING"
-                                ? "Đang giao hàng tới bạn"
+                                ? t("transaction.shippingToYou")
                                 : step === "COMPLETED"
-                                  ? "Đã chuyển quyền sở hữu"
+                                  ? t("transaction.ownershipTransferred")
                                   : step === "IN_TRANSACTION"
-                                    ? "Thanh toán số dư & giao hàng"
+                                    ? t("transaction.payBalance")
                                     : "";
                 return (
                   <div key={step} className="flex gap-3">
@@ -335,22 +341,22 @@ export default function TransactionPage() {
           {/* Logistics */}
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Vận chuyển & Thanh toán</span>
+              <span className="text-sm font-semibold">{t("transaction.shippingPayment")}</span>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border bg-muted/50 p-4">
-                  <div className="text-xs text-muted-foreground">Mã đơn</div>
+                  <div className="text-xs text-muted-foreground">{t("transaction.orderCode")}</div>
                   <div className="mt-1 font-semibold">#{orderId}</div>
                 </div>
                 <div className="rounded-lg border bg-muted/50 p-4">
-                  <div className="text-xs text-muted-foreground">Phương thức thanh toán</div>
+                  <div className="text-xs text-muted-foreground">{t("transaction.paymentMethod")}</div>
                   <div className="mt-1 font-semibold">
                     {formatPaymentMethod(state.paymentMethod)}
                   </div>
                 </div>
                 <div className="rounded-lg border bg-muted/50 p-4 sm:col-span-2">
-                  <div className="text-xs text-muted-foreground">Địa chỉ giao hàng</div>
+                  <div className="text-xs text-muted-foreground">{t("transaction.shippingAddress")}</div>
                   <div className="mt-1 font-semibold">
                     123 Cycling Way, District 1, HCMC
                   </div>
@@ -374,7 +380,7 @@ export default function TransactionPage() {
                       completedAt: Date.now(),
                     }}
                   >
-                    Đã hoàn thành — Xem chi tiết
+                    {t("transaction.completedViewDetail")}
                   </Link>
                 </Button>
               ) : orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE" ? (
@@ -389,21 +395,21 @@ export default function TransactionPage() {
                     }}
                   >
                     {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE"
-                      ? "Xác nhận đã nhận hàng & Hoàn tất"
-                      : "Hoàn tất mua hàng"}
+                      ? t("transaction.confirmReceived")
+                      : t("transaction.completePurchase")}
                   </Link>
                 </Button>
               ) : (
                 <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-center text-sm text-muted-foreground">
                   {orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION"
-                    ? "Thanh toán xong, chờ seller gửi xe tới kho."
+                    ? t("transaction.waitPaymentDone")
                     : orderStatus === "PENDING_SELLER_SHIP"
-                      ? "Chờ seller gửi xe tới kho."
+                      ? t("transaction.waitSellerShip")
                       : orderStatus === "SELLER_SHIPPED" || orderStatus === "AT_WAREHOUSE_PENDING_ADMIN"
-                        ? "Xe đang tới kho / chờ admin xác nhận."
+                        ? t("transaction.bikeEnRoute")
                         : orderStatus === "RE_INSPECTION"
-                          ? "Đang kiểm định lại tại kho."
-                          : "Đơn đang trong quy trình: seller gửi xe → admin xác nhận → inspector kiểm định → giao hàng. Sàn sẽ cập nhật khi có bước mới."}
+                          ? t("transaction.reInspectionAtWarehouse")
+                          : t("transaction.orderInProgress")}
                 </p>
               )}
               {(orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION" || !orderStatus) && (
@@ -412,11 +418,11 @@ export default function TransactionPage() {
                   className="mt-3 w-full"
                   onClick={() => setCancelOpen(true)}
                 >
-                  Hủy đặt chỗ
+                  {t("transaction.cancelReservation")}
                 </Button>
               )}
               <p className="mt-3 text-center text-xs text-muted-foreground">
-                Áp dụng chính sách hoàn tiền • Giới hạn hủy chống spam
+                {t("transaction.refundPolicyNote")}
               </p>
             </CardContent>
           </Card>
@@ -446,13 +452,13 @@ export default function TransactionPage() {
 
                 <div className="mt-4 overflow-hidden rounded-lg border">
                   <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
-                    <span className="text-muted-foreground">Đã đặt cọc</span>
+                    <span className="text-muted-foreground">{t("transaction.depositPaid")}</span>
                     <span className="font-semibold">
                       {formatMoney(depositPaid, currency)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3 text-sm">
-                    <span className="text-muted-foreground">Còn lại khi giao hàng</span>
+                    <span className="text-muted-foreground">{t("transaction.remainingOnDelivery")}</span>
                     <span className="font-semibold">
                       {formatMoney(Math.max(0, totalPrice - depositPaid), currency)}
                     </span>
@@ -462,7 +468,7 @@ export default function TransactionPage() {
                 <div className="mt-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
                   <CheckCircle className="h-4 w-4 text-primary" />
                   <span>
-                    Thanh toán:{" "}
+                    {t("transaction.payment")}:{" "}
                     <span className="font-semibold">
                       {formatPaymentMethod(state.paymentMethod)}
                     </span>
@@ -475,7 +481,7 @@ export default function TransactionPage() {
                     className="mt-4 w-full"
                     onClick={() => setReportOpen(true)}
                   >
-                    Xem báo cáo kiểm định
+                    {t("transaction.viewInspectionReport")}
                   </Button>
                 )}
               </CardContent>
@@ -483,16 +489,16 @@ export default function TransactionPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm font-semibold text-foreground">Liên hệ hỗ trợ</div>
+                <div className="text-sm font-semibold text-foreground">{t("transaction.contactSupport")}</div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Hỗ trợ 24/7
+                  {t("transaction.support24_7")}
                 </p>
                 <Button
                   variant="outline"
                   className="mt-3 w-full"
                   onClick={() => setSupportOpen(true)}
                 >
-                  Chat với hỗ trợ
+                  {t("transaction.chatWithSupport")}
                 </Button>
               </CardContent>
             </Card>
@@ -504,21 +510,21 @@ export default function TransactionPage() {
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Hủy đặt chỗ</DialogTitle>
+            <DialogTitle>{t("transaction.cancelDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Bạn có chắc muốn hủy đặt chỗ này? Hoàn tiền sẽ được xử lý theo chính sách (trong vòng 7 ngày). Giới hạn hủy: tối đa 3 lần mỗi kỳ.
+              {t("transaction.cancelDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              Giữ đặt chỗ
+              {t("transaction.keepReservation")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancelReservation}
               disabled={cancelling}
             >
-              {cancelling ? "Đang hủy..." : "Hủy & Hoàn tiền"}
+              {cancelling ? t("transaction.cancelling") : t("transaction.cancelAndRefund")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -528,8 +534,8 @@ export default function TransactionPage() {
       {hasInspectionReport && (
         <Dialog open={reportOpen} onOpenChange={setReportOpen}>
           <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Báo cáo kiểm định</DialogTitle>
+          <DialogHeader>
+            <DialogTitle>{t("listing.inspectionReportTitle")}</DialogTitle>
               <DialogDescription>{listing?.brand} {listing?.model ?? ""}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -541,7 +547,7 @@ export default function TransactionPage() {
                 ] as const
               ).map(({ key, label: value, score: s }) => (
                 <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{INSPECTION_ROW_LABELS[key]}</span>
+                  <span className="text-sm text-muted-foreground">{t(INSPECTION_ROW_KEYS[key])}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">{value}</span>
                     <Stars value={s ?? 0} />
@@ -550,7 +556,7 @@ export default function TransactionPage() {
                 </div>
               ))}
               <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <span className="text-sm text-muted-foreground">{INSPECTION_OVERALL_LABEL}</span>
+                <span className="text-sm text-muted-foreground">{t("listing.inspectionOverall")}</span>
                 <div className="flex items-center gap-2">
                   <Stars value={score} />
                   <span className="text-sm font-semibold text-foreground">({score.toFixed(1)})</span>
@@ -565,16 +571,16 @@ export default function TransactionPage() {
       <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Liên hệ hỗ trợ</DialogTitle>
+            <DialogTitle>{t("transaction.contactSupport")}</DialogTitle>
             <DialogDescription>
-              Live chat sẽ có khi tích hợp Backend. Hiện tại vui lòng liên hệ{" "}
+              {t("transaction.supportChatNote")}{" "}
               <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
                 support@shopbike.example.com
               </a>.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setSupportOpen(false)}>Đóng</Button>
+            <Button onClick={() => setSupportOpen(false)}>{t("transaction.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

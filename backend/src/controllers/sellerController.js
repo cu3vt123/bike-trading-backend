@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Listing } from "../models/Listing.js";
 import { Order } from "../models/Order.js";
+import { Review } from "../models/Review.js";
 import { ok, created, badRequest, notFound, forbidden } from "../utils/http.js";
 
 function normalizeListing(doc) {
@@ -152,5 +153,38 @@ export async function submitForInspection(req, res) {
   listing.inspectionResult = null;
   await listing.save();
   return ok(res, normalizeListing(listing));
+}
+
+/** Đánh giá & uy tín của seller – tổng hợp từ reviews (trừ HIDDEN). */
+export async function getMyRatings(req, res) {
+  const sellerId = req.user.id;
+  const docs = await Review.find({ sellerId, status: { $ne: "HIDDEN" } }).lean();
+
+  const totalReviews = docs.length;
+  if (totalReviews === 0) {
+    return ok(res, {
+      averageRating: 0,
+      totalReviews: 0,
+      positivePercent: 0,
+      breakdown: {},
+    });
+  }
+
+  const sum = docs.reduce((acc, r) => acc + (r.rating || 0), 0);
+  const averageRating = Math.round((sum / totalReviews) * 10) / 10;
+  const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  for (const r of docs) {
+    const k = Math.min(5, Math.max(1, r.rating || 0));
+    breakdown[k] = (breakdown[k] || 0) + 1;
+  }
+  const positiveCount = (breakdown[4] || 0) + (breakdown[5] || 0);
+  const positivePercent = totalReviews > 0 ? Math.round((positiveCount / totalReviews) * 100) : 0;
+
+  return ok(res, {
+    averageRating,
+    totalReviews,
+    positivePercent,
+    breakdown,
+  });
 }
 

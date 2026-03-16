@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Heart, Bike } from "lucide-react";
 import { useWishlistStore } from "@/stores/useWishlistStore";
 import { fetchListingById } from "@/services/buyerService";
@@ -9,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { BikeDetail } from "@/types/shopbike";
 
 export default function WishlistPage() {
+  const { t } = useTranslation();
   const idsStr = useWishlistStore((s) => Array.from(s.ids).sort().join(","));
   const ids = idsStr ? idsStr.split(",").filter(Boolean) : [];
   const [listings, setListings] = useState<BikeDetail[]>([]);
@@ -35,12 +37,12 @@ export default function WishlistPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <Heart className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold">Danh sách yêu thích trống</h2>
+            <h2 className="mt-4 text-lg font-semibold">{t("wishlist.empty")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Bấm biểu tượng trái tim trên xe để thêm vào danh sách yêu thích.
+              {t("wishlist.emptyHint")}
             </p>
             <Button asChild className="mt-6">
-              <Link to="/">Khám phá xe</Link>
+              <Link to="/">{t("wishlist.exploreBikes")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -51,9 +53,9 @@ export default function WishlistPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Danh sách yêu thích</h1>
+        <h1 className="text-2xl font-bold">{t("wishlist.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {listings.length} {listings.length === 1 ? "mục" : "mục"} trong danh sách yêu thích
+          {t(listings.length === 1 ? "wishlist.itemsCountOne" : "wishlist.itemsCount", { count: listings.length })}
         </p>
       </div>
 
@@ -66,9 +68,9 @@ export default function WishlistPage() {
         <Card>
           <CardContent className="flex flex-col items-center py-12">
             <Bike className="h-12 w-12 text-muted-foreground" />
-            <p className="mt-3 text-sm">Một số tin có thể không còn khả dụng.</p>
+            <p className="mt-3 text-sm">{t("wishlist.someUnavailable")}</p>
             <Button asChild variant="outline" className="mt-4">
-              <Link to="/">Về trang chủ</Link>
+              <Link to="/">{t("wishlist.goHome")}</Link>
             </Button>
           </CardContent>
         </Card>

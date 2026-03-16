@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CreditCard, Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,15 +27,13 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   }).format(value);
 }
 
-const METHOD_CONFIG: Record<
-  Method,
-  { label: string; icon: React.ElementType }
-> = {
-  CARD: { label: "Thẻ (Visa/Mastercard)", icon: CreditCard },
-  BANK: { label: "Chuyển khoản", icon: Building2 },
+const METHOD_KEYS: Record<Method, string> = {
+  CARD: "checkout.card",
+  BANK: "checkout.bankTransfer",
 };
 
 export default function CheckoutPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -93,7 +92,7 @@ export default function CheckoutPage() {
       })
       .catch((err) => {
         if (!cancelled)
-          setFetchError(err?.message ?? "Không tải được tin đăng.");
+          setFetchError(err?.message ?? t("listing.loadError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -107,7 +106,7 @@ export default function CheckoutPage() {
     return (
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">Đang tải thanh toán...</p>
+        <p className="text-sm text-muted-foreground">{t("checkout.loading")}</p>
       </div>
     );
   }
@@ -116,13 +115,12 @@ export default function CheckoutPage() {
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="py-12">
-          <h1 className="text-lg font-semibold">Không tìm thấy tin đăng</h1>
+          <h1 className="text-lg font-semibold">{t("checkout.notFound")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {fetchError ??
-              "Không tải được thanh toán do tin đăng không hợp lệ."}
+            {fetchError ?? t("checkout.loadError")}
           </p>
           <Button asChild variant="link" className="mt-4">
-            <Link to="/">Về trang chủ</Link>
+            <Link to="/">{t("checkout.goHome")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -131,29 +129,30 @@ export default function CheckoutPage() {
 
   const currency = (listing.currency ?? "VND") as "VND" | "USD";
   const itemPrice = listing.price;
-  const shipping = 45;
-  const deposit = 545;
+  // Khớp backend: deposit 8% giá xe; shipping = 0 (BE chưa có phí giao hàng trong order)
+  const shipping = 0;
+  const deposit = Math.round(itemPrice * 0.08);
   const totalNowDeposit = deposit;
   const totalNowFull = itemPrice + shipping;
   const dueOnDeliveryDeposit = Math.max(0, itemPrice + shipping - deposit);
 
   function validatePaymentFields(): Record<string, string> {
     const errs: Record<string, string> = {};
-    if (!ship.street.trim()) errs.shipStreet = "Vui lòng nhập địa chỉ đường";
-    if (!ship.city.trim()) errs.shipCity = "Vui lòng chọn thành phố";
+    if (!ship.street.trim()) errs.shipStreet = t("checkout.errStreet");
+    if (!ship.city.trim()) errs.shipCity = t("checkout.errCity");
     if (method === "CARD") {
       const n = card.number.replace(/\D/g, "");
       if (n.length < 12 || n.length > 19)
-        errs.cardNumber = "Nhập số thẻ hợp lệ (12–19 chữ số)";
-      if (!card.name.trim()) errs.cardName = "Vui lòng nhập tên chủ thẻ";
+        errs.cardNumber = t("checkout.errCardNumber");
+      if (!card.name.trim()) errs.cardName = t("checkout.errCardName");
       const expValidation = validateExpiry(card.exp);
-      if (!expValidation.valid) errs.cardExp = expValidation.message ?? "Ngày hết hạn không hợp lệ";
+      if (!expValidation.valid) errs.cardExp = expValidation.errorKey ? t(expValidation.errorKey) : t("checkout.errCardExp");
       const cvcDigits = card.cvc.replace(/\D/g, "");
-      if (cvcDigits.length !== 3) errs.cardCvc = "CVC phải đúng 3 chữ số";
+      if (cvcDigits.length !== 3) errs.cardCvc = t("checkout.errCardCvc");
     } else {
       if (bank.accountNumber.replace(/\D/g, "").length < 8)
-        errs.bankAccount = "Số tài khoản ít nhất 8 chữ số";
-      if (!bank.bankName.trim()) errs.bankName = "Vui lòng nhập tên ngân hàng";
+        errs.bankAccount = t("checkout.errBankAccount");
+      if (!bank.bankName.trim()) errs.bankName = t("checkout.errBankName");
     }
     return errs;
   }
@@ -220,7 +219,7 @@ export default function CheckoutPage() {
             : Date.now() + 24 * 60 * 60 * 1000,
           ship,
           depositPaid: deposit,
-          totalPrice: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
+          totalPrice: itemPrice + shipping,
           paymentMethod,
           totals: {
             itemPrice,
@@ -233,9 +232,7 @@ export default function CheckoutPage() {
       });
     } catch (err) {
       setApiError(
-        err instanceof Error
-          ? err.message
-          : "Failed to create order. Please try again.",
+        err instanceof Error ? err.message : t("checkout.createOrderError"),
       );
     } finally {
       setSubmitting(false);
@@ -250,9 +247,9 @@ export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Checkout</h1>
+        <h1 className="text-2xl font-semibold">{t("checkout.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Complete your deposit to secure your ride.
+          {t("checkout.subtitle")}
         </p>
       </div>
 
@@ -267,25 +264,26 @@ export default function CheckoutPage() {
           <Card>
             <CardHeader>
               <span className="text-sm font-semibold">
-                Chọn hình thức thanh toán
+                {t("checkout.selectPaymentPlan")}
               </span>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
                 {
                   p: "FULL" as Plan,
-                  title: "Full Payment",
-                  desc: "Pay the full amount now. Priority shipping included.",
+                  titleKey: "checkout.fullPayment",
+                  descKey: "checkout.fullPaymentDesc",
+                  badgeKey: null as string | null,
                   price: totalNowFull,
                 },
                 {
                   p: "DEPOSIT" as Plan,
-                  title: "Deposit + COD",
-                  badge: "Most Popular",
-                  desc: "Pay deposit now to reserve. Pay the rest upon delivery.",
+                  titleKey: "checkout.depositCOD",
+                  descKey: "checkout.depositCODDesc",
+                  badgeKey: "checkout.mostPopular",
                   price: totalNowDeposit,
                 },
-              ].map(({ p, title, desc, badge, price }) => (
+              ].map(({ p, titleKey, descKey, badgeKey, price }) => (
                 <button
                   key={p}
                   type="button"
@@ -300,15 +298,15 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{title}</span>
-                        {badge && (
+                        <span className="text-sm font-semibold">{t(titleKey)}</span>
+                        {badgeKey && (
                           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                            {badge}
+                            {t(badgeKey)}
                           </span>
                         )}
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {desc}
+                        {t(descKey)}
                       </p>
                     </div>
                     <span className="text-sm font-semibold">
@@ -323,14 +321,13 @@ export default function CheckoutPage() {
           <Card>
             <CardHeader>
               <span className="text-sm font-semibold">
-                Phương thức thanh toán
+                {t("checkout.paymentMethod")}
               </span>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-3">
                 {(["CARD", "BANK"] as Method[]).map((m) => {
-                  const config = METHOD_CONFIG[m];
-                  const Icon = config.icon;
+                  const Icon = m === "CARD" ? CreditCard : Building2;
                   return (
                     <button
                       key={m}
@@ -348,7 +345,7 @@ export default function CheckoutPage() {
                       )}
                     >
                       <Icon className="h-5 w-5" />
-                      {config.label}
+                      {t(METHOD_KEYS[m])}
                     </button>
                   );
                 })}
@@ -358,17 +355,17 @@ export default function CheckoutPage() {
 
           <Card>
             <CardHeader>
-              <span className="text-sm font-semibold">Địa chỉ giao hàng</span>
+              <span className="text-sm font-semibold">{t("checkout.shippingAddress")}</span>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <Label>Địa chỉ đường *</Label>
+                <Label>{t("checkout.streetAddress")}</Label>
                 <Input
                   className={cn(
                     "mt-1",
                     fieldErrors.shipStreet && "border-destructive",
                   )}
-                  placeholder="Số nhà, tên đường"
+                  placeholder={t("checkout.streetPlaceholder")}
                   value={ship.street}
                   onChange={(e) => {
                     setShip((s) => ({ ...s, street: e.target.value }));
@@ -383,7 +380,7 @@ export default function CheckoutPage() {
                 )}
               </div>
               <div>
-                <Label>Thành phố *</Label>
+                <Label>{t("checkout.city")}</Label>
                 <select
                   className={cn(
                     "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -396,7 +393,7 @@ export default function CheckoutPage() {
                       setFieldErrors((prev) => ({ ...prev, shipCity: "" }));
                   }}
                 >
-                  <option value="">Chọn thành phố</option>
+                  <option value="">{t("checkout.selectCity")}</option>
                   {CITY_OPTIONS.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -410,10 +407,10 @@ export default function CheckoutPage() {
                 )}
               </div>
               <div>
-                <Label>Mã bưu điện</Label>
+                <Label>{t("checkout.postalCode")}</Label>
                 <Input
                   className="mt-1"
-                  placeholder="Mã bưu điện"
+                  placeholder={t("checkout.postalCode")}
                   value={ship.postalCode}
                   onChange={(e) =>
                     setShip((s) => ({ ...s, postalCode: e.target.value }))
@@ -427,16 +424,15 @@ export default function CheckoutPage() {
             <Card>
               <CardHeader>
                 <span className="text-sm font-semibold">
-                  Thông tin thẻ (Visa / Mastercard)
+                  {t("checkout.cardInfo")}
                 </span>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Theo yêu cầu nhà phát hành thẻ. Thẻ thử: 4242 4242 4242 4242,
-                  5555 5555 5555 4444
+                  {t("checkout.cardInfoHint")}
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label>Số thẻ *</Label>
+                  <Label>{t("checkout.cardNumber")}</Label>
                   <Input
                     className={cn(
                       "mt-1 font-mono",
@@ -461,13 +457,13 @@ export default function CheckoutPage() {
                   )}
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Tên chủ thẻ *</Label>
+                  <Label>{t("checkout.cardholderName")}</Label>
                   <Input
                     className={cn(
                       "mt-1",
                       fieldErrors.cardName && "border-destructive",
                     )}
-                    placeholder="VD: Nguyễn Văn A (ghi đúng như trên thẻ)"
+                    placeholder={t("checkout.cardholderPlaceholder")}
                     value={card.name}
                     onChange={(e) => {
                       const cleaned = e.target.value
@@ -485,7 +481,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
                 <div>
-                  <Label>Ngày hết hạn (MM/YY) *</Label>
+                  <Label>{t("checkout.expiry")}</Label>
                   <Input
                     className={cn(
                       "mt-1",
@@ -514,7 +510,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
                 <div>
-                  <Label>CVC (3 chữ số) *</Label>
+                  <Label>{t("checkout.cvc")}</Label>
                   <Input
                     className={cn(
                       "mt-1",
@@ -547,10 +543,10 @@ export default function CheckoutPage() {
             <Card>
               <CardHeader>
                 <span className="text-sm font-semibold">
-                  Thông tin chuyển khoản
+                  {t("checkout.bankInfo")}
                 </span>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Theo quy định ngân hàng. Số tài khoản tối thiểu 8 chữ số.
+                  {t("checkout.bankInfoHint")}
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -570,7 +566,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Tên ngân hàng *</Label>
+                  <Label>{t("checkout.bankName")}</Label>
                   <select
                     className={cn(
                       "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -583,7 +579,7 @@ export default function CheckoutPage() {
                         setFieldErrors((prev) => ({ ...prev, bankName: "" }));
                     }}
                   >
-                    <option value="">Chọn ngân hàng</option>
+                    <option value="">{t("checkout.selectBank")}</option>
                     {BANK_OPTIONS.map((b) => (
                       <option key={b} value={b}>
                         {b}
@@ -597,7 +593,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
                 <div className="sm:col-span-2">
-                  <Label>Chủ tài khoản (tùy chọn)</Label>
+                  <Label>{t("checkout.accountHolder")}</Label>
                   <Input
                     className="mt-1"
                     placeholder="VD: Nguyễn Văn A"
@@ -629,16 +625,16 @@ export default function CheckoutPage() {
                 htmlFor="agree"
                 className="text-xs text-muted-foreground cursor-pointer"
               >
-                Tôi đồng ý với{" "}
+                {t("checkout.agreePolicy")}{" "}
                 <span className="text-primary underline">
-                  chính sách hủy & hoàn tiền
+                  {t("checkout.cancelRefundPolicy")}
                 </span>
                 .
               </Label>
             </div>
             {agreeError && (
               <p className="text-sm text-destructive">
-                Vui lòng đồng ý với chính sách hủy & hoàn tiền để tiếp tục.
+                {t("checkout.agreeError")}
               </p>
             )}
           </div>
@@ -650,10 +646,10 @@ export default function CheckoutPage() {
             disabled={submitting}
           >
             {submitting
-              ? "Đang tạo đơn..."
+              ? t("checkout.creating")
               : plan === "DEPOSIT"
-                ? "Đặt cọc & Giữ chỗ →"
-                : "Thanh toán toàn bộ →"}
+                ? t("checkout.depositReserve")
+                : t("checkout.payFull")}
           </Button>
         </div>
 
@@ -680,23 +676,25 @@ export default function CheckoutPage() {
 
               <div className="mt-5 space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Giá xe</span>
+                  <span>{t("checkout.bikePrice")}</span>
                   <span>{formatMoney(itemPrice, currency)}</span>
                 </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Phí vận chuyển</span>
-                  <span>{formatMoney(shipping, currency)}</span>
-                </div>
+                {shipping > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>{t("checkout.shippingFee")}</span>
+                    <span>{formatMoney(shipping, currency)}</span>
+                  </div>
+                )}
                 {plan === "DEPOSIT" && (
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Đặt cọc (ngay)</span>
+                    <span>{t("checkout.depositNow")}</span>
                     <span>{formatMoney(deposit, currency)}</span>
                   </div>
                 )}
 
                 <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <div className="flex justify-between font-semibold text-primary">
-                    <span>Tổng thanh toán ngay</span>
+                    <span>{t("checkout.totalPayNow")}</span>
                     <span>
                       {formatMoney(
                         plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
@@ -705,7 +703,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <div className="mt-1 flex justify-between text-xs text-primary/80">
-                    <span>Thanh toán khi nhận hàng</span>
+                    <span>{t("checkout.payOnDelivery")}</span>
                     <span>
                       {formatMoney(
                         plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0,
@@ -715,10 +713,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
-
-              <p className="mt-4 text-xs text-muted-foreground">
-                Giao diện hoàn chỉnh. Tích hợp API khi Backend sẵn sàng.
-              </p>
             </CardContent>
           </Card>
         </div>

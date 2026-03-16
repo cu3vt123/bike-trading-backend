@@ -37,3 +37,16 @@ npm install && npm run dev
 
 Mở `http://localhost:5173`.
 
+---
+
+## Tài liệu flow hệ thống
+
+| File | Nội dung |
+|------|----------|
+| [docs/FLOW-HE-THONG.md](docs/FLOW-HE-THONG.md) | **Giải thích flow làm việc toàn bộ hệ thống** – khởi động app, auth, phân quyền route, Header (ngôn ngữ, theme, thông báo), luồng Buyer/Seller/Inspector/Admin, stores, API. |
+| [docs/PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) | Tổng kết dự án, business rules, i18n, chức năng đã hoàn thành. |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Lịch sử thay đổi. |
+| [docs/AI-INSTRUCTIONS.md](docs/AI-INSTRUCTIONS.md) | Hướng dẫn cho người mới hoặc AI khác khi làm việc với codebase này trong Cursor. |
+
+**i18n:** Ứng dụng hỗ trợ Tiếng Việt / English (react-i18next). Chuyển đổi qua icon Globe trên Header.
+

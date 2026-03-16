@@ -3,11 +3,27 @@ import bcrypt from "bcryptjs";
 import { connectDb, disconnectDb } from "./config/db.js";
 import { User } from "./models/User.js";
 import { Listing } from "./models/Listing.js";
+import { Brand } from "./models/Brand.js";
+
+const DEFAULT_BRANDS = [
+  "Giant", "Trek", "Specialized", "Cannondale", "Scott", "Bianchi",
+  "Canyon", "Santa Cruz", "Merida", "Cervelo", "Pinarello", "Colnago",
+  "Cube", "Focus", "Wilier", "Other",
+];
 
 /** Gọi từ server.js khi dùng in-memory DB (DB luôn rỗng khi restart) */
 export async function runSeed() {
   await User.deleteMany({});
   await Listing.deleteMany({});
+  await Brand.deleteMany({});
+
+  await Brand.insertMany(
+    DEFAULT_BRANDS.map((name) => ({
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-"),
+      active: true,
+    })),
+  );
 
   const pwd = await bcrypt.hash("Password!1", 10);
 

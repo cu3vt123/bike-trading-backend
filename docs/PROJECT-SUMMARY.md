@@ -16,6 +16,7 @@
 - **React Router v7**
 - **Zustand** (state management)
 - **Axios** (HTTP client)
+- **react-i18next** (i18n – Tiếng Việt / English)
 
 ### Roles
 
@@ -23,9 +24,9 @@
 |----------|---------------------------------------------|
 | Guest    | Xem Home, Detail, Login, Register           |
 | Buyer    | Mua hàng, Checkout, Transaction, Profile    |
-| Seller   | Đăng tin, quản lý tin, Profile, Payouts     |
+| Seller   | Đăng tin, quản lý tin, Profile, ratings, payouts |
 | Inspector| Dashboard kiểm định (Sprint 3) – Duyệt/Từ chối tin |
-| Admin    | Cùng quyền Inspector (Sprint 3)             |
+| Admin    | Dashboard quản trị: user, listing, reviews, brands, transactions |
 
 ---
 
@@ -47,6 +48,8 @@
 - **FIFO**: Available → Reserved (lock sau deposit thành công) → Sold
 - Cancel / Fail → Available ngay
 - **Reserve** chỉ tạo khi deposit payment thành công (24h countdown)
+- **Deposit hiện tại**: 8% giá trị đơn hàng (đồng bộ với backend)
+- Shipping option trong checkout đang bám theo dữ liệu backend thay vì giá trị demo cũ
 
 ### 2.3 Refund & Hủy
 
@@ -66,6 +69,15 @@
 - **Login** không chọn role – role lấy từ tài khoản (Buyer, Seller, Inspector, Admin)
 - Sai role → chuyển về `/403`
 - Buyer không vào `/checkout`, `/transaction`, …; Seller không vào `/checkout/:id`
+- Khi đổi role / logout, token cũ được xóa để tránh lỗi 403 do giữ phiên sai
+
+### 2.6 Reviews, Ratings & Brands
+
+- Buyer chỉ review khi order ở trạng thái **COMPLETED**
+- Seller Dashboard lấy điểm uy tín từ endpoint thật `GET /seller/ratings`
+- Admin xem / chỉnh review qua `GET /admin/reviews`, `PUT /admin/reviews/:id`
+- Danh sách **brand** cho seller lấy từ backend, không còn hardcode cố định
+- Admin có thể thêm / sửa / xóa brand; brand mới sẽ xuất hiện trong form đăng tin của seller
 
 ---
 
@@ -83,6 +95,7 @@ Home → Product Detail → Checkout → Transaction → Finalize → Success
 4. **Transaction** (`/transaction/:id`): Countdown 24h, logistics, Cancel / Finalize
 5. **Finalize** (`/finalize/:id`): Thanh toán số dư, xác nhận giao hàng
 6. **Success** (`/success/:id`): Xác nhận hoàn tất
+7. **Review**: Buyer có thể để lại đánh giá cho seller sau khi hoàn tất giao dịch
 
 ### 3.2 Luồng Seller
 
@@ -90,8 +103,8 @@ Home → Product Detail → Checkout → Transaction → Finalize → Success
 Seller Dashboard → Create/Edit Listing → Profile → Stats
 ```
 
-- **Dashboard** (`/seller`): Tổng quan tin, thống kê, hành động
-- **Listing Editor** (`/seller/listings/new`, `/seller/listings/:id/edit`): Tạo/sửa tin, upload ảnh
+- **Dashboard** (`/seller`): Tổng quan tin, thống kê, Orders/Deposits, Ratings & reputation
+- **Listing Editor** (`/seller/listings/new`, `/seller/listings/:id/edit`): Tạo/sửa tin, upload ảnh, chọn brand từ API
 - **Profile** (`/profile`): Khi role = Seller → Seller Profile
 - **Stats** (`/seller/stats`): Thống kê chi tiết
 
@@ -112,7 +125,8 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 
 ### 3.5 Luồng Admin
 
-- **Admin Dashboard** (`/admin`): Quản lý user/listing, nút "Hiện" (unhide) cho user/listing đã ẩn
+- **Admin Dashboard** (`/admin`): Quản lý user/listing, review, categories, brands, transactions & fees
+- **Brands**: thêm / sửa / xóa thương hiệu để seller dùng trong form đăng tin
 
 ---
 
@@ -127,7 +141,7 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 
 | Chức năng      | Mô tả                                                 |
 |----------------|--------------------------------------------------------|
-| Login          | Mock login, chọn 4 role                               |
+| Login          | Đăng nhập bằng email/password; role do backend hoặc mock trả về |
 | Register       | Mock signup, chỉ Buyer/Seller                         |
 | GuestGuard     | Redirect user đã login khỏi /login, /register          |
 | RequireAuth     | Bảo vệ /profile                                       |
@@ -142,7 +156,7 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 |-----------------|------------------------------------------------------|
 | HomePage        | Load listings qua `buyerService` (API + mock)         |
 | ProductDetailPage | Chi tiết xe, inspection report, View full report (Dialog) |
-| CheckoutPage    | Plan, payment method, shipping, validation policy (inline error) |
+| CheckoutPage    | Plan, payment method, shipping, deposit 8%, validation policy (inline error) |
 | TransactionPage | Countdown, Cancel (confirm), View report (Dialog), Support chat (Dialog) |
 | FinalizePurchasePage | Thanh toán số dư, confirm shipping                   |
 | PurchaseSuccessPage | Tóm tắt đơn, links                                    |
@@ -152,8 +166,8 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 
 | Trang                 | Chức năng chính                                      |
 |-----------------------|------------------------------------------------------|
-| SellerDashboardPage   | Thống kê tin, inventory (gọi `sellerService` – API + mock) |
-| SellerListingEditorPage | Tạo/sửa tin, upload 1–8 ảnh, Save draft / Submit for inspection (gọi API) |
+| SellerDashboardPage   | Thống kê tin, inventory, Orders/Deposits, Ratings & reputation (gọi `sellerService` – API + mock) |
+| SellerListingEditorPage | Tạo/sửa tin, upload 1–8 ảnh, Save draft / Submit for inspection; danh sách brand lấy từ API |
 | SellerProfilePage    | Edit Profile, Payment methods (Add/Remove/Set default) |
 | SellerStatsPage      | Total Sales, Active Listings, Completed Deals       |
 
@@ -162,6 +176,15 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | Trang                  | Chức năng chính                                      |
 |------------------------|------------------------------------------------------|
 | InspectorDashboardPage | Danh sách tin chờ kiểm định, Duyệt / Từ chối / Cần cập nhật (mock + API) |
+
+### 4.5a Admin Dashboard – Mở rộng
+
+| Tab            | Chức năng chính                                      |
+|----------------|------------------------------------------------------|
+| Categories     | CRUD danh mục (mock)                                  |
+| Brands         | CRUD brand lưu backend, dùng lại ở Seller Listing Editor |
+| Reviews        | Xem và chỉnh review hậu giao dịch                     |
+| Transactions   | Cấu hình phí, bảng lịch sử giao dịch (demo FE)        |
 
 ### 4.6 Seller Profile – Chi tiết
 
@@ -185,11 +208,15 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | `authApi.ts`     | login, signup, getProfile (scaffold)                  |
 | `buyerApi.ts`    | bikes, orders, payments (scaffold)                   |
 | `buyerService.ts`| Facade + fallback mock khi API lỗi                  |
-| `sellerApi.ts`   | dashboard, listings, create, update, submit (scaffold) |
-| `sellerService.ts`| Facade + fallback mock cho Seller                   |
+| `sellerApi.ts`   | dashboard, orders, ratings, listings, create, update, submit |
+| `sellerService.ts`| Facade + fallback mock cho Seller; sync notifications; ratings |
+| `brandsApi.ts`   | Public API lấy danh sách brands active               |
+| `adminApi.ts`    | User, listing, review, brand, warehouse, transaction |
 | `inspectorApi.ts`| pending-listings, approve, reject, need-update (scaffold) |
 | `useAuthStore`   | Tokens, role, persist `auth-storage`                 |
-| `useNotificationStore` | Thông báo seller (polling, sync) |
+| `useNotificationStore` | Thông báo (chỉ xóa tin đã đọc; filter "Hiển thị thông báo chưa đọc") |
+| `useLanguageStore` | Ngôn ngữ vi/en (persist, document.documentElement.lang) |
+| `src/locales/`     | `vi.json`, `en.json` – namespace i18n (common, auth, home, profile, checkout, seller, …) |
 
 ### 4.8 Các sửa đổi theo business rules (gần đây)
 
@@ -205,6 +232,10 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | Seller notifications | Polling 10s, sync khi mount; nút "Kiểm tra đơn mới" |
 | Seller Dashboard| View all → Link thay vì button                                 |
 | Checkout        | Validation policy → inline error thay alert                    |
+| Auth / 403      | Xóa token cũ khi đổi role; chỉnh `ForbiddenPage` và điều hướng sau login/logout |
+| Checkout        | Đồng bộ deposit 8% với backend; bỏ ghi chú dev; localize thêm cho Finalize/Success/Admin warehouse |
+| Seller Ratings  | Backend thêm `GET /seller/ratings`; seller thấy rating thật sau review |
+| Brands          | Admin CRUD brands qua API; seller form lấy brand từ backend thay vì hardcode |
 
 ---
 
@@ -215,13 +246,14 @@ src/
 ├── app/                    # App root, router, providers (createBrowserRouter)
 ├── features/               # auth, landing, bikes, buyer, seller, inspector, support
 ├── shared/                 # components/common, ui, layouts, constants
-├── lib/                    # env, apiClient, apiConfig, utils
+├── lib/                    # env, apiClient, apiConfig, utils, validateExpiry
+├── locales/                # vi.json, en.json – i18n (react-i18next)
 ├── apis/                   # authApi, buyerApi, bikeApi, sellerApi, inspectorApi
 ├── services/               # buyerService, sellerService
 ├── pages/                  # Các trang – features re-export
 ├── components/             # Header, ListingCard, ui
 ├── layouts/                # MainLayout
-├── stores/                 # useAuthStore, useWishlistStore, useNotificationStore
+├── stores/                 # useAuthStore, useWishlistStore, useNotificationStore, useLanguageStore
 ├── types/                  # auth, shopbike, order
 └── mocks/                  # Mock data
 ```
@@ -241,7 +273,9 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/README.md` | Mục lục toàn bộ tài liệu trong `docs/` |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |
 | `docs/ERD-SPEC.md` | Đặc tả ERD – entities, quan hệ |
+| `docs/FLOW-HE-THONG.md` | **Flow làm việc toàn hệ thống** – khởi động, auth, route, Header, luồng role, stores |
 | `docs/KIEM-KE-HE-THONG.md` | Báo cáo kiểm kê hệ thống |
+| `docs/AI-INSTRUCTIONS.md` | Hướng dẫn làm việc với AI trong Cursor cho dự án này |
 | `docs/backend/` | Tài liệu backend (STRUCTURE, DEMO-BACKEND-GUIDE, PORTING-NODE-TO-SPRING-BOOT, SPRING-BOOT-SKELETON) |
 
 ---
@@ -263,9 +297,30 @@ Chi tiết: `docs/STRUCTURE.md`
 4. Seller → Dashboard → Create/Edit listing → Submit for inspection
 5. Seller → /seller/stats
 6. Logout → Login Inspector → Inspector Dashboard → Duyệt / Từ chối / Cần cập nhật
-7. Buyer thử vào /seller → 403
-8. Seller thử vào /checkout/:id → 403
+7. Logout → Login Admin → thêm brand mới trong `/admin`, kiểm tra seller form thấy brand đó
+8. Buyer hoàn tất mua hàng → review seller → seller thấy Ratings & reputation cập nhật
+9. Buyer thử vào /seller → 403
+10. Seller thử vào /checkout/:id → 403
 
 ---
 
-*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan*
+### 4.9 Giao diện toàn cục (gần đây)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Dark/Light mode** | ThemeProvider bọc App; toggle trên Header; lưu `shopbike-theme`; Login form đổi nền/chữ theo theme, chữ ShopBike cố định trắng. |
+| **Ngôn ngữ (i18n)** | Icon Globe bên trái "Hỗ trợ" → dropdown Tiếng Việt / English; react-i18next + `src/locales/vi.json`, `en.json`; toàn bộ UI và thông báo lỗi đa ngôn ngữ. |
+| **Header Buyer** | Thay icon tim bằng icon giỏ hàng; một nút duy nhất link `/wishlist`. Bỏ route `/cart` và nút giỏ hàng riêng. |
+| **Thông báo** | Chỉ tin đã đọc mới xóa (nút "Xóa tin đã đọc", xóa từng tin); nút "Hiển thị thông báo chưa đọc" / "Hiển thị tất cả" thay cho "Đánh dấu đã đọc". |
+
+### 4.10 i18n – Trang và lỗi đã dịch
+
+| Khu vực | Chi tiết |
+|---------|----------|
+| **Trang** | Logo, ListingCard, ProductDetailPage, HomePage, BuyerProfilePage, AdminDashboardPage, InspectorDashboardPage, CheckoutPage, TransactionPage, NotificationsPage, SellerDashboardPage, SellerListingEditorPage, SupportPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, FinalizePurchasePage, PurchaseSuccessPage, SellerProfilePage, ForbiddenPage. |
+| **Lỗi validate** | Register, ForgotPassword, ResetPassword, Checkout, SellerProfile, validateExpiry (auth.errExpRequired, auth.errExpFormat, …). |
+| **Lỗi API / trang** | FinalizePurchase, PurchaseSuccess, Checkout (createOrderError, finalizeLoadError, …), HomePage (noResults). |
+
+---
+
+*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands lưu backend, thêm AI instructions.*
