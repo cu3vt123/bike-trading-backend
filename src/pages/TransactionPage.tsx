@@ -20,7 +20,7 @@ import {
   cancelOrder,
 } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
-import type { OrderStatus } from "@/types/order";
+import type { OrderFulfillmentType, OrderStatus } from "@/types/order";
 
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
@@ -39,6 +39,7 @@ type TxState = {
   expiresAt?: number;
   paymentMethod?: PaymentMethod;
   totals?: { deposit?: number; totalNow?: number };
+  fulfillmentType?: OrderFulfillmentType;
 };
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
@@ -70,15 +71,74 @@ const SHIPPING_FLOW_STEPS: OrderStatus[] = [
   "COMPLETED",
 ];
 
-function isStepDone(status: OrderStatus | null, step: OrderStatus): boolean {
+/** Xe chưa kiểm định: không qua kho / re-inspection */
+const DIRECT_FLOW_STEPS: OrderStatus[] = [
+  "RESERVED",
+  "PENDING_SELLER_SHIP",
+  "SHIPPING",
+  "COMPLETED",
+];
+
+function flowSteps(isDirect: boolean): OrderStatus[] {
+  return isDirect ? DIRECT_FLOW_STEPS : SHIPPING_FLOW_STEPS;
+}
+
+function isStepDoneInFlow(
+  status: OrderStatus | null,
+  step: OrderStatus,
+  flow: OrderStatus[],
+): boolean {
   if (!status) return step === "RESERVED";
-  const idx = SHIPPING_FLOW_STEPS.indexOf(step);
-  const currentIdx =
+  const idx = flow.indexOf(step);
+  if (idx < 0) return false;
+  const reservedIdx = flow.indexOf("RESERVED");
+  let currentIdx =
     status === "IN_TRANSACTION"
-      ? 0
-      : SHIPPING_FLOW_STEPS.indexOf(status);
-  if (currentIdx < 0) return idx < SHIPPING_FLOW_STEPS.indexOf("COMPLETED");
-  return idx <= currentIdx || status === "COMPLETED";
+      ? reservedIdx >= 0
+        ? reservedIdx
+        : 0
+      : flow.indexOf(status);
+  if (status === "COMPLETED") {
+    const cIdx = flow.indexOf("COMPLETED");
+    return cIdx >= 0 && idx <= cIdx;
+  }
+  if (currentIdx < 0) return false;
+  return idx <= currentIdx;
+}
+
+function stepTitleFor(
+  step: OrderStatus,
+  isDirect: boolean,
+  t: (key: string) => string,
+): string {
+  if (step === "PENDING_SELLER_SHIP" && isDirect) {
+    return t("transaction.directStepSellerShipTitle");
+  }
+  return t(`order.status${step}` as "order.statusRESERVED");
+}
+
+function stepDescFor(
+  step: OrderStatus,
+  isDirect: boolean,
+  t: (key: string) => string,
+): string {
+  if (step === "RESERVED") return t("transaction.depositSuccess");
+  if (step === "PENDING_SELLER_SHIP") {
+    return isDirect ? t("transaction.sellerNotifyDirect") : t("transaction.sellerNotify");
+  }
+  if (isDirect) {
+    if (step === "SHIPPING") return t("transaction.shippingToYou");
+    if (step === "COMPLETED") return t("transaction.ownershipTransferred");
+    return "";
+  }
+  if (step === "SELLER_SHIPPED") return t("transaction.sellerShipped");
+  if (step === "AT_WAREHOUSE_PENDING_ADMIN") return t("transaction.adminConfirm");
+  if (step === "RE_INSPECTION") return t("transaction.inspectorReInspect");
+  if (step === "RE_INSPECTION_DONE") return t("transaction.confirmedTransfer");
+  if (step === "SHIPPING") return t("transaction.shippingToYou");
+  if (step === "COMPLETED") return t("transaction.ownershipTransferred");
+  if (step === "IN_TRANSACTION") return t("transaction.payBalance");
+  return "";
 }
 
 export default function TransactionPage() {
@@ -96,6 +156,10 @@ export default function TransactionPage() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
 
   const state = orderState ?? locationState;
+  const isDirect =
+    state.fulfillmentType === "DIRECT" ||
+    (!state.fulfillmentType && orderStatus === "PENDING_SELLER_SHIP");
+  const progressFlow = flowSteps(isDirect);
 
   // Fetch order when orderId from URL or state → sync status & expiresAt
   const orderIdToFetch = searchParams.get("orderId") ?? locationState.orderId;
@@ -114,6 +178,7 @@ export default function TransactionPage() {
               depositPaid: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
               totalPrice: o.totalPrice ?? 0,
               expiresAt: o.expiresAt ? new Date(o.expiresAt).getTime() : undefined,
+              fulfillmentType: o.fulfillmentType ?? prev?.fulfillmentType ?? locationState?.fulfillmentType ?? "WAREHOUSE",
               paymentMethod: prev?.paymentMethod ?? locationState?.paymentMethod ?? { type: "BANK_TRANSFER" },
               totals: prev?.totals ?? locationState?.totals ?? {},
             }));
@@ -239,7 +304,9 @@ export default function TransactionPage() {
         <div>
           <h1 className="text-2xl font-bold">{t("transaction.title")}</h1>
           <Badge className="mt-2" variant="default">
-            RESERVED / IN TRANSACTION
+            {orderStatus
+              ? t(`order.status${orderStatus}` as "order.statusRESERVED")
+              : t("order.statusPENDING")}
           </Badge>
           <p className="mt-2 text-sm text-muted-foreground">
             {t("transaction.updatedNow")} • {t("transaction.order")} #{orderId}
@@ -286,7 +353,7 @@ export default function TransactionPage() {
                 </div>
               ) : (
                 <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-                  {t("transaction.nextStepDesc")}
+                  {isDirect ? t("transaction.nextStepDescDirect") : t("transaction.nextStepDesc")}
                 </p>
               )}
             </CardContent>
@@ -298,29 +365,22 @@ export default function TransactionPage() {
               <span className="text-sm font-semibold">{t("transaction.progress")}</span>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(orderStatus ? SHIPPING_FLOW_STEPS : (["RESERVED", "IN_TRANSACTION", "COMPLETED"] as OrderStatus[])).map((step) => {
-                const done = orderStatus ? isStepDone(orderStatus, step) : (step === "RESERVED" || step === "IN_TRANSACTION");
-                const title = t(`order.status${step}` as "order.statusRESERVED");
+              {(orderStatus ? progressFlow : (["RESERVED", "IN_TRANSACTION", "COMPLETED"] as OrderStatus[])).map((step) => {
+                const done = orderStatus
+                  ? isStepDoneInFlow(orderStatus, step, progressFlow)
+                  : step === "RESERVED" || step === "IN_TRANSACTION";
+                const title =
+                  orderStatus && progressFlow.includes(step)
+                    ? stepTitleFor(step, isDirect, t)
+                    : t(`order.status${step}` as "order.statusRESERVED");
                 const desc =
-                  step === "RESERVED"
-                    ? t("transaction.depositSuccess")
-                    : step === "PENDING_SELLER_SHIP"
-                      ? t("transaction.sellerNotify")
-                      : step === "SELLER_SHIPPED"
-                        ? t("transaction.sellerShipped")
-                        : step === "AT_WAREHOUSE_PENDING_ADMIN"
-                          ? t("transaction.adminConfirm")
-                          : step === "RE_INSPECTION"
-                            ? t("transaction.inspectorReInspect")
-                            : step === "RE_INSPECTION_DONE"
-                              ? t("transaction.confirmedTransfer")
-                              : step === "SHIPPING"
-                                ? t("transaction.shippingToYou")
-                                : step === "COMPLETED"
-                                  ? t("transaction.ownershipTransferred")
-                                  : step === "IN_TRANSACTION"
-                                    ? t("transaction.payBalance")
-                                    : "";
+                  orderStatus && progressFlow.includes(step)
+                    ? stepDescFor(step, isDirect, t)
+                    : step === "RESERVED" || step === "IN_TRANSACTION"
+                      ? step === "RESERVED"
+                        ? t("transaction.depositSuccess")
+                        : t("transaction.payBalance")
+                      : "";
                 return (
                   <div key={step} className="flex gap-3">
                     <div
@@ -404,15 +464,22 @@ export default function TransactionPage() {
                   {orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION"
                     ? t("transaction.waitPaymentDone")
                     : orderStatus === "PENDING_SELLER_SHIP"
-                      ? t("transaction.waitSellerShip")
+                      ? isDirect
+                        ? t("transaction.waitSellerShipDirect")
+                        : t("transaction.waitSellerShip")
                       : orderStatus === "SELLER_SHIPPED" || orderStatus === "AT_WAREHOUSE_PENDING_ADMIN"
                         ? t("transaction.bikeEnRoute")
                         : orderStatus === "RE_INSPECTION"
                           ? t("transaction.reInspectionAtWarehouse")
-                          : t("transaction.orderInProgress")}
+                          : isDirect
+                            ? t("transaction.orderInProgressDirect")
+                            : t("transaction.orderInProgress")}
                 </p>
               )}
-              {(orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION" || !orderStatus) && (
+              {(orderStatus === "RESERVED" ||
+                orderStatus === "IN_TRANSACTION" ||
+                !orderStatus ||
+                (orderStatus === "PENDING_SELLER_SHIP" && isDirect)) && (
                 <Button
                   variant="outline"
                   className="mt-3 w-full"

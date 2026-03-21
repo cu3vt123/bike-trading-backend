@@ -12,32 +12,54 @@ const createOrderSchema = z.object({
     city: z.string(),
     postalCode: z.string().optional(),
   }),
+  /** Bắt buộc true nếu tin chưa kiểm định (UNVERIFIED) */
+  acceptedUnverifiedDisclaimer: z.boolean().optional(),
 });
+
+function listingNeedsUnverifiedDisclaimer(listing) {
+  if (listing.certificationStatus === "CERTIFIED") return false;
+  if (listing.inspectionResult === "APPROVE") return false;
+  return true;
+}
+
+/** Xe đã kiểm định → luồng kho; chưa kiểm định → giao trực tiếp, không qua kho */
+function listingUsesWarehouseFlow(listing) {
+  return !listingNeedsUnverifiedDisclaimer(listing);
+}
 
 export async function createOrder(req, res) {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) return badRequest(res, "Invalid order payload");
 
-  const { listingId, plan, shippingAddress } = parsed.data;
+  const { listingId, plan, shippingAddress, acceptedUnverifiedDisclaimer } = parsed.data;
   const buyerId = req.user.id;
 
   const listing = await Listing.findById(listingId);
   if (!listing) return notFound(res, "Listing not found");
   if (listing.isHidden) return badRequest(res, "Listing has been hidden by admin");
-  if (listing.state !== "PUBLISHED" || listing.inspectionResult !== "APPROVE") {
+  const now = new Date();
+  if (listing.state !== "PUBLISHED") {
     return badRequest(res, "Listing not available for purchase");
+  }
+  if (listing.listingExpiresAt && listing.listingExpiresAt <= now) {
+    return badRequest(res, "Listing has expired");
+  }
+  if (listingNeedsUnverifiedDisclaimer(listing) && acceptedUnverifiedDisclaimer !== true) {
+    return badRequest(res, "UNVERIFIED_DISCLAIMER_REQUIRED");
   }
 
   const totalPrice = listing.price;
   const depositAmount = Math.round(totalPrice * 0.08);
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const useWarehouse = listingUsesWarehouseFlow(listing);
 
   await Listing.findByIdAndUpdate(listingId, { state: "RESERVED" });
 
   const order = await Order.create({
     buyerId,
     listingId: listing._id,
-    status: "SELLER_SHIPPED",
+    status: useWarehouse ? "SELLER_SHIPPED" : "PENDING_SELLER_SHIP",
+    fulfillmentType: useWarehouse ? "WAREHOUSE" : "DIRECT",
     plan,
     totalPrice,
     depositAmount,
@@ -47,7 +69,7 @@ export async function createOrder(req, res) {
       city: shippingAddress.city || "",
       postalCode: shippingAddress.postalCode || "",
     },
-    shippedAt: new Date(),
+    shippedAt: useWarehouse ? new Date() : null,
     expiresAt,
     listing: {
       id: String(listing._id),
@@ -69,6 +91,7 @@ export async function createOrder(req, res) {
     listingId: String(listing._id),
     buyerId: String(order.buyerId),
     status: order.status,
+    fulfillmentType: order.fulfillmentType ?? "WAREHOUSE",
     plan: order.plan,
     totalPrice,
     depositAmount,
@@ -111,6 +134,7 @@ export async function getMyOrders(req, res) {
     if (o.reInspectionDoneAt) obj.reInspectionDoneAt = o.reInspectionDoneAt.toISOString?.() ?? o.reInspectionDoneAt;
     if (o.createdAt) obj.createdAt = o.createdAt.toISOString?.() ?? o.createdAt;
     if (o.updatedAt) obj.updatedAt = o.updatedAt.toISOString?.() ?? o.updatedAt;
+    obj.fulfillmentType = o.fulfillmentType ?? "WAREHOUSE";
     delete obj._id;
     delete obj.__v;
     return obj;
@@ -131,6 +155,7 @@ export async function getOrderById(req, res) {
   obj.id = String(order._id);
   obj.listingId = String(order.listingId);
   obj.buyerId = String(order.buyerId);
+  obj.fulfillmentType = order.fulfillmentType ?? "WAREHOUSE";
   if (order.expiresAt) obj.expiresAt = order.expiresAt.toISOString();
   delete obj._id;
 
@@ -145,10 +170,11 @@ export async function completeOrder(req, res) {
     return forbidden(res, "Not your order");
   }
   if (order.status !== "SHIPPING") {
-    return badRequest(
-      res,
-      `Chỉ được hoàn tất khi xe đã giao (đang: ${order.status}). Seller cần gửi xe tới kho, admin xác nhận, inspector kiểm định xong.`,
-    );
+    const hint =
+      order.fulfillmentType === "DIRECT"
+        ? "Chỉ hoàn tất khi seller đã giao xe và đơn đang ở trạng thái đang giao (SHIPPING)."
+        : "Chỉ hoàn tất khi xe đã qua kho, kiểm định lại và đang giao tới bạn (SHIPPING).";
+    return badRequest(res, `${hint} (hiện tại: ${order.status})`);
   }
 
   order.status = "COMPLETED";
@@ -167,7 +193,11 @@ export async function cancelOrder(req, res) {
   if (order.buyerId.toString() !== req.user.id) {
     return forbidden(res, "Not your order");
   }
-  if (order.status !== "RESERVED" && order.status !== "IN_TRANSACTION") {
+  const cancellable =
+    order.status === "RESERVED" ||
+    order.status === "IN_TRANSACTION" ||
+    (order.status === "PENDING_SELLER_SHIP" && order.fulfillmentType === "DIRECT");
+  if (!cancellable) {
     return badRequest(res, `Order cannot be cancelled (status: ${order.status})`);
   }
 

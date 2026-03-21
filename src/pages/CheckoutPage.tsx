@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useTranslation } from "react-i18next";
 import { CreditCard, Building2 } from "lucide-react";
 
@@ -8,6 +9,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   fetchListingById,
   createOrder,
@@ -48,6 +56,9 @@ export default function CheckoutPage() {
   const [agree, setAgree] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutPolicyOpen, setCheckoutPolicyOpen] = useState(false);
+  const [checkoutPolicyAccepted, setCheckoutPolicyAccepted] = useState(false);
+  const checkoutPolicyAcceptedRef = useRef(false);
   const CITY_OPTIONS = [
     "Ho Chi Minh City",
     "Ha Noi",
@@ -101,6 +112,15 @@ export default function CheckoutPage() {
       cancelled = true;
     };
   }, [id]);
+
+  /** Popup chính sách cho mọi đơn: đã kiểm định & chưa kiểm định */
+  useEffect(() => {
+    if (listing) {
+      setCheckoutPolicyOpen(true);
+      setCheckoutPolicyAccepted(false);
+      checkoutPolicyAcceptedRef.current = false;
+    }
+  }, [listing?.id]);
 
   if (loading) {
     return (
@@ -157,7 +177,13 @@ export default function CheckoutPage() {
     return errs;
   }
 
+  const needsUnverifiedDisclaimer = listing ? isBuyerUnverifiedRisk(listing) : false;
+
   async function onSubmit() {
+    if (!checkoutPolicyAccepted) {
+      setCheckoutPolicyOpen(true);
+      return;
+    }
     if (!agree) {
       setAgreeError(true);
       return;
@@ -194,6 +220,9 @@ export default function CheckoutPage() {
           city: ship.city,
           postalCode: ship.postalCode,
         },
+        acceptedUnverifiedDisclaimer: needsUnverifiedDisclaimer
+          ? true
+          : undefined,
       });
       const paymentMethod =
         validation.paymentMethod?.type === "CARD"
@@ -212,6 +241,7 @@ export default function CheckoutPage() {
         state: {
           orderId: order.id,
           listingId: listing.id,
+          fulfillmentType: order.fulfillmentType ?? "WAREHOUSE",
           plan,
           method,
           expiresAt: order.expiresAt
@@ -246,6 +276,42 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
+      <Dialog
+        open={checkoutPolicyOpen}
+        onOpenChange={(open) => {
+          if (!open && !checkoutPolicyAcceptedRef.current) {
+            navigate(-1);
+          }
+          setCheckoutPolicyOpen(open);
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-md"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>{t("checkout.policyTitle")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{t("checkout.policyBody")}</p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+              {t("checkout.policyDecline")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                checkoutPolicyAcceptedRef.current = true;
+                setCheckoutPolicyAccepted(true);
+                setCheckoutPolicyOpen(false);
+              }}
+            >
+              {t("checkout.policyAccept")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">{t("checkout.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">

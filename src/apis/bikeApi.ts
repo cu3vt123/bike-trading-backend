@@ -73,6 +73,18 @@ function toListing(dto: BikeDto): Listing {
         ? dto.inspection_score
         : undefined;
 
+  const certRaw = pick<string | undefined>(
+    dto,
+    ["certificationStatus", "certification_status"],
+    undefined,
+  );
+  const certificationStatus =
+    certRaw === "UNVERIFIED" ||
+    certRaw === "PENDING_CERTIFICATION" ||
+    certRaw === "CERTIFIED"
+      ? certRaw
+      : undefined;
+
   return {
     id,
     title,
@@ -99,6 +111,13 @@ function toListing(dto: BikeDto): Listing {
     inspectionResult,
     inspectionScore: inspectionScore ?? (inspectionReport ? averageReportScore(inspectionReport) : undefined),
     inspectionReport,
+    certificationStatus,
+    publishedAt: pick<string | undefined>(dto, ["publishedAt", "published_at"], undefined),
+    listingExpiresAt: pick<string | undefined>(
+      dto,
+      ["listingExpiresAt", "listing_expires_at"],
+      undefined,
+    ),
   };
 }
 

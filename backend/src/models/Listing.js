@@ -55,6 +55,15 @@ const ListingSchema = new mongoose.Schema(
     },
     isHidden: { type: Boolean, default: false, index: true },
     hiddenAt: { type: Date, default: null },
+    /** UNVERIFIED = lên sàn chưa kiểm định; CERTIFIED = đã inspector duyệt; PENDING_CERTIFICATION = chờ duyệt */
+    certificationStatus: {
+      type: String,
+      enum: ["UNVERIFIED", "PENDING_CERTIFICATION", "CERTIFIED"],
+      default: "UNVERIFIED",
+    },
+    publishedAt: { type: Date, default: null },
+    /** Hết hạn thì không hiển thị trên marketplace (30 ngày từ publishedAt) */
+    listingExpiresAt: { type: Date, default: null, index: true },
   },
   { timestamps: true },
 );

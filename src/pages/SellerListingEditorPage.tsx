@@ -4,9 +4,10 @@ import { useTranslation } from "react-i18next";
 import {
   createListing,
   updateListing,
-  submitForInspection,
+  publishListing,
   fetchListingById,
 } from "@/services/sellerService";
+import { isAxiosError } from "axios";
 import { brandsApi } from "@/apis/brandsApi";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
@@ -40,6 +41,9 @@ export default function SellerListingEditorPage() {
 
   const [title, setTitle] = useState("");
   const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState<string>("");
+  const [frameSize, setFrameSize] = useState("");
   const [price, setPrice] = useState<string>("");
   const [location, setLocation] = useState("");
   const [condition, setCondition] = useState<Condition>("MINT_USED");
@@ -75,6 +79,9 @@ export default function SellerListingEditorPage() {
       if (listing) {
         setTitle(listing.title ?? "");
         setBrand(listing.brand ?? "");
+        setModel(listing.model ?? "");
+        setYear(listing.year ? String(listing.year) : "");
+        setFrameSize(listing.frameSize ?? "");
         setPrice(String(listing.price ?? ""));
         setLocation(listing.location ?? "");
         setCondition((listing.condition as Condition) ?? "MINT_USED");
@@ -90,9 +97,13 @@ export default function SellerListingEditorPage() {
 
   function buildPayload() {
     const priceNum = parseFloat(price) || 0;
+    const yearNum = parseInt(year, 10);
     return {
       title: title || "Untitled",
       brand: brand || "Unknown",
+      model: model || undefined,
+      year: Number.isFinite(yearNum) ? yearNum : undefined,
+      frameSize: frameSize || undefined,
       price: priceNum,
       location,
       condition,
@@ -116,31 +127,79 @@ export default function SellerListingEditorPage() {
         setStep("DRAFT");
         navigate(`/seller/listings/${created.id}/edit`, { replace: true });
       }
-    } catch {
+    } catch (err: unknown) {
+      if (isAxiosError(err) && err.response?.data?.message === "PACKAGE_REQUIRED") {
+        navigate("/seller/packages");
+        return;
+      }
       setError(t("seller.saveDraftError"));
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function onSubmitForInspection() {
+  async function ensureListingId(): Promise<string | null> {
     const filled = photoSlots.filter(Boolean).length;
     if (filled < REQUIRED_PHOTO_COUNT) {
       setPhotoError(t("seller.photoCountError", { current: filled }));
-      return;
+      return null;
     }
+    let targetId = listingId;
+    if (!targetId) {
+      const created = await createListing(buildPayload());
+      targetId = created.id;
+      setSavedId(created.id);
+      navigate(`/seller/listings/${created.id}/edit`, { replace: true });
+    } else {
+      await updateListing(targetId, buildPayload());
+    }
+    return targetId;
+  }
+
+  async function onPublishUnverified() {
     setError(null);
     setSubmitting(true);
     try {
-      let targetId = listingId;
+      const targetId = await ensureListingId();
       if (!targetId) {
-        const created = await createListing(buildPayload());
-        targetId = created.id;
-        setSavedId(created.id);
-      } else {
-        await updateListing(targetId, buildPayload());
+        setSubmitting(false);
+        return;
       }
-      await submitForInspection(targetId);
+      await publishListing(targetId, { requestInspection: false });
+      addNotification({
+        role: "SELLER",
+        type: "success",
+        title: t("seller.statePublished"),
+        message: t("seller.publishNote"),
+        link: "/seller",
+        sourceKey: `listing-publish-${targetId}`,
+      });
+      navigate("/seller", { replace: true });
+    } catch (err: unknown) {
+      if (isAxiosError(err) && err.response?.data?.message === "PACKAGE_REQUIRED") {
+        navigate("/seller/packages");
+        return;
+      }
+      if (isAxiosError(err) && err.response?.data?.message === "LISTING_SLOT_LIMIT") {
+        setError(t("seller.slotLimitReached"));
+        return;
+      }
+      setError(t("seller.submitError"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function onOptionalInspection() {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const targetId = await ensureListingId();
+      if (!targetId) {
+        setSubmitting(false);
+        return;
+      }
+      await publishListing(targetId, { requestInspection: true });
       setStep("PENDING_INSPECTION");
       addNotification({
         role: "SELLER",
@@ -151,7 +210,11 @@ export default function SellerListingEditorPage() {
         sourceKey: `listing-submit-${targetId}`,
       });
       navigate("/seller", { replace: true });
-    } catch {
+    } catch (err: unknown) {
+      if (isAxiosError(err) && err.response?.data?.message === "PACKAGE_REQUIRED") {
+        navigate("/seller/packages");
+        return;
+      }
       setError(t("seller.submitError"));
     } finally {
       setSubmitting(false);
@@ -278,6 +341,13 @@ export default function SellerListingEditorPage() {
                 ))}
               </select>
               <input
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                disabled={locked}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                placeholder={t("listing.model")}
+              />
+              <input
                 value={price}
                 onChange={(e) => {
                   const raw = e.target.value.replace(/[^\d]/g, "");
@@ -302,7 +372,6 @@ export default function SellerListingEditorPage() {
                   </option>
                 ))}
               </select>
-
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as Condition)}
@@ -313,6 +382,22 @@ export default function SellerListingEditorPage() {
                 <option value="GOOD_USED">{t("listing.conditionGoodUsed")}</option>
                 <option value="FAIR_USED">{t("listing.conditionFairUsed")}</option>
               </select>
+              <input
+                value={year}
+                onChange={(e) => setYear(e.target.value.replace(/[^\d]/g, ""))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                disabled={locked}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                placeholder={t("listing.year")}
+              />
+              <input
+                value={frameSize}
+                onChange={(e) => setFrameSize(e.target.value)}
+                disabled={locked}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                placeholder={t("listing.frameSize")}
+              />
             </div>
           </div>
 
@@ -409,9 +494,17 @@ export default function SellerListingEditorPage() {
             </button>
 
             <button
-              onClick={onSubmitForInspection}
+              onClick={onPublishUnverified}
               disabled={locked || submitting}
               className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? t("seller.publishing") : t("seller.publishUnverified")}
+            </button>
+
+            <button
+              onClick={onOptionalInspection}
+              disabled={locked || submitting}
+              className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-primary/40 bg-card px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? t("seller.submitting") : t("seller.submitInspection")}
             </button>

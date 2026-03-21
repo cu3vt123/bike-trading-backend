@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Listing } from "../models/Listing.js";
 import { ok, notFound, badRequest } from "../utils/http.js";
+import { LISTING_DURATION_DAYS } from "../constants/subscription.js";
 
 function normalize(doc) {
   return doc.toJSON();
@@ -47,6 +48,12 @@ export async function approve(req, res) {
     listing.inspectionScore = listing.inspectionScore ?? 4.5;
   }
   listing.state = "PUBLISHED";
+  listing.certificationStatus = "CERTIFIED";
+  const pubAt = new Date();
+  listing.publishedAt = listing.publishedAt ?? pubAt;
+  listing.listingExpiresAt = new Date(
+    pubAt.getTime() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000,
+  );
   listing.inspectionNeedUpdateReason = "";
   await listing.save();
   return ok(res, normalize(listing));

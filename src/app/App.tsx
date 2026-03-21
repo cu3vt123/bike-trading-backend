@@ -1,10 +1,13 @@
 import { RouterProvider } from "@/app/providers";
 import { ThemeProvider } from "@/app/providers/ThemeProvider";
+import { ErrorBoundary } from "@/app/ErrorBoundary";
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <RouterProvider />
-    </ThemeProvider>
+    <ErrorBoundary variant="page">
+      <ThemeProvider>
+        <RouterProvider />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

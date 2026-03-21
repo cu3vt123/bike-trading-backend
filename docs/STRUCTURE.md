@@ -44,7 +44,7 @@ src/
 │   └── en.json            # English
 │
 ├── apis/                  # (giữ tạm) authApi, bikeApi, buyerApi, ...
-├── services/              # (giữ tạm) buyerService, sellerService, ...
+├── services/              # buyerService, sellerService, `sellerOrderNotificationFlow.ts` (tách luồng thông báo seller)
 ├── pages/                 # (giữ tạm) Các page – features re-export từ đây
 ├── components/            # (giữ tạm) Header, ListingCard, ui
 ├── layouts/               # (giữ tạm) MainLayout

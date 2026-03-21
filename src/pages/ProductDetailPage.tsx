@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
 import type { BikeDetail, BikeCondition } from "@/types/shopbike";
+import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { fetchListingById } from "@/services/buyerService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -163,23 +164,22 @@ export default function ProductDetailPage() {
     inspectionReport?.frameIntegrity &&
     inspectionReport?.drivetrainHealth &&
     inspectionReport?.brakingSystem;
-  const isVerified =
-    listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
-  /** Luôn hiển thị đủ 3 hạng mục: có báo cáo thật thì dùng, không thì dùng điểm tổng thể cho cả 3 dòng */
+  const isCertified = isListingCertified(listing);
+  const isUnverifiedPublished = isBuyerUnverifiedRisk(listing);
+  /** Luôn hiển thị đủ 3 hạng mục khi đã certified */
   const scoreKey = getScoreLabelKey(score);
   const displayReport =
     hasInspectionReport
       ? inspectionReport!
-      : isVerified && score > 0 && scoreKey
+      : isCertified && score > 0 && scoreKey
         ? {
             frameIntegrity: { score, label: t(scoreKey) },
             drivetrainHealth: { score, label: t(scoreKey) },
             brakingSystem: { score, label: t(scoreKey) },
           }
         : undefined;
-  /** Hiển thị badge "Đã kiểm định" chỉ khi đã có báo cáo hoặc điểm, tránh mâu thuẫn với "Chưa có điểm kiểm định" */
-  const showVerifiedBadge = isVerified && (hasInspectionReport || (score > 0));
-  const canBuy = isVerified;
+  const showVerifiedBadge = isCertified && (hasInspectionReport || score > 0);
+  const canBuy = listing.state === "PUBLISHED";
   const isPendingInspection = listing.state === "PENDING_INSPECTION";
 
   return (
@@ -247,18 +247,27 @@ export default function ProductDetailPage() {
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-2">
               {showVerifiedBadge && (
-                <Badge variant="default">
+                <Badge variant="default" className="border-0 bg-blue-600 text-white hover:bg-blue-600/90">
                   <Shield className="mr-1 h-3 w-3" />
-                  {t("listing.verifiedAndInspected")}
+                  {t("seller.listingCertified")}
                 </Badge>
               )}
-              <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${showVerifiedBadge ? "bg-primary/10" : "bg-muted/80"}`}>
+              {isUnverifiedPublished && (
+                <Badge variant="secondary" className="border-0 bg-orange-500 text-white hover:bg-orange-500/90">
+                  {t("seller.listingUnverified")}
+                </Badge>
+              )}
+              <div
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${
+                  showVerifiedBadge ? "bg-blue-600/10" : isUnverifiedPublished ? "bg-orange-500/10" : "bg-muted/80"
+                }`}
+              >
                 <Stars value={score} />
                 <span className="font-semibold text-foreground">
                   {score > 0 ? score.toFixed(1) : "0.0"}/5
                 </span>
                 <span className="text-muted-foreground">{t("listing.inspectionReport")}</span>
-                {!hasInspectionReport && !isVerified && (
+                {!hasInspectionReport && !isCertified && (
                   <span className="text-muted-foreground"> {t("listing.noReportYet")}</span>
                 )}
               </div>
@@ -267,6 +276,12 @@ export default function ProductDetailPage() {
               {listing.brand} {listing.model}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">{listing.title}</p>
+            {isUnverifiedPublished && (
+              <p className="mt-2 text-xs text-orange-800 dark:text-orange-200/90">{t("seller.listingUnverifiedHint")}</p>
+            )}
+            {showVerifiedBadge && (
+              <p className="mt-1 text-xs text-blue-800 dark:text-blue-200/90">{t("seller.listingCertifiedHint")}</p>
+            )}
           </div>
 
           {/* Báo cáo kiểm định – luôn hiển thị trong thông tin xe cho buyer */}
@@ -312,7 +327,7 @@ export default function ProductDetailPage() {
                       <span className="text-sm font-semibold text-foreground">{score.toFixed(1)}/5</span>
                     </div>
                   </div>
-                  {!hasInspectionReport && isVerified && score > 0 && (
+                  {!hasInspectionReport && isCertified && score > 0 && (
                     <p className="text-xs text-muted-foreground">
                       {t("listing.scoreFromOverall")}
                     </p>
@@ -322,7 +337,7 @@ export default function ProductDetailPage() {
                 <p className="py-2 text-sm text-muted-foreground">
                   {t("listing.pendingInspection")}
                 </p>
-              ) : !isVerified ? (
+              ) : !isCertified ? (
                 <p className="py-2 text-sm text-muted-foreground">
                   {t("listing.noInspectionReport")}
                 </p>
@@ -407,11 +422,27 @@ export default function ProductDetailPage() {
                     )}
                     <p className="mt-2 text-xs text-primary">{t("listing.serviceFeeIncluded")}</p>
                   </div>
-                  <div className={`rounded-lg px-3 py-2 text-center ${isVerified ? "bg-primary/10 text-primary" : isPendingInspection ? "bg-warning/15 text-warning" : "bg-muted text-muted-foreground"}`}>
+                  <div
+                    className={`rounded-lg px-3 py-2 text-center ${
+                      isCertified
+                        ? "bg-blue-600/15 text-blue-800 dark:text-blue-200"
+                        : isPendingInspection
+                          ? "bg-warning/15 text-warning"
+                          : isUnverifiedPublished
+                            ? "bg-orange-500/15 text-orange-800 dark:text-orange-200"
+                            : "bg-muted text-muted-foreground"
+                    }`}
+                  >
                     <div className="text-[10px] font-semibold">
-                      {isVerified ? t("listing.statusInspected") : isPendingInspection ? t("listing.statusPending") : t("listing.statusNotAvailable")}
+                      {isCertified
+                        ? t("listing.statusInspected")
+                        : isUnverifiedPublished
+                          ? t("seller.listingUnverified")
+                          : isPendingInspection
+                            ? t("listing.statusPending")
+                            : t("listing.statusNotAvailable")}
                     </div>
-                    {isVerified && (
+                    {isCertified && (
                       <div className="mt-1 text-xs">
                         <Stars value={score} />
                       </div>

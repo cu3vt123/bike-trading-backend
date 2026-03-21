@@ -36,6 +36,12 @@ const OrderSchema = new mongoose.Schema(
     warehouseConfirmedAt: { type: Date, default: null },
     reInspectionDoneAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
+    /** WAREHOUSE = gửi kho + kiểm định lại (xe đã kiểm định). DIRECT = seller giao thẳng buyer (xe chưa kiểm định). */
+    fulfillmentType: {
+      type: String,
+      enum: ["WAREHOUSE", "DIRECT"],
+      default: "WAREHOUSE",
+    },
     listing: { type: mongoose.Schema.Types.Mixed }, // snapshot for display
   },
   { timestamps: true },

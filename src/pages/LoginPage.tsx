@@ -9,6 +9,11 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 import type { Role } from "@/types/auth";
 import { authApi } from "@/apis/authApi";
+import {
+  useSellerSubscriptionStore,
+  normalizeSubscriptionPayload,
+  type SellerSubscriptionSummary,
+} from "@/stores/useSellerSubscriptionStore";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import { useTranslation } from "react-i18next";
 import { Sun, Moon } from "lucide-react";
@@ -22,12 +27,29 @@ const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_API === "true";
 async function mockLogin(payload: {
   emailOrUsername: string;
   password: string;
-}): Promise<{ accessToken: string; refreshToken?: string; role: Role }> {
+}): Promise<{
+  accessToken: string;
+  refreshToken?: string;
+  role: Role;
+  subscription?: SellerSubscriptionSummary;
+}> {
   if (!payload.emailOrUsername.trim() || payload.password.trim().length < 3) {
     throw new Error("Invalid credentials");
   }
   const email = payload.emailOrUsername.toLowerCase();
-  if (email.includes("seller")) return { accessToken: `mock_${Date.now()}`, role: "SELLER" };
+  if (email.includes("seller"))
+    return {
+      accessToken: `mock_${Date.now()}`,
+      role: "SELLER",
+      subscription: {
+        active: true,
+        plan: "BASIC",
+        expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
+        publishedSlotsUsed: 0,
+        publishedSlotsLimit: 7,
+        listingDurationDays: 30,
+      },
+    };
   if (email.includes("inspector")) return { accessToken: `mock_${Date.now()}`, role: "INSPECTOR" };
   if (email.includes("admin")) return { accessToken: `mock_${Date.now()}`, role: "ADMIN" };
   return { accessToken: `mock_${Date.now()}`, role: "BUYER" };
@@ -59,6 +81,7 @@ export default function LoginPage() {
 
   const setTokens = useAuthStore((s) => s.setTokens);
   const clearTokens = useAuthStore((s) => s.clearTokens);
+  const setSellerSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -100,6 +123,13 @@ export default function LoginPage() {
         refreshToken: res.refreshToken,
         role: resolvedRole,
       });
+
+      const sub = normalizeSubscriptionPayload(
+        (res as { subscription?: unknown }).subscription,
+      );
+      if (resolvedRole === "SELLER") {
+        setSellerSubscription(sub);
+      }
 
       const target = resolvePostLoginPath(fromPath, resolvedRole);
       // Defer navigate để store update kịp propagate, tránh guard đọc role cũ

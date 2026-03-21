@@ -51,6 +51,11 @@ export const sellerApi = {
       return Array.isArray(raw) ? raw : [];
     }),
 
+  shipOrderToBuyer: (orderId: string): Promise<Order> =>
+    apiClient
+      .put(API_PATHS.SELLER.ORDER_SHIP_TO_BUYER(orderId))
+      .then((r) => r.data?.data ?? r.data),
+
   getRatings: (): Promise<SellerRatingsSummary> =>
     apiClient.get(API_PATHS.SELLER.RATINGS).then((r) => {
       const d = r.data?.data ?? r.data ?? {};
@@ -79,4 +84,12 @@ export const sellerApi = {
 
   submitForInspection: (id: string): Promise<Listing> =>
     apiClient.put(API_PATHS.SELLER.LISTING_SUBMIT(id)).then((r) => r.data?.data ?? r.data),
+
+  publishListing: (
+    id: string,
+    body: { requestInspection: boolean },
+  ): Promise<Listing> =>
+    apiClient
+      .put(API_PATHS.SELLER.LISTING_PUBLISH(id), body)
+      .then((r) => r.data?.data ?? r.data),
 };

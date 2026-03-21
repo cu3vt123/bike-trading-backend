@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { z } from "zod";
 import { User } from "../models/User.js";
 import { ok, created, badRequest, unauthorized } from "../utils/http.js";
+import { buildSubscriptionSummaryForUser } from "../services/subscriptionService.js";
 
 const emailSchema = z.string().email();
 
@@ -40,7 +41,13 @@ export async function signup(req, res) {
   });
 
   const accessToken = signToken(String(user._id));
-  return created(res, { accessToken, refreshToken: null, role: user.role });
+  const subscription = await buildSubscriptionSummaryForUser(user);
+  return created(res, {
+    accessToken,
+    refreshToken: null,
+    role: user.role,
+    subscription: user.role === "SELLER" ? subscription : undefined,
+  });
 }
 
 export async function login(req, res) {
@@ -61,15 +68,24 @@ export async function login(req, res) {
   if (!okPwd) return unauthorized(res, "Invalid credentials");
 
   const accessToken = signToken(String(user._id));
-  return ok(res, { accessToken, refreshToken: null, role: user.role });
+  const subscription = await buildSubscriptionSummaryForUser(user);
+  return ok(res, {
+    accessToken,
+    refreshToken: null,
+    role: user.role,
+    subscription: user.role === "SELLER" ? subscription : undefined,
+  });
 }
 
 export async function me(req, res) {
+  const user = await User.findById(req.user.id);
+  const subscription = user ? await buildSubscriptionSummaryForUser(user) : null;
   return ok(res, {
     id: req.user.id,
     email: req.user.email,
     displayName: req.user.displayName,
     role: req.user.role,
+    subscription: req.user.role === "SELLER" ? subscription : undefined,
   });
 }
 

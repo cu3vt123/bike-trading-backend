@@ -34,14 +34,16 @@
 
 ### 2.1 Listing & Kiểm định
 
-- **Publish** chỉ sau khi inspection **APPROVE**
+- Có thể **publish không qua kiểm định** (`requestInspection: false` → UNVERIFIED, slot gói đăng tin); hoặc gửi inspector (`true` → PENDING_INSPECTION).
+- Listing **đã kiểm định** (CERTIFIED / APPROVE) dùng luồng kho khi bán; **chưa kiểm định** dùng luồng giao trực tiếp (xem 2.2a).
+- **Publish chỉ sau APPROVE** áp dụng cho luồng “bắt buộc kiểm định trước khi lên sàn” — song song có lộ trình UNVERIFIED đã mô tả ở editor & checkout disclaimer.
 - Vòng kiểm định: `APPROVE → Publish` | `REJECT → End` | `NEED_UPDATE → Seller cập nhật → Resubmit → Inspect`
 - **Chỉnh sửa tin:**
   - **Draft**: Sửa được
   - **Pending Inspection**: Khóa sửa
   - **Need Update**: Sửa được
   - **Published**: Hạn chế sửa nội dung cốt lõi
-- Chỉ listing **PUBLISHED + APPROVE** hiển thị trên marketplace
+- Marketplace: listing **PUBLISHED** (CERTIFIED / đã APPROVE hoặc **UNVERIFIED** có badge & disclaimer khi checkout)
 
 ### 2.2 Giao dịch (Transaction)
 
@@ -50,6 +52,15 @@
 - **Reserve** chỉ tạo khi deposit payment thành công (24h countdown)
 - **Deposit hiện tại**: 8% giá trị đơn hàng (đồng bộ với backend)
 - Shipping option trong checkout đang bám theo dữ liệu backend thay vì giá trị demo cũ
+
+### 2.2a Đơn hàng: luồng kho (WAREHOUSE) vs giao trực tiếp (DIRECT)
+
+- **`fulfillmentType` trên Order** (backend + FE types):
+  - **WAREHOUSE** — xe **đã kiểm định** (CERTIFIED / `inspectionResult === APPROVE`): sau mua → `SELLER_SHIPPED` → admin/inspector kho → `SHIPPING` → buyer hoàn tất.
+  - **DIRECT** — xe **chưa kiểm định** (UNVERIFIED): sau mua → `PENDING_SELLER_SHIP` → seller xác nhận giao trực tiếp (`PUT /seller/orders/:id/ship-to-buyer`) → `SHIPPING` → **không** qua queue kho / re-inspection.
+- **Hủy đơn (buyer):** cho phép hủy thêm khi `PENDING_SELLER_SHIP` + `DIRECT`.
+- **Thông báo in-app (seller):** chỉ một số trạng thái được đồng bộ — logic tách trong `src/services/sellerOrderNotificationFlow.ts` (nhóm *có thông báo* vs *im lặng*).
+- Chi tiết port sang Spring Boot: [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md).
 
 ### 2.3 Refund & Hủy
 
@@ -209,7 +220,8 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 | `buyerApi.ts`    | bikes, orders, payments (scaffold)                   |
 | `buyerService.ts`| Facade + fallback mock khi API lỗi                  |
 | `sellerApi.ts`   | dashboard, orders, ratings, listings, create, update, submit |
-| `sellerService.ts`| Facade + fallback mock cho Seller; sync notifications; ratings |
+| `sellerService.ts`| Facade + fallback mock cho Seller; `syncSellerOrderNotifications`; ratings |
+| `sellerOrderNotificationFlow.ts` | Quy tắc **có / không** đẩy thông báo đơn cho seller (kho vs direct) |
 | `brandsApi.ts`   | Public API lấy danh sách brands active               |
 | `adminApi.ts`    | User, listing, review, brand, warehouse, transaction |
 | `inspectorApi.ts`| pending-listings, approve, reject, need-update (scaffold) |
@@ -262,25 +274,32 @@ Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
-## 6. Các tài liệu liên quan
+## 6. Flow làm việc (runtime)
 
-| File | Nội dung |
-|------|----------|
-| `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
-| `docs/HUONG-DAN-BACKEND.md` | Contract API cho Backend |
-| `docs/API-SETUP.md` | Kết nối API, Swagger |
-| `docs/HUONG-DAN-DEMO.md` | Hướng dẫn demo |
-| `docs/README.md` | Mục lục toàn bộ tài liệu trong `docs/` |
-| `docs/CHANGELOG.md` | Tóm tắt thay đổi |
-| `docs/ERD-SPEC.md` | Đặc tả ERD – entities, quan hệ |
-| `docs/FLOW-HE-THONG.md` | **Flow làm việc toàn hệ thống** – khởi động, auth, route, Header, luồng role, stores |
-| `docs/KIEM-KE-HE-THONG.md` | Báo cáo kiểm kê hệ thống |
-| `docs/AI-INSTRUCTIONS.md` | Hướng dẫn làm việc với AI trong Cursor cho dự án này |
-| `docs/backend/` | Tài liệu backend (STRUCTURE, DEMO-BACKEND-GUIDE, PORTING-NODE-TO-SPRING-BOOT, SPRING-BOOT-SKELETON) |
+- **Khởi động:** index.html → main.tsx → App (ThemeProvider, RouterProvider) → MainLayout (Header + Outlet)
+- **Auth:** token/role từ `useAuthStore` (persist `auth-storage`); role do backend trả về, FE không gửi role
+- **Guards:** GuestRoute, RequireAuth, RequireBuyer/Seller/Inspector/Admin → redirect `/login` hoặc `/403`
+- **Header:** Search, Globe (i18n), Hỗ trợ, Logo, Theme toggle, Notifications, Profile (theo role)
+- **Stores:** useAuthStore, useWishlistStore, useNotificationStore, useLanguageStore; ThemeProvider
+- **API:** `VITE_API_BASE_URL`, `VITE_USE_MOCK_API`; apiClient gắn Bearer; services fallback mock khi lỗi
 
 ---
 
-## 7. Điều kiện test với Backend (Sprint 2+)
+## 7. Các tài liệu liên quan
+
+| File | Nội dung |
+|------|----------|
+| `docs/README.md` | Mục lục toàn bộ tài liệu |
+| `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
+| `docs/ERD.md` | ERD – MongoDB + SQL (entities, schema Starter & Normalized) |
+| `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen flow theo Guest/Buyer/Seller/Inspector/Admin |
+| `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md` | State diagram Order/Listing/Review |
+| `docs/CHANGELOG.md` | Tóm tắt thay đổi |
+| `backend/README.md` | Chạy backend Node demo |
+
+---
+
+## 8. Điều kiện test với Backend (Sprint 2+)
 
 - CORS cho `http://localhost:5173`
 - Swagger/OAS
@@ -289,7 +308,7 @@ Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
-## 8. Checklist demo nhanh
+## 9. Checklist demo nhanh
 
 1. Register Buyer → Home
 2. Home → Product Detail → Buy now → Checkout → Pay deposit → Transaction → Finalize → Success
@@ -323,4 +342,4 @@ Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
-*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands lưu backend, thêm AI instructions.*
+*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands, gói đăng tin, `fulfillmentType` kho/direct, `sellerOrderNotificationFlow`, doc Spring Boot (`BACKEND-NODE-TO-SPRING-BOOT.md`), nhánh **follow thầy Lâm**.*

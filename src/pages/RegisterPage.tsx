@@ -18,6 +18,11 @@ import { Logo } from "@/components/common/Logo";
 import type { Role } from "@/types/auth";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/apis/authApi";
+import {
+  useSellerSubscriptionStore,
+  normalizeSubscriptionPayload,
+  type SellerSubscriptionSummary,
+} from "@/stores/useSellerSubscriptionStore";
 
 /* Chỉ Buyer và Seller được tự đăng ký; Inspector/Admin do hệ thống cấp */
 const REGISTER_ROLES: Role[] = ["BUYER", "SELLER"];
@@ -89,11 +94,25 @@ async function mockSignup(payload: {
   username: string;
   email: string;
   password: string;
-}): Promise<{ accessToken: string; refreshToken?: string }> {
-  // validation đã chạy trong onSubmit trước khi gọi
+}): Promise<{
+  accessToken: string;
+  refreshToken?: string;
+  role?: Role;
+  subscription?: SellerSubscriptionSummary;
+}> {
+  const inactiveSellerSub: SellerSubscriptionSummary = {
+    active: false,
+    plan: null,
+    expiresAt: null,
+    publishedSlotsUsed: 0,
+    publishedSlotsLimit: 0,
+    listingDurationDays: 30,
+  };
   return {
     accessToken: `mock_access_${payload.role}_${Date.now()}`,
     refreshToken: `mock_refresh_${Date.now()}`,
+    role: payload.role,
+    subscription: payload.role === "SELLER" ? inactiveSellerSub : undefined,
   };
 }
 
@@ -101,6 +120,8 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setTokens = useAuthStore((s) => s.setTokens);
+  const clearTokens = useAuthStore((s) => s.clearTokens);
+  const setSellerSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
 
   const [role, setRole] = useState<Role>("BUYER");
   const [username, setUsername] = useState("");
@@ -136,11 +157,18 @@ export default function RegisterPage() {
           });
 
       const resolvedRole = (res as { role?: Role }).role ?? role;
+      clearTokens();
       setTokens({
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
         role: resolvedRole,
       });
+      const sub = normalizeSubscriptionPayload(
+        (res as { subscription?: unknown }).subscription,
+      );
+      if (resolvedRole === "SELLER") {
+        setSellerSubscription(sub);
+      }
 
       navigate("/", { replace: true });
     } catch (err) {

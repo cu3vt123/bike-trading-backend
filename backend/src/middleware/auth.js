@@ -16,6 +16,8 @@ export async function requireAuth(req, res, next) {
       email: user.email,
       role: user.role,
       displayName: user.displayName,
+      subscriptionPlan: user.subscriptionPlan ?? null,
+      subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
     };
     return next();
   } catch {

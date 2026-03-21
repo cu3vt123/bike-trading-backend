@@ -35,6 +35,11 @@ export const API_PATHS = {
     BY_ID: (id: string) => `/bikes/${id}`,
   },
 
+  // Gói đăng tin (catalog public)
+  PACKAGES: {
+    LIST: "/packages",
+  },
+
   // Brands (public list for seller form, homepage)
   BRANDS: {
     LIST: "/brands",
@@ -56,10 +61,15 @@ export const API_PATHS = {
   SELLER: {
     DASHBOARD: "/seller/dashboard",
     ORDERS: "/seller/orders",
+    ORDER_SHIP_TO_BUYER: (orderId: string) => `/seller/orders/${orderId}/ship-to-buyer`,
     RATINGS: "/seller/ratings",
     LISTINGS: "/seller/listings",
     LISTING_BY_ID: (id: string) => `/seller/listings/${id}`,
+    LISTING_PUBLISH: (id: string) => `/seller/listings/${id}/publish`,
     LISTING_SUBMIT: (id: string) => `/seller/listings/${id}/submit`,
+    SUBSCRIPTION_CHECKOUT: "/seller/subscription/checkout",
+    SUBSCRIPTION_MOCK_COMPLETE: (orderId: string) =>
+      `/seller/subscription/orders/${orderId}/mock-complete`,
   },
 
   // Inspector (requires INSPECTOR/ADMIN role)

@@ -14,6 +14,9 @@ const UserSchema = new mongoose.Schema(
     hiddenAt: { type: Date, default: null },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpiresAt: { type: Date, default: null },
+    /** Gói đăng tin (seller): BASIC | VIP, hết hạn thì không đăng/publish được */
+    subscriptionPlan: { type: String, enum: ["BASIC", "VIP"], default: undefined },
+    subscriptionExpiresAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

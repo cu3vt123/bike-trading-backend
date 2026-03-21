@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Package, Star } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { authApi } from "@/apis/authApi";
+import {
+  useSellerSubscriptionStore,
+  normalizeSubscriptionPayload,
+} from "@/stores/useSellerSubscriptionStore";
+import { USE_MOCK_API } from "@/lib/apiConfig";
 import type { Listing, ListingState } from "@/types/shopbike";
 import type { Order } from "@/types/order";
 import {
   fetchSellerDashboard,
   fetchSellerDashboardOrders,
   fetchSellerRatings,
+  shipOrderToBuyer,
   syncSellerOrderNotifications,
 } from "@/services/sellerService";
 import type { SellerRatingsSummary } from "@/apis/sellerApi";
@@ -52,6 +67,13 @@ function stateLabel(state: ListingState, t: (k: string) => string) {
   }
 }
 
+function getBikeLabel(o: Order): string {
+  const l = o.listing as { brand?: string; model?: string; title?: string } | undefined;
+  if (l?.brand && l?.model) return `${l.brand} ${l.model}`;
+  if (l?.title) return l.title;
+  return o.listingId;
+}
+
 function StatCard({
   label,
   value,
@@ -72,11 +94,27 @@ function StatCard({
 
 export default function SellerDashboardPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ total: 0, published: 0, inReview: 0, needUpdate: 0 });
   const [listings, setListings] = useState<Listing[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ratings, setRatings] = useState<SellerRatingsSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [packageDialogOpen, setPackageDialogOpen] = useState(false);
+  const [shippingOrderId, setShippingOrderId] = useState<string | null>(null);
+  const subscription = useSellerSubscriptionStore((s) => s.subscription);
+  const setSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
+
+  useEffect(() => {
+    if (USE_MOCK_API) return;
+    authApi
+      .getProfile()
+      .then((me) => {
+        const sub = normalizeSubscriptionPayload(me.subscription);
+        if (sub) setSubscription(sub);
+      })
+      .catch(() => {});
+  }, [setSubscription]);
 
   useEffect(() => {
     syncSellerOrderNotifications(t);
@@ -95,6 +133,29 @@ export default function SellerDashboardPage() {
   }, [t]);
 
   const { total, published, inReview, needUpdate } = stats;
+
+  const canCreateListing = USE_MOCK_API || subscription?.active === true;
+
+  function onCreateListingClick() {
+    if (canCreateListing) {
+      navigate("/seller/listings/new");
+      return;
+    }
+    setPackageDialogOpen(true);
+  }
+
+  async function onShipToBuyer(orderId: string) {
+    setShippingOrderId(orderId);
+    try {
+      await shipOrderToBuyer(orderId);
+      const next = await fetchSellerDashboardOrders();
+      setOrders(next);
+    } catch {
+      /* toast optional */
+    } finally {
+      setShippingOrderId(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -119,13 +180,31 @@ export default function SellerDashboardPage() {
           </div>
         </div>
 
-        <Link
-          to="/seller/listings/new"
+        <button
+          type="button"
+          onClick={onCreateListingClick}
           className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
           {t("seller.createNew")}
-        </Link>
+        </button>
       </div>
+
+      <Dialog open={packageDialogOpen} onOpenChange={setPackageDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("seller.packageNeedTitle")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{t("seller.packageNeedBody")}</p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setPackageDialogOpen(false)}>
+              {t("seller.packageNeedNo")}
+            </Button>
+            <Button type="button" onClick={() => navigate("/seller/packages")}>
+              {t("seller.packageNeedYes")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label={t("seller.totalListings")} value={total} />
@@ -289,24 +368,42 @@ export default function SellerDashboardPage() {
           <div className="mt-4 space-y-3">
             {orders.map((o) => {
               const isPaid = o.depositPaid === true || o.status === "COMPLETED";
+              const showShipDirect =
+                o.fulfillmentType === "DIRECT" && o.status === "PENDING_SELLER_SHIP";
               return (
                 <div
                   key={o.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-4 py-3"
+                  className="flex flex-col gap-3 rounded-lg border border-border bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-foreground">{getBikeLabel(o)}</div>
                     <div className="text-xs text-muted-foreground">
-                      {o.id} • {o.buyerId ?? "—"} • {t("seller.deposit")} {formatMoney(o.depositAmount ?? 0)}
+                      {o.id} • {o.buyerId ?? "—"} • {t("seller.deposit")}{" "}
+                      {formatMoney(o.depositAmount ?? 0)}
                     </div>
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      isPaid ? "bg-primary/10 text-primary" : "bg-warning/15 text-warning"
-                    }`}
-                  >
-                    {isPaid ? t("seller.paid") : t("seller.pendingProcess")}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+                    <span
+                      className={`inline-flex justify-center rounded-full px-2.5 py-1 text-xs font-semibold sm:justify-end ${
+                        isPaid ? "bg-primary/10 text-primary" : "bg-warning/15 text-warning"
+                      }`}
+                    >
+                      {isPaid ? t("seller.paid") : t("seller.pendingProcess")}
+                    </span>
+                    {showShipDirect && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        disabled={shippingOrderId === o.id}
+                        onClick={() => onShipToBuyer(o.id)}
+                      >
+                        {shippingOrderId === o.id
+                          ? t("seller.shippingToBuyer")
+                          : t("seller.confirmShipToBuyer")}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               );
             })}

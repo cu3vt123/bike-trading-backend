@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Listing, BikeCondition } from "@/types/shopbike";
+import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
 import { Button } from "@/components/ui/button";
@@ -35,8 +36,8 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const canWishlist = showWishlist && role === "BUYER";
 
-  const isVerified =
-    listing.state === "PUBLISHED" && listing.inspectionResult === "APPROVE";
+  const isCertified = isListingCertified(listing);
+  const isUnverified = isBuyerUnverifiedRisk(listing);
 
   const img =
     listing.thumbnailUrl ||
@@ -59,9 +60,14 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
           />
         </div>
 
-        {isVerified && (
-          <div className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
-            {t("listing.inspected")}
+        {isCertified && (
+          <div className="absolute left-3 top-3 z-[1] rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+            ✓ {t("seller.listingCertified")}
+          </div>
+        )}
+        {isUnverified && (
+          <div className="absolute left-3 top-3 z-[1] rounded-full bg-orange-500 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+            {t("seller.listingUnverified")}
           </div>
         )}
         {canWishlist && (

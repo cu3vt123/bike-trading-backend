@@ -3,13 +3,30 @@ import { User } from "../models/User.js";
 import { Listing } from "../models/Listing.js";
 import { ok, badRequest, notFound } from "../utils/http.js";
 
+/** Chỉ đơn luồng kho (xe đã kiểm định). Đơn DIRECT không hiện ở kho / re-inspection. */
+const WAREHOUSE_ONLY_FILTER = {
+  $or: [
+    { fulfillmentType: { $exists: false } },
+    { fulfillmentType: "WAREHOUSE" },
+  ],
+};
+
 /** Đơn chờ admin xác nhận xe tới kho (bao gồm COMPLETED chưa có warehouseConfirmedAt – hiển thị buyer là "Đang giao tới kho") */
 const WAREHOUSE_PENDING_STATUSES = ["SELLER_SHIPPED", "AT_WAREHOUSE_PENDING_ADMIN"];
 const WAREHOUSE_PENDING_QUERY = {
-  $or: [
-    { status: { $in: WAREHOUSE_PENDING_STATUSES } },
-    { status: "COMPLETED", warehouseConfirmedAt: { $in: [null, undefined] } },
+  $and: [
+    WAREHOUSE_ONLY_FILTER,
+    {
+      $or: [
+        { status: { $in: WAREHOUSE_PENDING_STATUSES } },
+        { status: "COMPLETED", warehouseConfirmedAt: { $in: [null, undefined] } },
+      ],
+    },
   ],
+};
+
+const RE_INSPECTION_QUERY = {
+  $and: [WAREHOUSE_ONLY_FILTER, { status: "RE_INSPECTION" }],
 };
 
 function serializeOrder(o) {
@@ -66,6 +83,9 @@ export async function confirmWarehouse(req, res) {
   const { id } = req.params;
   const order = await Order.findById(id);
   if (!order) return notFound(res, "Order not found");
+  if (order.fulfillmentType === "DIRECT") {
+    return badRequest(res, "Đơn giao trực tiếp không qua kho");
+  }
 
   const canConfirm =
     WAREHOUSE_PENDING_STATUSES.includes(order.status) ||
@@ -83,7 +103,7 @@ export async function confirmWarehouse(req, res) {
 }
 
 export async function listReInspectionOrders(_req, res) {
-  const orders = await Order.find({ status: "RE_INSPECTION" })
+  const orders = await Order.find(RE_INSPECTION_QUERY)
     .sort({ createdAt: -1 })
     .lean();
 
@@ -98,6 +118,9 @@ export async function markReInspectionDone(req, res) {
 
   if (order.status !== "RE_INSPECTION") {
     return badRequest(res, `Order not in re-inspection (status: ${order.status})`);
+  }
+  if (order.fulfillmentType === "DIRECT") {
+    return badRequest(res, "Direct fulfillment orders are not re-inspected at warehouse");
   }
 
   const doneAt = new Date();
@@ -119,7 +142,7 @@ export async function getAdminStats(_req, res) {
     Listing.countDocuments({ isHidden: { $ne: true } }),
     Order.countDocuments({}),
     Order.countDocuments(WAREHOUSE_PENDING_QUERY),
-    Order.countDocuments({ status: "RE_INSPECTION" }),
+    Order.countDocuments(RE_INSPECTION_QUERY),
   ]);
 
   return ok(res, {

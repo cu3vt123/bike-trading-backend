@@ -5,3 +5,4 @@ export { RequireBuyer } from "./RequireBuyer";
 export { RequireSeller } from "./RequireSeller";
 export { RequireInspector } from "./RequireInspector";
 export { RequireAdmin } from "./RequireAdmin";
+export { RouteFallback } from "./RouteFallback";

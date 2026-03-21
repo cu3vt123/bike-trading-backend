@@ -4,6 +4,56 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03] Nhánh follow thầy Lâm — docs Spring Boot + đồng bộ MD
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/BACKEND-NODE-TO-SPRING-BOOT.md** | Mới: ánh xạ Express → Spring Boot, JWT, bảng endpoint, rules `WAREHOUSE` / `DIRECT`, thứ tự port. |
+| **docs/README.md**, **README.md** | Thêm link tới tài liệu Spring Boot. |
+| **PROJECT-SUMMARY.md** | Bổ sung đơn hàng kho vs giao trực tiếp + thông báo seller (file flow). |
+| **backend/README.md** | Cập nhật endpoint (warehouse, ship-to-buyer, packages, reviews). |
+| **STRUCTURE.md** | Ghi chú `sellerOrderNotificationFlow.ts`. |
+| **Codebase** | Gói đăng tin, `fulfillmentType`, thông báo seller tách luồng, hardening — commit cùng nhánh. |
+
+---
+
+## [2026-03] Production hardening (theo Bài 09 kat-minh/react)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Error Boundary** | `src/app/ErrorBoundary.tsx` bọc `App`; dev log stack, production message gọn. |
+| **Route fallback** | `RouteFallback` + `Suspense` thay `Loading...` text thuần. |
+| **API errors** | `src/lib/apiErrors.ts` — `getApiErrorMessage`; dùng thử ở `SellerPackagePage`. |
+| **ESLint** | Ignore `backend/**`, `tailwind.config.js`, `postcss.config.js` để `npm run lint` sạch cho FE. |
+| **Docs** | `docs/PRODUCTION-HARDENING.md`, README mở rộng Setup / Structure / link Bài 09. |
+
+---
+
+## [2026-03] Gọn docs – xóa file hướng dẫn FE/BE, gộp ERD
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Xóa file hướng dẫn FE/BE** | `RUN-FULL-PROJECT`, `BACKEND_SPRING_BOOT_GUIDE`, `AI-INSTRUCTIONS`, `backend/DEMO-BACKEND-GUIDE`, `backend/SPRING-BOOT-SKELETON`. |
+| **Gộp ERD** | `ERD-SPEC.md` + `ERD-MYSQL.md` → `docs/ERD.md` (MongoDB entities + SQL Starter & Normalized). |
+| **Cập nhật link** | `docs/README.md`, `README.md`, `PROJECT-SUMMARY.md`, `backend/README.md`, `STATE_TRANSITION_DIAGRAM_GUIDE.md` – bỏ tham chiếu tới file đã xóa. |
+
+---
+
+## [2026-03] Gọn docs – gộp, xóa file thừa, sửa link
+
+### Docs
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Xóa file thừa** | `HUONG-DAN-DEMO`, `FLOW-HE-THONG`, `HUONG_DAN_VE_STATE_DIAGRAM`, `MERMAID_STANDARD` – nội dung đã gộp vào các file còn lại. |
+| **RUN-FULL-PROJECT** | Gộp demo step-by-step (tài khoản, luồng Buyer/Inspector/Seller, troubleshooting); sửa link `BACKEND_SPRING_BOOT_GUIDE`. |
+| **PROJECT-SUMMARY** | Thêm mục 6. Flow làm việc (runtime); cập nhật mục 7. Các tài liệu liên quan. |
+| **STATE_TRANSITION_DIAGRAM_GUIDE** | Gộp hướng dẫn vẽ từng bước + sơ đồ Mermaid gộp 1 (Order+Listing+Review). |
+| **docs/README.md** | Mục lục mới, bỏ link file đã xóa. |
+| **AI-INSTRUCTIONS, backend/** | Sửa link `FLOW-HE-THONG` → PROJECT-SUMMARY, `HUONG-DAN-BACKEND` → BACKEND_SPRING_BOOT_GUIDE. |
+
+---
+
 ## [2026-03] Đồng bộ docs, fix role/403, ratings seller thật, CRUD brands
 
 ### Frontend

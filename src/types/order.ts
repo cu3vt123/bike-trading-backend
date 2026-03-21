@@ -38,6 +38,9 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
 
 export type PaymentMethod = "CARD" | "BANK_TRANSFER";
 
+/** WAREHOUSE = qua kho + kiểm định lại; DIRECT = seller giao thẳng buyer (xe chưa kiểm định) */
+export type OrderFulfillmentType = "WAREHOUSE" | "DIRECT";
+
 export type Order = {
   id: string;
   listingId: string;
@@ -45,6 +48,7 @@ export type Order = {
   buyerId?: string;
   sellerId?: string;
   status: OrderStatus;
+  fulfillmentType?: OrderFulfillmentType;
   totalPrice: number;
   depositAmount?: number;
   depositPaid?: boolean;
@@ -73,6 +77,8 @@ export type CreateOrderRequest = {
     city: string;
     postalCode?: string;
   };
+  /** Bắt buộc khi mua xe chưa kiểm định */
+  acceptedUnverifiedDisclaimer?: boolean;
 };
 
 export type InitiatePaymentRequest = {

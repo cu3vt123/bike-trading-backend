@@ -5,7 +5,7 @@
 import * as buyerApi from "@/apis/buyerApi";
 import { getListingById } from "@/mocks/mockListings";
 import type { Listing, BikeDetail } from "@/types/shopbike";
-import type { Order } from "@/types/order";
+import type { Order, OrderFulfillmentType } from "@/types/order";
 
 import { USE_MOCK_API } from "@/lib/apiConfig";
 import { applyOrderOverrides, setOrderOverride } from "@/lib/orderOverrides";
@@ -16,17 +16,13 @@ const USE_MOCK = USE_MOCK_API;
 export async function fetchListings(): Promise<Listing[]> {
   if (USE_MOCK) {
     const { MOCK_LISTINGS } = await import("@/mocks/mockListings");
-    return MOCK_LISTINGS.filter(
-      (x) => x.state === "PUBLISHED" && x.inspectionResult === "APPROVE",
-    );
+    return MOCK_LISTINGS.filter((x) => x.state === "PUBLISHED");
   }
   try {
     return await buyerApi.getListings();
   } catch {
     const { MOCK_LISTINGS } = await import("@/mocks/mockListings");
-    return MOCK_LISTINGS.filter(
-      (x) => x.state === "PUBLISHED" && x.inspectionResult === "APPROVE",
-    );
+    return MOCK_LISTINGS.filter((x) => x.state === "PUBLISHED");
   }
 }
 
@@ -60,18 +56,23 @@ function mockCreateOrder(data: {
   listingId: string;
   plan: string;
   shippingAddress: Record<string, string>;
+  acceptedUnverifiedDisclaimer?: boolean;
 }): Order {
   const listing = getListingById(data.listingId);
   const price = listing?.price ?? 0;
   const deposit = Math.round(price * 0.08);
+  const unverified =
+    listing?.certificationStatus !== "CERTIFIED" && listing?.inspectionResult !== "APPROVE";
+  const fulfillmentType: OrderFulfillmentType = unverified ? "DIRECT" : "WAREHOUSE";
   return {
     id: `ORD-${Date.now()}`,
     listingId: data.listingId,
     listing: listing ?? undefined,
-    status: "RESERVED",
+    status: unverified ? "PENDING_SELLER_SHIP" : "SELLER_SHIPPED",
+    fulfillmentType,
     totalPrice: price,
     depositAmount: deposit,
-    depositPaid: false,
+    depositPaid: true,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 }

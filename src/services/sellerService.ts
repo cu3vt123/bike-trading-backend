@@ -11,6 +11,10 @@ import {
 import type { Listing } from "@/types/shopbike";
 import type { Order } from "@/types/order";
 import { useNotificationStore } from "@/stores/useNotificationStore";
+import {
+  partitionSellerOrdersByNotificationFlow,
+  type SellerOrderListItem,
+} from "@/services/sellerOrderNotificationFlow";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 
@@ -95,9 +99,7 @@ export async function fetchListingById(id: string): Promise<Listing | null> {
   }
 }
 
-export async function fetchSellerOrders(): Promise<
-  { id: string; listingId: string; listing?: { brand?: string; model?: string }; status: string }[]
-> {
+export async function fetchSellerOrders(): Promise<SellerOrderListItem[]> {
   try {
     return await sellerApi.getOrders();
   } catch {
@@ -105,18 +107,50 @@ export async function fetchSellerOrders(): Promise<
   }
 }
 
+export async function shipOrderToBuyer(orderId: string): Promise<Order> {
+  if (USE_MOCK) {
+    return {
+      id: orderId,
+      listingId: "",
+      status: "SHIPPING",
+      totalPrice: 0,
+      fulfillmentType: "DIRECT",
+      depositPaid: true,
+    };
+  }
+  return sellerApi.shipOrderToBuyer(orderId);
+}
+
 type TFunction = (key: string, params?: Record<string, string | number>) => string;
 
-/** Đồng bộ đơn cần gửi xe sang thông báo seller (gọi từ Header, SellerDashboard, NotificationsPage). Pass t() for i18n. */
+/**
+ * Đồng bộ **chỉ** các đơn thuộc luồng “có thông báo” vào hộp thông báo.
+ * Luồng “không thông báo” được tách trong `sellerOrderNotificationFlow.ts` (hàm partition / resolve).
+ */
 export async function syncSellerOrderNotifications(t: TFunction): Promise<void> {
   const { addNotification } = useNotificationStore.getState();
   const orders = await fetchSellerOrders();
-  const needShip = orders.filter(
-    (o) => o.status === "SELLER_SHIPPED" || o.status === "AT_WAREHOUSE_PENDING_ADMIN",
-  );
-  needShip.forEach((o) => {
+  const { notify } = partitionSellerOrdersByNotificationFlow(orders);
+
+  for (const { order: o, flow } of notify) {
     const bikeName =
       o.listing?.brand && o.listing?.model ? `${o.listing.brand} ${o.listing.model}` : "xe";
+
+    if (flow === "DIRECT_SHIP_REMINDER") {
+      addNotification({
+        role: "SELLER",
+        type: "success",
+        title: t("notifications.buyerPurchasedDirectTitle"),
+        message: t("notifications.buyerPurchasedDirectMessage", { orderId: o.id, bikeName }),
+        titleKey: "notifications.buyerPurchasedDirectTitle",
+        messageKey: "notifications.buyerPurchasedDirectMessage",
+        messageParams: { orderId: o.id, bikeName },
+        link: "/seller",
+        sourceKey: `seller-order-direct-${o.id}`,
+      });
+      continue;
+    }
+
     addNotification({
       role: "SELLER",
       type: "success",
@@ -128,8 +162,14 @@ export async function syncSellerOrderNotifications(t: TFunction): Promise<void> 
       link: "/seller",
       sourceKey: `seller-order-${o.id}`,
     });
-  });
+  }
 }
+
+/** Re-export để test hoặc màn hình debug (optional). */
+export {
+  partitionSellerOrdersByNotificationFlow,
+  resolveSellerOrderNotification,
+} from "@/services/sellerOrderNotificationFlow";
 
 const MOCK_DASHBOARD_ORDERS: Order[] = [
   {
@@ -254,5 +294,31 @@ export async function submitForInspection(id: string): Promise<Listing> {
   } catch {
     const found = SELLER_MOCK.find((l) => l.id === id);
     return { ...(found ?? {}), id, state: "PENDING_INSPECTION" as const } as Listing;
+  }
+}
+
+export async function publishListing(
+  id: string,
+  opts: { requestInspection: boolean },
+): Promise<Listing> {
+  if (USE_MOCK) {
+    const found = SELLER_MOCK.find((l) => l.id === id);
+    return {
+      ...(found ?? {}),
+      id,
+      state: opts.requestInspection ? "PENDING_INSPECTION" : "PUBLISHED",
+      certificationStatus: opts.requestInspection ? "PENDING_CERTIFICATION" : "UNVERIFIED",
+    } as Listing;
+  }
+  try {
+    return await sellerApi.publishListing(id, opts);
+  } catch {
+    const found = SELLER_MOCK.find((l) => l.id === id);
+    return {
+      ...(found ?? {}),
+      id,
+      state: opts.requestInspection ? "PENDING_INSPECTION" : "PUBLISHED",
+      certificationStatus: opts.requestInspection ? "PENDING_CERTIFICATION" : "UNVERIFIED",
+    } as Listing;
   }
 }

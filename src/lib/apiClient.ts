@@ -2,6 +2,12 @@ import axios from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { API_BASE_URL, API_TIMEOUT } from "./apiConfig";
 
+/**
+ * HTTP client dùng cho toàn app.
+ * - Request: gắn Bearer từ Zustand.
+ * - Response: 401 → clearTokens (session hết hạn / token lỗi).
+ * Khi BE có refresh token: thêm interceptor retry + POST /auth/refresh (xem docs/PRODUCTION-HARDENING.md).
+ */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,

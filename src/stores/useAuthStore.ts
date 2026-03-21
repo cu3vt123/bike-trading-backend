@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Role } from "@/types/auth";
+import { useSellerSubscriptionStore } from "@/stores/useSellerSubscriptionStore";
 
 type AuthState = {
   accessToken: string | null;
@@ -33,6 +34,7 @@ export const useAuthStore = create<AuthState>()(
 
       clearTokens: () => {
         set({ accessToken: null, refreshToken: null, role: null });
+        useSellerSubscriptionStore.getState().clear();
         if (typeof window !== "undefined") {
           try {
             localStorage.removeItem("auth-storage");

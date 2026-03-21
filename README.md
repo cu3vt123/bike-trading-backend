@@ -2,20 +2,57 @@
 
 React + Vite frontend cho **Bike Trading** – mua bán xe đạp thể thao cũ.
 
+## Tính năng (tóm tắt)
+
+- Marketplace, chi tiết xe, wishlist (buyer)
+- Checkout / transaction / đánh giá
+- Seller: dashboard, tạo tin, gói đăng tin + kiểm định tùy chọn
+- Inspector / Admin dashboard
+- i18n (vi/en), dark/light theme
+- Auth + role guard (Buyer / Seller / Inspector / Admin)
+
+## Cấu trúc thư mục (rút gọn)
+
+| Thư mục | Vai trò |
+|---------|---------|
+| `src/app/` | App shell, router, ErrorBoundary, providers |
+| `src/features/` | Theo domain (auth, buyer, seller, …) |
+| `src/shared/` | Layout, guards, UI dùng chung |
+| `src/lib/` | apiClient, apiConfig, `apiErrors`, utils |
+| `src/stores/` | Zustand (auth, wishlist, …) |
+| `docs/` | ERD, flow, **Production hardening** |
+
+## Cài đặt nhanh
+
+```bash
+cp .env.example .env   # chỉnh VITE_API_BASE_URL nếu cần
+npm install
+npm run dev
+```
+
+- **API thật:** `VITE_USE_MOCK_API=false`, chạy backend trong `backend/` (xem `backend/README.md`).
+- **Chỉ FE + mock:** `VITE_USE_MOCK_API=true`.
+
+## Lệnh chất lượng (ship-ready)
+
+```bash
+npm run lint    # ESLint (frontend; thư mục backend bị ignore trong eslint.config)
+npm run build   # Production bundle
+```
+
+Checklist mở rộng: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) (dựa trên [Bài 09 Hardening – kat-minh/react](https://github.com/kat-minh/react/blob/main/09-hardening-theory-guide.md)).
+
 ---
 
-## Backend – Thứ tự đọc tài liệu (chuyển giao Node → Spring Boot)
+## Backend – Tài liệu cho team Backend
 
-> **Dành cho team Backend Java.** Đọc theo thứ tự dưới đây để hiểu và implement API tương thích với Frontend.
-
-| Bước | File | Nội dung |
-|------|------|----------|
-| **1** | `docs/CHUYEN-GIAO-NODE-SANG-SPRING-BOOT.md` | **Đọc đầu tiên.** Tổng hợp: models (User, Listing, Order, Review), API endpoints, Auth/JWT, luồng Order & Shipping, Admin hide/unhide, checklist Spring Boot. |
-| **2** | `docs/HUONG-DAN-BACKEND.md` | Contract API chi tiết – request/response từng endpoint. |
-| **3** | `docs/backend/PORTING-NODE-TO-SPRING-BOOT.md` | Mapping model + API từ Node sang Spring. |
-| **4** | `docs/backend/SPRING-BOOT-SKELETON.md` | Skeleton project Spring Boot (pom, packages, controller mẫu, security). |
-| **5** | `docs/RUN-FULL-PROJECT.md` | Cách chạy toàn bộ FE + BE (nếu muốn demo). |
-| **6** | `backend/README.md` | Chạy backend Node demo (tham khảo logic). |
+| File | Nội dung |
+|------|----------|
+| `docs/ERD.md` | ERD – MongoDB entities + SQL schema (User, Listing, Order, Review, Brand). |
+| `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen Flow từng Actor – luồng người dùng, endpoint tương ứng. |
+| `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md` | State diagram Order/Listing/Review. |
+| `backend/README.md` | Chạy backend Node demo – endpoints, tài khoản demo. |
+| [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Hướng dẫn chuyển BE từ Node sang **Java Spring Boot** (giữ contract cho FE). |
 
 ### Thông tin quan trọng
 
@@ -43,10 +80,8 @@ Mở `http://localhost:5173`.
 
 | File | Nội dung |
 |------|----------|
-| [docs/FLOW-HE-THONG.md](docs/FLOW-HE-THONG.md) | **Giải thích flow làm việc toàn bộ hệ thống** – khởi động app, auth, phân quyền route, Header (ngôn ngữ, theme, thông báo), luồng Buyer/Seller/Inspector/Admin, stores, API. |
-| [docs/PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) | Tổng kết dự án, business rules, i18n, chức năng đã hoàn thành. |
+| [docs/PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) | Tổng kết dự án, business rules, flow runtime, i18n, chức năng đã hoàn thành. |
+| [docs/SCREEN_FLOW_BY_ACTOR.md](docs/SCREEN_FLOW_BY_ACTOR.md) | Screen Flow chi tiết theo từng Actor (Guest, Buyer, Seller, Inspector, Admin). |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Lịch sử thay đổi. |
-| [docs/AI-INSTRUCTIONS.md](docs/AI-INSTRUCTIONS.md) | Hướng dẫn cho người mới hoặc AI khác khi làm việc với codebase này trong Cursor. |
 
 **i18n:** Ứng dụng hỗ trợ Tiếng Việt / English (react-i18next). Chuyển đổi qua icon Globe trên Header.
-

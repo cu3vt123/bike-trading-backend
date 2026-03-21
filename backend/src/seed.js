@@ -4,6 +4,7 @@ import { connectDb, disconnectDb } from "./config/db.js";
 import { User } from "./models/User.js";
 import { Listing } from "./models/Listing.js";
 import { Brand } from "./models/Brand.js";
+import { PackageOrder } from "./models/PackageOrder.js";
 
 const DEFAULT_BRANDS = [
   "Giant", "Trek", "Specialized", "Cannondale", "Scott", "Bianchi",
@@ -16,6 +17,7 @@ export async function runSeed() {
   await User.deleteMany({});
   await Listing.deleteMany({});
   await Brand.deleteMany({});
+  await PackageOrder.deleteMany({});
 
   await Brand.insertMany(
     DEFAULT_BRANDS.map((name) => ({
@@ -33,11 +35,14 @@ export async function runSeed() {
     role: "BUYER",
     displayName: "buyer_demo",
   });
+  const subExp = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const seller = await User.create({
     email: "seller@demo.com",
     passwordHash: pwd,
     role: "SELLER",
     displayName: "seller_demo",
+    subscriptionPlan: "BASIC",
+    subscriptionExpiresAt: subExp,
   });
   await User.create({
     email: "inspector@demo.com",
@@ -107,6 +112,7 @@ export async function runSeed() {
       currency: "VND",
       state: "PENDING_INSPECTION",
       inspectionResult: null,
+      certificationStatus: "PENDING_CERTIFICATION",
       imageUrls: [
         "https://images.unsplash.com/photo-1525104885112-7c9f2a2c63a1?auto=format&fit=crop&w=1600&q=60",
       ],
@@ -301,7 +307,44 @@ export async function runSeed() {
       ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
+    /** Tin lên sàn chưa kiểm định — để test disclaimer buyer */
+    {
+      title: "Entry road bike — chưa kiểm định (demo)",
+      brand: "Giant",
+      model: "Contend",
+      year: 2019,
+      frameSize: "M",
+      condition: "GOOD_USED",
+      location: "Ho Chi Minh City",
+      price: 12_500_000,
+      currency: "VND",
+      state: "PUBLISHED",
+      inspectionResult: null,
+      certificationStatus: "UNVERIFIED",
+      publishedAt: new Date(),
+      listingExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      imageUrls: [
+        "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?auto=format&fit=crop&w=1600&q=60",
+      ],
+      seller: { id: seller._id, name: seller.displayName, email: seller.email },
+    },
   ]);
+
+  const pubAt = new Date();
+  const expAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  await Listing.updateMany(
+    {
+      state: "PUBLISHED",
+      inspectionResult: "APPROVE",
+    },
+    {
+      $set: {
+        certificationStatus: "CERTIFIED",
+        publishedAt: pubAt,
+        listingExpiresAt: expAt,
+      },
+    },
+  );
 
   // eslint-disable-next-line no-console
   console.log("[seed] done");

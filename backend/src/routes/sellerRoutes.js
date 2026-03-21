@@ -8,8 +8,14 @@ import {
   createListing,
   updateListing,
   submitForInspection,
+  publishListing,
   getMyRatings,
+  shipDirectToBuyer,
 } from "../controllers/sellerController.js";
+import {
+  checkoutSubscription,
+  mockCompletePackageOrder,
+} from "../controllers/packageController.js";
 import { wrapAsync } from "../utils/handler.js";
 
 const sellerRoutes = Router();
@@ -19,11 +25,18 @@ sellerRoutes.use(requireAuth, requireRole(["SELLER"]));
 sellerRoutes.get("/dashboard", wrapAsync(dashboard));
 sellerRoutes.get("/ratings", wrapAsync(getMyRatings));
 sellerRoutes.get("/orders", wrapAsync(listMyOrders));
+sellerRoutes.put("/orders/:orderId/ship-to-buyer", wrapAsync(shipDirectToBuyer));
 sellerRoutes.get("/listings", wrapAsync(listMyListings));
 sellerRoutes.get("/listings/:id", wrapAsync(getMyListing));
 sellerRoutes.post("/listings", wrapAsync(createListing));
 sellerRoutes.put("/listings/:id", wrapAsync(updateListing));
+sellerRoutes.put("/listings/:id/publish", wrapAsync(publishListing));
 sellerRoutes.put("/listings/:id/submit", wrapAsync(submitForInspection));
+sellerRoutes.post("/subscription/checkout", wrapAsync(checkoutSubscription));
+sellerRoutes.post(
+  "/subscription/orders/:orderId/mock-complete",
+  wrapAsync(mockCompletePackageOrder),
+);
 
 export { sellerRoutes };
 
