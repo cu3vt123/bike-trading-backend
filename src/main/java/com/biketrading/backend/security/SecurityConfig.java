@@ -35,30 +35,30 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {}) // Để mặc định cho CorsConfig xử lý
+                .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                        // 1. CÁC API PUBLIC (Ai cũng vào được, không cần Token)
+                        // CÁC API PUBLIC (Không cần Token)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bikes/**").permitAll()
 
-                        // 🔥 MỞ KHÓA CHO VNPAY TRẢ KẾT QUẢ VỀ HỆ THỐNG 🔥
+                        // 🔥 FIX LỖI 404: Mở khóa API xem danh sách Gói cước 🔥
+                        .requestMatchers(HttpMethod.GET, "/api/packages").permitAll()
+
+                        // Mở khóa cho VNPay trả kết quả về
                         .requestMatchers("/api/vnpay/**").permitAll()
 
-                        // 2. PHÂN QUYỀN THEO ROLE (Chỉ đúng Role mới gọi được)
+                        // PHÂN QUYỀN THEO ROLE
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/inspector/**").hasRole("INSPECTOR")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
 
-                        // 3. CÁC API CÒN LẠI (Bắt buộc phải có Token đăng nhập)
                         .anyRequest().authenticated()
                 );
 
-        // Thêm bộ lọc JWT vào trước bộ lọc xác thực mặc định
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }

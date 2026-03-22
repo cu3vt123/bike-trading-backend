@@ -39,6 +39,13 @@ public class User {
     @Column(nullable = false, columnDefinition = "int default 0")
     private int remainingListings = 0;
 
+    // 🔥 ĐÃ THÊM LẠI: Số lượt gọi Inspector kiểm định 🔥
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int inspectionCredits = 0;
+
+    // 🔥 ĐÃ THÊM LẠI: Ngày hết hạn gói cước (1 tuần) 🔥
+    private LocalDateTime packageExpiryDate;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
