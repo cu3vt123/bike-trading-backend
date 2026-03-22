@@ -76,18 +76,6 @@ export const paymentApi = {
     apiClient
       .post(API_PATHS.BUYER.PAYMENTS_INITIATE, data)
       .then((r) => r.data?.data ?? r.data),
-
-  confirm: (orderId: string, payload?: Record<string, unknown>): Promise<Order> =>
-    apiClient
-      .post(API_PATHS.BUYER.PAYMENTS_CONFIRM(orderId), payload)
-      .then((r) => r.data?.data ?? r.data),
-};
-
-export const transactionApi = {
-  getStatus: (orderId: string): Promise<Order> =>
-    apiClient
-      .get(API_PATHS.BUYER.TRANSACTIONS(orderId))
-      .then((r) => r.data?.data ?? r.data),
 };
 
 export type BuyerProfile = {

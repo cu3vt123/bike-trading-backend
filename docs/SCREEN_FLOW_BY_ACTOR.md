@@ -1,8 +1,15 @@
 # Screen Flow — By Actor
 
-Each square bracket `[...]` = 1 screen (page).
-Each parenthesis `(...)` = 1 popup or sub-action.
-Arrow = screen transition, labeled with "Click what / condition".
+> Mô tả luồng màn hình theo từng vai trò (Guest, Buyer, Seller, Inspector, Admin). Dùng để kiểm tra UX, viết test, hoặc đối chiếu với API.
+
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — routes theo role, luồng→API.  
+**Kiểm tra UI/UX:** [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md).
+
+### Ký hiệu
+
+- `[...]` = 1 màn hình (page)
+- `(...)` = 1 popup hoặc hành động con
+- Mũi tên = chuyển màn hình, có nhãn "Click gì / điều kiện"
 
 ---
 

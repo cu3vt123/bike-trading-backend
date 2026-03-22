@@ -2,7 +2,21 @@
 
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
 
-**Tham chiếu thêm:** [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md) (yêu cầu người dùng), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md) (hướng dẫn triển khai backend).
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, luồng→API.  
+**Tham chiếu:** [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md).
+
+---
+
+## Thuật ngữ chính
+
+| Thuật ngữ | Ý nghĩa |
+|-----------|---------|
+| **CERTIFIED** | Listing đã kiểm định (inspector APPROVE) — luồng kho |
+| **UNVERIFIED** | Listing chưa kiểm định — luồng direct |
+| **fulfillmentType** | WAREHOUSE (xe qua kho) hoặc DIRECT (seller giao thẳng) |
+| **plan** | DEPOSIT (cọc 8% + số dư) hoặc FULL |
+| **balancePaid** | Phần còn lại đã thanh toán VNPay |
+| **order_snapshot** | Snapshot tin đăng lúc mua — dùng Finalize/Success khi tin SOLD |
 
 ---
 
@@ -322,6 +336,7 @@ Chi tiết: `docs/STRUCTURE.md`
 | File | Nội dung |
 |------|----------|
 | `docs/README.md` | Mục lục toàn bộ tài liệu |
+| `docs/BE-FE-API-AUDIT.md` | Rà soát API BE–FE — so sánh endpoint, logic, dead code, khuyến nghị |
 | `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
 | `docs/ERD-MYSQL.md` | Thiết kế MySQL 17 bảng — ERD Mermaid, SQL schema |
 | `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen flow theo Guest/Buyer/Seller/Inspector/Admin |

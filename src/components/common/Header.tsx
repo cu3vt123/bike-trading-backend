@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, ShoppingCart, Bell, Sun, Moon, Globe, ChevronDown } from "lucide-react";
+import { Search, Heart, Bell, Sun, Moon, Globe, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 import { useNotificationStore } from "@/stores/useNotificationStore";
@@ -242,7 +242,7 @@ export function Header() {
               <Moon className="h-4 w-4" />
             )}
           </Button>
-          {/* Buyer: giỏ hàng (dẫn tới danh sách yêu thích) */}
+          {/* Buyer: danh sách yêu thích */}
           {role === "BUYER" && (
             <Link
               to="/wishlist"
@@ -250,7 +250,7 @@ export function Header() {
               title={t("common.wishlist")}
               aria-label={t("common.wishlist")}
             >
-              <ShoppingCart className="h-4 w-4" strokeWidth={1.6} />
+              <Heart className="h-4 w-4" strokeWidth={1.6} />
             </Link>
           )}
 
@@ -279,6 +279,12 @@ export function Header() {
                   >
                     {t("header.sellerChannel")}
                   </button>
+                  <Link
+                    to="/seller/stats"
+                    className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+                  >
+                    {t("header.stats")}
+                  </Link>
                   <Link
                     to="/seller/packages"
                     className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"

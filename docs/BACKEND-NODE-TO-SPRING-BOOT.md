@@ -3,7 +3,8 @@
 > Tài liệu cho team Backend khi port API hiện tại (`backend/` – Express + Mongoose) sang **Spring Boot 3** (REST, JWT, persistence).  
 > FE giữ nguyên contract URL dưới prefix `/api` nếu có thể → chỉ đổi `VITE_API_BASE_URL`.
 
-**Tham chiếu mã nguồn Node:** `backend/src/controllers/*.js`, `backend/src/routes/*.js`, `backend/src/models/*.js`.
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, vị trí file.  
+**Mã nguồn Node:** `backend/src/controllers/*.js`, `backend/src/routes/*.js`, `backend/src/models/*.js`.
 
 ---
 
@@ -31,7 +32,7 @@
 
 **Persistence:**  
 - Nếu giữ **MongoDB**: Spring Data MongoDB + `MongoRepository` (tương đương Mongoose gần nhất).  
-- Nếu chuyển **SQL** (MySQL/PostgreSQL): xem **`docs/ERD-MYSQL.md`** (17 bảng đầy đủ + SQL schema).
+- Nếu chuyển **SQL** (MySQL): xem **`docs/ERD-SPEC.md`** (đặc tả đầy đủ cột, ENUM, FK) và **`docs/ERD-MYSQL.md`** (sơ đồ ERD, mapping MongoDB→MySQL). Chạy schema: `docs/sql/shopbike_mysql_schema.sql`.
 
 ---
 
@@ -90,6 +91,59 @@
 
 | GET | `/brands` | Public list |
 | GET | `/packages` | Catalog gói |
+
+---
+
+## 3a. Request/Response shape (key endpoints)
+
+Giữ đúng format để FE không đổi code.
+
+**POST /auth/login**
+```
+Request:  { "emailOrUsername": string, "password": string }
+Response: { "data": { "accessToken": string, "user": { "id", "email", "role", "displayName"? } } }
+```
+
+**POST /buyer/orders/vnpay-checkout**
+```
+Request:  { "listingId": string, "plan": "DEPOSIT"|"FULL", "fulfillmentType": "WAREHOUSE"|"DIRECT", "shippingAddress": { "street", "city", "postalCode"? } }
+Response: { "data": { "orderId": string, "paymentUrl": string } }
+```
+
+**GET /buyer/orders/:id**
+```
+Response: { "data": { "id", "status", "listingId", "listing": { ...snapshot, seller?: { id, name?, email? } }, "sellerId"?, "shippingAddress", "depositPaid", "balancePaid", "plan", "fulfillmentType", ... } }
+```
+Cần trả `sellerId` và `listing.seller` để Success page hiển thị form đánh giá.
+
+**PUT /seller/orders/:id/ship-to-buyer**
+```
+Request:  (body rỗng hoặc optional)
+Response: { "data": { ...order } } hoặc 200 OK
+```
+Chỉ khi `fulfillmentType === "DIRECT"` và `status === "PENDING_SELLER_SHIP"`.
+
+---
+
+## 3b. Checklist port (theo thứ tự)
+
+| Bước | Việc | Xong |
+|------|------|------|
+| 1 | Tạo project Spring Boot 3, Web, Validation, Security, Data (JPA/Mongo) | |
+| 2 | Cấu hình base path `/api` | |
+| 3 | Auth: login, signup, JWT filter, /me | |
+| 4 | Entity User, Brand, Category (xem ERD-SPEC) | |
+| 5 | Entity Listing, ListingMedia, InspectionReport | |
+| 6 | Entity Order, OrderSnapshot, Shipment, OrderPayment | |
+| 7 | GET /bikes, GET /bikes/:id (chỉ PUBLISHED) | |
+| 8 | POST /buyer/orders/vnpay-checkout + fulfillmentType | |
+| 9 | GET/PUT /buyer/orders/:id, cancel, complete | |
+| 10 | POST /buyer/orders/:id/vnpay-pay-balance | |
+| 11 | Seller: dashboard, listings CRUD, orders, ship-to-buyer | |
+| 12 | Inspector: pending-listings, approve/reject/need-update | |
+| 13 | Admin: warehouse, confirm-warehouse, re-inspection | |
+| 14 | GET /brands, GET /packages | |
+| 15 | Test với FE: VITE_USE_MOCK_API=false | |
 
 ---
 
@@ -160,12 +214,36 @@ Hai nhánh trong `$or` (Node):
 
 ---
 
-## 7. Tài liệu liên quan trong repo
+## 7. Schema MySQL → JPA Entities (khi chuyển SQL)
+
+Khi dùng MySQL + JPA, tham chiếu:
+
+| Nguồn | Dùng cho |
+|-------|----------|
+| [ERD-SPEC.md](ERD-SPEC.md) | Toàn bộ cột, kiểu dữ liệu, ENUM, FK, thứ tự tạo bảng. Tạo entity `@Entity`, `@Column`, `@Enumerated`, `@ManyToOne`, `@OneToMany` theo đúng spec. |
+| [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | CREATE TABLE chuẩn — chạy migration hoặc import vào MySQL. |
+| [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | Thứ tự bảng (phụ thuộc FK) — tham chiếu khi đặt thứ tự `schema.sql` hoặc Flyway scripts. |
+
+**Mapping nhanh Node (Mongoose) → Spring JPA:**
+
+| Mongoose | JPA |
+|----------|-----|
+| `User` | `User` entity — `@Table(name = "user")` (user là keyword MySQL, dùng backtick) |
+| `Order.balancePaid` | `order.balance_paid` (Boolean) |
+| `Order.listing` (embedded) | `OrderSnapshot` entity — `@OneToOne` Order, tạo khi Finalize |
+| `order.listing.seller` | `order_snapshot.seller_id` FK + `seller_json` JSON |
+| Enum Mongoose | `@Enumerated(EnumType.STRING)` — giá trị từ ERD-SPEC |
+| `ObjectId` | `Long` (BIGINT UNSIGNED) |
+
+---
+
+## 8. Tài liệu liên quan trong repo
 
 | File | Nội dung |
 |------|----------|
-| [ERD-MYSQL.md](ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid, SQL schema |
-| [ERD-MYSQL.md](ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid |
+| [ERD-SPEC.md](ERD-SPEC.md) | Đặc tả schema — cột, ENUM, FK, luồng nghiệp vụ (tạo JPA entities) |
+| [ERD-MYSQL.md](ERD-MYSQL.md) | Thiết kế 17 bảng, ERD Mermaid, mapping MongoDB→MySQL |
+| [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | Hướng dẫn vẽ ERD, thứ tự bảng |
 | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) | Luồng màn hình ↔ API |
 | [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md) | Trạng thái Order/Listing |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Business rules tổng hợp |
@@ -173,7 +251,7 @@ Hai nhánh trong `$or` (Node):
 
 ---
 
-## 8. Ghi chú cho nhánh / quy trình (follow thầy Lâm)
+## 9. Ghi chú cho nhánh / quy trình (follow thầy Lâm)
 
 - Giữ **một source of truth** cho contract: OpenAPI (Swagger) sinh từ Spring hoặc file `openapi.yaml` trong repo.  
 - CI: `mvn test` / `./gradlew test` + build trước merge (tương tự lint/build FE).  

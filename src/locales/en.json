@@ -16,7 +16,9 @@
     "showAll": "Show all",
     "showUnreadOnly": "Show unread only",
     "verifiedAndInspected": "Verified & inspected",
-    "viewBikes": "View bikes"
+    "viewBikes": "View bikes",
+    "loading": "Loading...",
+    "loadingPage": "Loading page"
   },
   "vnpayDemo": {
     "title": "VNPAY Payment",
@@ -259,6 +261,7 @@
     "searchBikes": "Search bikes",
     "notifications": "Notifications",
     "sellerChannel": "Seller channel",
+    "stats": "Stats",
     "adminChannel": "Admin channel",
     "inspector": "Inspector",
     "profile": "Profile",

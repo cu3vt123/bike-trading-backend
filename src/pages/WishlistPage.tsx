@@ -62,7 +62,7 @@ export default function WishlistPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">Đang tải...</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("wishlist.loading")}</p>
         </div>
       ) : listings.length === 0 ? (
         <Card>

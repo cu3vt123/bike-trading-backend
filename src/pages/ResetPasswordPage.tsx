@@ -158,7 +158,7 @@ export default function ResetPasswordPage() {
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
-              Đăng nhập
+              {t("common.login")}
             </Link>
           </nav>
         </div>

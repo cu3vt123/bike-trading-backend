@@ -2,7 +2,14 @@
 
 > Tài liệu đầy đủ các quy tắc nghiệp vụ (business rules) áp dụng cho hệ thống ShopBike. Đồng bộ với codebase và docs hiện tại (2026-03).
 
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](../QUICK-REFERENCE.md) — thuật ngữ, API, luồng.  
 **Tham chiếu:** [PROJECT-SUMMARY.md](../PROJECT-SUMMARY.md) §2, [BACKEND-NODE-TO-SPRING-BOOT.md](../BACKEND-NODE-TO-SPRING-BOOT.md) §5, [PAYMENTS-VNPAY.md](../PAYMENTS-VNPAY.md).
+
+### Cấu trúc tài liệu
+
+- Mỗi rule có **ID** (vd. BR-ORD-01) — dễ tra cứu và trace.
+- Bảng: ID | Rule | Chi tiết.
+- Nhóm rule: Listing, Order, Payment, Finalize, Auth, VietQR, Notifications.
 
 ---
 

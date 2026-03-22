@@ -16,7 +16,9 @@
     "showAll": "Hiển thị tất cả",
     "showUnreadOnly": "Hiển thị thông báo chưa đọc",
     "verifiedAndInspected": "Đã xác minh & kiểm định",
-    "viewBikes": "Xem xe"
+    "viewBikes": "Xem xe",
+    "loading": "Đang tải...",
+    "loadingPage": "Đang tải trang"
   },
   "vnpayDemo": {
     "title": "Thanh toán VNPAY",
@@ -261,6 +263,7 @@
     "searchBikes": "Tìm kiếm xe",
     "notifications": "Thông báo",
     "sellerChannel": "Kênh người bán",
+    "stats": "Thống kê",
     "adminChannel": "Kênh admin",
     "inspector": "Kiểm định viên",
     "profile": "Hồ sơ",

@@ -4,6 +4,39 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03] Rà soát API BE–FE, xóa dead code, bổ sung docs
+
+### BE–FE API Audit
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/BE-FE-API-AUDIT.md** | **Mới.** Báo cáo rà soát chi tiết: so sánh endpoint FE ↔ BE (Auth, Bikes, Buyer, Seller, Inspector, Admin), response/request, logic nghiệp vụ. |
+| **Kết quả** | Auth, Bikes, Buyer Orders, Seller, Inspector, Admin — khớp. Không có bug runtime nghiêm trọng. |
+| **Dead code** | Phát hiện `PAYMENTS_CONFIRM`, `TRANSACTIONS` — FE có config + API nhưng BE không có route, không có code gọi → xóa. |
+
+### Code cleanup
+
+| File | Thay đổi |
+|------|----------|
+| `src/lib/apiConfig.ts` | Xóa `PAYMENTS_CONFIRM`, `TRANSACTIONS` khỏi `API_PATHS.BUYER`. |
+| `src/apis/buyerApi.ts` | Xóa `paymentApi.confirm`, `transactionApi.getStatus` (dead code). |
+
+### Docs cập nhật
+
+| File | Thay đổi |
+|------|----------|
+| `docs/README.md` | Thêm BE-FE-API-AUDIT.md vào Bắt đầu nhanh và Mục lục. |
+| `docs/QUICK-REFERENCE.md` | Thêm mục "Kiểm tra khớp API BE–FE" trong Chọn tài liệu theo nhiệm vụ. |
+| `docs/PROJECT-SUMMARY.md` | Thêm tham chiếu BE-FE-API-AUDIT.md trong Các tài liệu liên quan. |
+| `docs/CHANGELOG.md` | Entry này. |
+
+### Khuyến nghị từ audit
+
+- Test E2E luồng chính: Login → Checkout VNPAY → Resume/Pay balance → Seller ship → Inspector approve/reject → Admin confirm warehouse.
+- IPN VNPAY: Đảm bảo return/IPN callback cập nhật đúng status đơn hàng.
+
+---
+
 ## [2026-03] Dọn câu từ UI — bỏ sandbox, dev note, backend (phù hợp demo)
 
 | Thay đổi | Chi tiết |

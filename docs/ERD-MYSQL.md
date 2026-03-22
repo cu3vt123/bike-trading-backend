@@ -2,8 +2,9 @@
 
 > Tài liệu hướng dẫn thiết kế database MySQL cho dự án ShopBike, gồm **17 bảng** và sơ đồ ERD.
 
+**Đặc tả chi tiết:** [ERD-SPEC.md](ERD-SPEC.md) — toàn bộ cột, ENUM, FK, luồng nghiệp vụ (tham chiếu cho BE / vẽ ERD)  
 **File SQL:** [docs/sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql)  
-**Hướng dẫn Mermaid + Draw.io + MySQL:** [docs/ERD-HUONG-DAN.md](ERD-HUONG-DAN.md)  
+**Hướng dẫn vẽ ERD + MySQL:** [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md)  
 **File Mermaid (.mmd):** [docs/sql/shopbike_erd.mmd](sql/shopbike_erd.mmd) — mở tại [mermaid.live](https://mermaid.live)
 
 ---
@@ -47,6 +48,7 @@ erDiagram
     user ||--o{ notification : "receives"
     user ||--o{ user_payment_method : "has"
     user ||--o{ inspection_report : "inspects"
+    user ||--o{ order_snapshot : "seller_snapshot"
 
     brand ||--o{ listing : "brands"
     category ||--o{ listing : "categorizes"
@@ -56,6 +58,7 @@ erDiagram
     listing ||--o{ order : "ordered"
     listing ||--o{ review : "reviewed"
     listing ||--o{ wishlist : "in"
+    listing ||--o{ order_snapshot : "snapshotted"
 
     order ||--o| order_snapshot : "has"
     order ||--o| shipment : "has"
@@ -280,6 +283,8 @@ Hoặc dùng client MySQL (DBeaver, phpMyAdmin, MySQL Workbench) import file `do
 
 | File | Nội dung |
 |------|----------|
+| [ERD-SPEC.md](ERD-SPEC.md) | Đặc tả đầy đủ cột, ENUM, FK, luồng nghiệp vụ |
+| [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | Hướng dẫn vẽ ERD (Mermaid, Draw.io), tạo bảng MySQL |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Port Node → Spring Boot (JPA entities) |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết dự án, business rules |
 

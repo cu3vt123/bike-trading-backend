@@ -395,14 +395,14 @@ export default function TransactionPage() {
   async function handleCancelReservation() {
     if (!state.orderId) {
       setCancelOpen(false);
-      navigate(`/bikes/${id}`, { replace: true });
+      navigate("/profile", { replace: true });
       return;
     }
     setCancelling(true);
     try {
       await cancelOrder(state.orderId);
       setCancelOpen(false);
-      navigate(`/bikes/${id}`, {
+      navigate("/profile", {
         replace: true,
         state: { cancelledOrderId: state.orderId },
       });

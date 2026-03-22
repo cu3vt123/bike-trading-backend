@@ -3,7 +3,13 @@
 **Phiên bản tài liệu:** 1.0  
 **Mục đích:** Thu thập yêu cầu từ góc nhìn **người dùng / stakeholder** (không mô tả chi tiết kỹ thuật triển khai). Dùng cho đồ án, SRS, hoặc đối chiếu với backlog.
 
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, roles, thuật ngữ.  
 **Liên kết kỹ thuật:** [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md), [SCREEN_FLOW_BY_ACTOR.md](./SCREEN_FLOW_BY_ACTOR.md).
+
+### Cấu trúc
+
+- Mỗi yêu cầu có **ID** (UR-AUTH-01, UR-LIST-02, …) — dễ trace sang màn hình và test.
+- Bảng: ID | Yêu cầu | Ưu tiên (Must/Should).
 
 ---
 

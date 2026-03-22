@@ -351,7 +351,7 @@ export default function HomePage() {
         {loading ? (
           <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border bg-card py-16">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">Đang tải danh sách...</p>
+            <p className="text-sm text-muted-foreground">{t("home.loadingListings")}</p>
           </div>
         ) : error ? (
           <Card className="mt-6">

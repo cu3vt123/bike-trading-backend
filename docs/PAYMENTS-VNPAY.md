@@ -2,6 +2,9 @@
 
 (Postpay đã gỡ; chỉ còn VNPay.)
 
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — biến env VNP_*, endpoint checkout.  
+**Chi tiết rule:** [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) BR-PAY-VNP-*.
+
 ---
 
 ## 1. Luồng chung (production)

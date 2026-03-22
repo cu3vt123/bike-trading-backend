@@ -2,6 +2,20 @@
 
 Tài liệu dành cho dev/backend port (Spring Boot xem thêm [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md)).
 
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, env.
+
+---
+
+## Thuật ngữ
+
+| Thuật ngữ | Ý nghĩa |
+|-----------|---------|
+| **fulfillmentType** | `WAREHOUSE` (xe qua kho) hoặc `DIRECT` (seller giao thẳng). Set khi tạo đơn, dựa trên trạng thái kiểm định listing. |
+| **CERTIFIED** | Listing đã kiểm định (inspector APPROVE) → luồng kho. |
+| **UNVERIFIED** | Listing chưa kiểm định → luồng direct. |
+| **plan** | `DEPOSIT` (cọc 8% + số dư) hoặc `FULL`. |
+| **balancePaid** | Phần còn lại đã thanh toán VNPay (plan DEPOSIT). |
+
 ---
 
 ## 1. Vị trí mã nguồn & chạy nhanh
@@ -67,6 +81,22 @@ src/
 
 - Thành công: `{ data: ... }` (dùng `ok()`, `created()` trong `utils/http.js`).
 - Lỗi: `{ message: "..." }` với status 4xx/5xx.
+
+**Ví dụ request/response:**
+
+```json
+// POST /auth/login
+// Request: { "emailOrUsername": "buyer@demo.com", "password": "Password!1" }
+// Response 200: { "data": { "accessToken": "...", "user": { "id": "...", "role": "BUYER", ... } } }
+// Response 401: { "message": "Invalid credentials" }
+
+// GET /auth/me (Header: Authorization: Bearer <token>)
+// Response 200: { "data": { "id": "...", "email": "...", "role": "BUYER", ... } }
+
+// POST /api/buyer/orders/vnpay-checkout
+// Request: { "listingId": "...", "plan": "DEPOSIT", "fulfillmentType": "WAREHOUSE", "shippingAddress": { "street": "...", "city": "..." } }
+// Response 200: { "data": { "orderId": "...", "paymentUrl": "https://..." } }
+```
 
 ---
 
@@ -167,6 +197,7 @@ Dùng `accessToken` trả về cho các request `/api/buyer/*`, `/api/vietqr/*`,
 
 | File | Nội dung |
 |------|----------|
+| [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) | Tham chiếu nhanh: API, thuật ngữ, env, vị trí file |
 | [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md) | Yêu cầu người dùng / stakeholder |
 | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) | Business rules + luồng FE |
 | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.7 | VietQR (đồ án) |
