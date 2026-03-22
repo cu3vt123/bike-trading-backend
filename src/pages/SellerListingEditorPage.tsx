@@ -10,6 +10,11 @@ import {
 import { isAxiosError } from "axios";
 import { brandsApi } from "@/apis/brandsApi";
 import { useNotificationStore } from "@/stores/useNotificationStore";
+import { authApi } from "@/apis/authApi";
+import {
+  useSellerSubscriptionStore,
+  normalizeSubscriptionPayload,
+} from "@/stores/useSellerSubscriptionStore";
 
 type Condition = "MINT_USED" | "GOOD_USED" | "FAIR_USED";
 type Step = "DRAFT" | "PENDING_INSPECTION";
@@ -60,8 +65,27 @@ export default function SellerListingEditorPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeSlotRef = useRef<number | null>(null);
   const addNotification = useNotificationStore((s) => s.addNotification);
+  const subscription = useSellerSubscriptionStore((s) => s.subscription);
+  const setSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
+  const canRequestInspection = Boolean(
+    subscription?.active && subscription?.plan === "VIP",
+  );
 
   const isEdit = useMemo(() => !!id || !!savedId, [id, savedId]);
+
+  useEffect(() => {
+    authApi
+      .getProfile()
+      .then((me) => {
+        const sub = normalizeSubscriptionPayload(
+          (me as { subscription?: unknown }).subscription,
+        );
+        if (sub) setSubscription(sub);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  }, [setSubscription]);
 
   useEffect(() => {
     brandsApi.getList()
@@ -171,6 +195,8 @@ export default function SellerListingEditorPage() {
         type: "success",
         title: t("seller.statePublished"),
         message: t("seller.publishNote"),
+        titleKey: "seller.statePublished",
+        messageKey: "seller.publishNote",
         link: "/seller",
         sourceKey: `listing-publish-${targetId}`,
       });
@@ -206,6 +232,8 @@ export default function SellerListingEditorPage() {
         type: "success",
         title: t("seller.submitSuccessTitle"),
         message: t("seller.submitSuccessMessage"),
+        titleKey: "seller.submitSuccessTitle",
+        messageKey: "seller.submitSuccessMessage",
         link: "/seller",
         sourceKey: `listing-submit-${targetId}`,
       });
@@ -213,6 +241,13 @@ export default function SellerListingEditorPage() {
     } catch (err: unknown) {
       if (isAxiosError(err) && err.response?.data?.message === "PACKAGE_REQUIRED") {
         navigate("/seller/packages");
+        return;
+      }
+      if (
+        isAxiosError(err) &&
+        err.response?.data?.message === "VIP_REQUIRED_FOR_INSPECTION"
+      ) {
+        setError(t("seller.inspectionVipOnlyError"));
         return;
       }
       setError(t("seller.submitError"));
@@ -501,13 +536,25 @@ export default function SellerListingEditorPage() {
               {submitting ? t("seller.publishing") : t("seller.publishUnverified")}
             </button>
 
-            <button
-              onClick={onOptionalInspection}
-              disabled={locked || submitting}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-primary/40 bg-card px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {submitting ? t("seller.submitting") : t("seller.submitInspection")}
-            </button>
+            {canRequestInspection ? (
+              <button
+                onClick={onOptionalInspection}
+                disabled={locked || submitting}
+                className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-primary/40 bg-card px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {submitting ? t("seller.submitting") : t("seller.submitInspection")}
+              </button>
+            ) : (
+              <div className="mt-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground">{t("seller.inspectionVipOnlyHint")}</p>
+                <Link
+                  to="/seller/packages"
+                  className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  {t("seller.inspectionUpgradeVipLink")}
+                </Link>
+              </div>
+            )}
 
             <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground">
               {t("seller.publishNote")}

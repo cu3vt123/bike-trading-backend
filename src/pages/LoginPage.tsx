@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { Sun, Moon } from "lucide-react";
 
 type LocationState = {
-  from?: { pathname?: string };
+  from?: { pathname?: string; search?: string };
 };
 
 const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_API === "true";
@@ -55,8 +55,14 @@ async function mockLogin(payload: {
   return { accessToken: `mock_${Date.now()}`, role: "BUYER" };
 }
 
+function pathOnly(fullPath: string) {
+  const q = fullPath.indexOf("?");
+  return q >= 0 ? fullPath.slice(0, q) : fullPath;
+}
+
 function resolvePostLoginPath(fromPath: string, role: Role) {
-  if (fromPath.startsWith("/seller") && role !== "SELLER") return "/";
+  const base = pathOnly(fromPath);
+  if (base.startsWith("/seller") && role !== "SELLER") return "/";
   const buyerOnlyPrefixes = [
     "/checkout",
     "/transaction",
@@ -64,13 +70,13 @@ function resolvePostLoginPath(fromPath: string, role: Role) {
     "/success",
   ];
   if (
-    buyerOnlyPrefixes.some((p) => fromPath.startsWith(p)) &&
+    buyerOnlyPrefixes.some((p) => base.startsWith(p)) &&
     role !== "BUYER"
   ) {
     return "/";
   }
-  if (fromPath.startsWith("/inspector") && role !== "INSPECTOR" && role !== "ADMIN") return "/";
-  if (fromPath.startsWith("/admin") && role !== "ADMIN") return "/";
+  if (base.startsWith("/inspector") && role !== "INSPECTOR" && role !== "ADMIN") return "/";
+  if (base.startsWith("/admin") && role !== "ADMIN") return "/";
   return fromPath;
 }
 
@@ -101,8 +107,10 @@ export default function LoginPage() {
 
   const fromPath = useMemo(() => {
     const p = state.from?.pathname;
-    return p && p !== "/login" ? p : "/";
-  }, [state.from?.pathname]);
+    if (!p || p === "/login") return "/";
+    const search = state.from?.search ?? "";
+    return `${p}${search}`;
+  }, [state.from?.pathname, state.from?.search]);
 
 
   async function onSubmit(e: React.FormEvent) {
@@ -134,14 +142,24 @@ export default function LoginPage() {
       const target = resolvePostLoginPath(fromPath, resolvedRole);
       // Defer navigate để store update kịp propagate, tránh guard đọc role cũ
       queueMicrotask(() => navigate(target, { replace: true }));
-    } catch (err: any) {
-      const backendMsg = err?.response?.data?.message;
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: { message?: string; code?: string } } })
+        ?.response?.data;
+      const code = data?.code;
+      const byCode: Record<string, string> = {
+        LOGIN_UNKNOWN_USER: t("auth.loginUnknownUser"),
+        LOGIN_WRONG_PASSWORD: t("auth.loginWrongPassword"),
+        LOGIN_ACCOUNT_HIDDEN: t("auth.accountHidden"),
+        LOGIN_MISSING_IDENTIFIER: t("auth.loginMissingEmail"),
+        LOGIN_MISSING_PASSWORD: t("auth.loginMissingPassword"),
+      };
       const msg =
-        typeof backendMsg === "string"
-          ? backendMsg
-          : err instanceof Error
-            ? err.message
-            : t("auth.loginError");
+        (code && byCode[code]) ||
+        (typeof data?.message === "string" && data.message.trim()
+          ? data.message.trim()
+          : null) ||
+        (err instanceof Error && err.message.trim() ? err.message.trim() : null) ||
+        t("auth.loginError");
       setError(msg);
     } finally {
       setSubmitting(false);

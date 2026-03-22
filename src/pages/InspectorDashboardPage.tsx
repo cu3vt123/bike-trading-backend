@@ -10,7 +10,9 @@ import {
 import {
   fetchReInspectionOrders,
   submitReInspectionDone,
+  confirmWarehouseReInspectionListing,
 } from "@/services/adminService";
+import { fetchWarehouseReInspectionListings } from "@/services/inspectorService";
 import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -74,6 +76,11 @@ export default function InspectorDashboardPage() {
   const [reInspectionOrders, setReInspectionOrders] = useState<{ id: string; listingId: string; listing?: { brand?: string; model?: string }; status: string }[]>([]);
   const [reInspectionLoading, setReInspectionLoading] = useState(false);
   const [reInspectionSubmittingId, setReInspectionSubmittingId] = useState<string | null>(null);
+  const [warehouseReInspectionListings, setWarehouseReInspectionListings] = useState<Listing[]>([]);
+  const [warehouseReInspectionLoading, setWarehouseReInspectionLoading] = useState(false);
+  const [warehouseReInspectionSubmittingId, setWarehouseReInspectionSubmittingId] = useState<string | null>(null);
+  const [warehouseNeedUpdateListingId, setWarehouseNeedUpdateListingId] = useState<string | null>(null);
+  const [warehouseNeedUpdateReason, setWarehouseNeedUpdateReason] = useState("");
 
   const loadReInspection = useCallback(() => {
     setReInspectionLoading(true);
@@ -81,6 +88,14 @@ export default function InspectorDashboardPage() {
       .then(setReInspectionOrders)
       .catch(() => setReInspectionOrders([]))
       .finally(() => setReInspectionLoading(false));
+  }, []);
+
+  const loadWarehouseReInspection = useCallback(() => {
+    setWarehouseReInspectionLoading(true);
+    fetchWarehouseReInspectionListings()
+      .then(setWarehouseReInspectionListings)
+      .catch(() => setWarehouseReInspectionListings([]))
+      .finally(() => setWarehouseReInspectionLoading(false));
   }, []);
 
   const loadListings = useCallback(() => {
@@ -100,6 +115,9 @@ export default function InspectorDashboardPage() {
   useEffect(() => {
     loadReInspection();
   }, [loadReInspection]);
+  useEffect(() => {
+    loadWarehouseReInspection();
+  }, [loadWarehouseReInspection]);
   useEffect(() => {
     if (actionTarget?.action === "approve") {
       const defaultKey = "listing.scoreGood";
@@ -254,6 +272,137 @@ export default function InspectorDashboardPage() {
               <p className="mt-4 text-xs text-muted-foreground">
                 {t("inspector.approveHint")}
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Bước 6: Tin tại kho chờ inspector xác nhận lại */}
+          <Card className="mt-6">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Package className="h-4 w-4" />
+                {t("admin.warehouseSectionInspectorConfirm")}
+              </span>
+              <Badge variant="outline">{warehouseReInspectionListings.length}</Badge>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-xs text-muted-foreground">
+                {t("inspector.warehouseReInspectionDesc")}
+              </p>
+              {warehouseReInspectionLoading ? (
+                <div className="flex justify-center py-6">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : warehouseReInspectionListings.length === 0 ? (
+                <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                  {t("inspector.noWarehouseReInspection")}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {warehouseReInspectionListings.map((listing) => (
+                    <div
+                      key={listing.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+                    >
+                      <div className="flex min-w-0 flex-1 gap-3">
+                        <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+                          <img src={listing.thumbnailUrl ?? ""} alt="" className="h-full w-full object-cover" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">
+                            {listing.title || `${listing.brand ?? ""} ${listing.model ?? ""}`.trim() || listing.id}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {listing.brand}
+                            {listing.model ? ` · ${listing.model}` : ""} · ID: {listing.id} · {formatMoney(listing.price ?? 0)}
+                          </div>
+                          {warehouseNeedUpdateListingId === listing.id && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <Input
+                                placeholder={t("admin.needUpdateReasonPlaceholder")}
+                                value={warehouseNeedUpdateReason}
+                                onChange={(e) => setWarehouseNeedUpdateReason(e.target.value)}
+                                className="max-w-xs"
+                              />
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={async () => {
+                                  setWarehouseReInspectionSubmittingId(listing.id);
+                                  try {
+                                    await confirmWarehouseReInspectionListing(listing.id, {
+                                      action: "need_update",
+                                      reason: warehouseNeedUpdateReason,
+                                    });
+                                    setWarehouseReInspectionListings((prev) => prev.filter((l) => l.id !== listing.id));
+                                    setWarehouseNeedUpdateListingId(null);
+                                    setWarehouseNeedUpdateReason("");
+                                  } finally {
+                                    setWarehouseReInspectionSubmittingId(null);
+                                  }
+                                }}
+                                disabled={warehouseReInspectionSubmittingId === listing.id}
+                              >
+                                {warehouseReInspectionSubmittingId === listing.id
+                                  ? t("inspector.processing")
+                                  : t("admin.warehouseNeedUpdate")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setWarehouseNeedUpdateListingId(null);
+                                  setWarehouseNeedUpdateReason("");
+                                }}
+                              >
+                                {t("inspector.cancel")}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {warehouseNeedUpdateListingId !== listing.id && (
+                        <div className="flex shrink-0 gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setWarehouseNeedUpdateListingId(listing.id)}
+                          >
+                            {t("admin.warehouseNeedUpdate")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              setWarehouseReInspectionSubmittingId(listing.id);
+                              try {
+                                await confirmWarehouseReInspectionListing(listing.id, { action: "approve" });
+                                setWarehouseReInspectionListings((prev) => prev.filter((l) => l.id !== listing.id));
+                              } finally {
+                                setWarehouseReInspectionSubmittingId(null);
+                              }
+                            }}
+                            disabled={warehouseReInspectionSubmittingId === listing.id}
+                          >
+                            {warehouseReInspectionSubmittingId === listing.id ? t("inspector.processing") : t("admin.warehouseApprove")}
+                          </Button>
+                          <Button size="sm" variant="ghost" asChild>
+                            <Link to={`/bikes/${listing.id}`}>{t("inspector.viewDetail")}</Link>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={loadWarehouseReInspection}
+                disabled={warehouseReInspectionLoading}
+              >
+                {warehouseReInspectionLoading ? t("admin.inspectionRefreshing") : t("admin.inspectionRefresh")}
+              </Button>
             </CardContent>
           </Card>
 

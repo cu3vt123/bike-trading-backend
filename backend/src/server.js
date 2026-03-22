@@ -13,6 +13,7 @@ import { inspectorRoutes } from "./routes/inspectorRoutes.js";
 import { adminRoutes } from "./routes/adminRoutes.js";
 import { brandsRoutes } from "./routes/brandsRoutes.js";
 import { packageRoutes } from "./routes/packageRoutes.js";
+import { vnpayDemoPaymentRoutes } from "./routes/vnpayDemoPaymentRoutes.js";
 import { notFound } from "./utils/http.js";
 import { defaultErrorHandler } from "./middlewares/error.middlewares.js";
 
@@ -21,15 +22,33 @@ const app = express();
 app.use(morgan("dev"));
 app.use(express.json({ limit: "2mb" }));
 
-const origin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+/** CORS: frontend + thêm domain phụ qua CORS_EXTRA_ORIGINS (ngăn cách dấu phẩy) */
+const defaultOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const corsOrigins = [
+  defaultOrigin,
+  ...(process.env.CORS_EXTRA_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+];
 app.use(
   cors({
-    origin,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (corsOrigins.includes(origin)) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+/**
+ * VNPAY Sandbox demo (học tập): không đặt dưới /api để Return URL / IPN URL ngắn.
+ * POST /payment/create | GET /payment/vnpay-return | GET /payment/vnpay-ipn
+ */
+app.use("/payment", vnpayDemoPaymentRoutes);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bikes", bikesRoutes);

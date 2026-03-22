@@ -61,7 +61,7 @@ export default function ListingCard({ listing, showWishlist = true }: Props) {
         </div>
 
         {isCertified && (
-          <div className="absolute left-3 top-3 z-[1] rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+          <div className="absolute left-3 top-3 z-[1] rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
             ✓ {t("seller.listingCertified")}
           </div>
         )}

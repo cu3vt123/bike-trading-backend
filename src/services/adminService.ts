@@ -5,11 +5,16 @@
 import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
 import { setOrderOverride } from "@/lib/orderOverrides";
+import { useNotificationStore } from "@/stores/useNotificationStore";
+
+type TFunction = (key: string, params?: Record<string, string | number>) => string;
 import {
   adminApi,
   type AdminStats as ApiAdminStats,
   type OrderWithListing as ApiOrderWithListing,
   type AdminUser,
+  type AdminSellerSubscriptionRow,
+  type AdminSubscriptionSummary,
 } from "@/apis/adminApi";
 
 type OrderWithListing = Order & { listing?: Listing };
@@ -25,7 +30,13 @@ const _orders: OrderWithListing[] = [
     depositPaid: true,
     shippedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    listing: { id: "1", brand: "Specialized", model: "Tarmac SL7", price: 180000000 } as Listing,
+    listing: {
+      id: "1",
+      brand: "Specialized",
+      model: "Tarmac SL7",
+      price: 180000000,
+      certificationStatus: "CERTIFIED",
+    } as Listing,
   },
   {
     id: "ORD-W2",
@@ -38,7 +49,13 @@ const _orders: OrderWithListing[] = [
     depositPaid: true,
     shippedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    listing: { id: "2", brand: "Trek", model: "Domane SL", price: 95000000 } as Listing,
+    listing: {
+      id: "2",
+      brand: "Trek",
+      model: "Domane SL",
+      price: 95000000,
+      certificationStatus: "CERTIFIED",
+    } as Listing,
   },
   {
     id: "ORD-W3",
@@ -52,7 +69,13 @@ const _orders: OrderWithListing[] = [
     shippedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     warehouseConfirmedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    listing: { id: "1", brand: "Specialized", model: "Tarmac SL7", price: 180000000 } as Listing,
+    listing: {
+      id: "1",
+      brand: "Specialized",
+      model: "Tarmac SL7",
+      price: 180000000,
+      certificationStatus: "CERTIFIED",
+    } as Listing,
   },
 ];
 const MOCK_ORDERS_WAREHOUSE = _orders;
@@ -65,6 +88,7 @@ export type AdminStats = {
   totalOrders: number;
   ordersPendingWarehouse: number;
   ordersReInspection: number;
+  listingsPendingWarehouseIntake?: number;
 };
 
 export async function fetchOrdersForWarehouseConfirm(): Promise<OrderWithListing[]> {
@@ -116,6 +140,7 @@ export async function fetchAdminStats(): Promise<AdminStats> {
       totalOrders: 89,
       ordersPendingWarehouse: 2,
       ordersReInspection: 1,
+      listingsPendingWarehouseIntake: 0,
     };
   }
 }
@@ -161,6 +186,23 @@ export async function fetchAdminUsers(): Promise<AdminUser[]> {
   }
 }
 
+export type { AdminSellerSubscriptionRow, AdminSubscriptionSummary };
+
+export async function fetchSellerSubscriptions(params?: {
+  q?: string;
+  limit?: number;
+}): Promise<AdminSellerSubscriptionRow[]> {
+  return await adminApi.getSellerSubscriptions(params);
+}
+
+export async function revokeSellerSubscriptionApi(userId: string): Promise<{
+  user: AdminUser;
+  subscription: AdminSubscriptionSummary;
+  revoked: boolean;
+}> {
+  return await adminApi.revokeSellerSubscription(userId);
+}
+
 export async function hideAdminUser(id: string): Promise<AdminUser> {
   return await adminApi.hideUser(id);
 }
@@ -175,6 +217,26 @@ export async function fetchAdminListings(): Promise<Listing[]> {
   } catch {
     return [];
   }
+}
+
+/** Tin kiểm định: seller đã báo gửi xe — chờ admin xác nhận tại kho + khớp ảnh. */
+export async function fetchPendingWarehouseIntakeListings(): Promise<Listing[]> {
+  try {
+    return await adminApi.getPendingWarehouseIntakeListings();
+  } catch {
+    return [];
+  }
+}
+
+export async function confirmWarehouseIntakeListing(listingId: string): Promise<Listing> {
+  return await adminApi.confirmWarehouseIntake(listingId);
+}
+
+export async function confirmWarehouseReInspectionListing(
+  listingId: string,
+  body: { action: "approve" | "need_update"; reason?: string },
+): Promise<Listing> {
+  return await adminApi.confirmWarehouseReInspection(listingId, body);
 }
 
 export async function hideAdminListing(id: string): Promise<Listing> {
@@ -205,4 +267,12 @@ export async function updateAdminBrand(id: string, data: { name?: string; slug?:
 
 export async function deleteAdminBrand(id: string): Promise<void> {
   await adminApi.deleteBrand(id);
+}
+
+/**
+ * Đồng bộ thông báo Admin cho đơn hàng.
+ * Luồng warehouse cho đơn đã loại bỏ — không còn thông báo "xuất kho giao".
+ */
+export async function syncAdminOrderNotifications(_t: TFunction): Promise<void> {
+  // Luồng warehouse cho đơn đã loại bỏ — không thông báo đơn warehouse nữa
 }

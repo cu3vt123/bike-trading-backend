@@ -9,7 +9,7 @@ import type { Listing } from "./shopbike";
 export type OrderStatus =
   | "PENDING"
   | "RESERVED" // Đã đặt cọc, thông báo seller
-  | "PENDING_SELLER_SHIP" // Chờ seller gửi xe tới kho
+  | "PENDING_SELLER_SHIP" // Chờ seller giao xe (trực tiếp cho buyer)
   | "SELLER_SHIPPED" // Seller đã gửi, chờ kho nhận
   | "AT_WAREHOUSE_PENDING_ADMIN" // Xe tại kho, chờ admin xác nhận
   | "RE_INSPECTION" // Admin đã xác nhận, chờ inspector kiểm định lại
@@ -24,7 +24,7 @@ export type OrderStatus =
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   PENDING: "Chờ xử lý",
   RESERVED: "Đã đặt cọc",
-  PENDING_SELLER_SHIP: "Chờ seller gửi xe",
+  PENDING_SELLER_SHIP: "Chờ seller giao xe",
   SELLER_SHIPPED: "Đang giao tới kho",
   AT_WAREHOUSE_PENDING_ADMIN: "Xe tại kho (chờ admin xác nhận)",
   RE_INSPECTION: "Đang kiểm định lại tại kho",
@@ -36,9 +36,20 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   REFUNDED: "Đã hoàn tiền",
 };
 
-export type PaymentMethod = "CARD" | "BANK_TRANSFER";
+/** Phương thức thanh toán lưu trên đơn (API / luồng buyer) */
+export type PaymentMethod = "CASH" | "VNPAY_QR" | "VNPAY_SANDBOX";
 
-/** WAREHOUSE = qua kho + kiểm định lại; DIRECT = seller giao thẳng buyer (xe chưa kiểm định) */
+/** API POST /buyer/payments/initiate — chỉ COD */
+export type InitiatePaymentMethod = "CASH";
+
+export type QrPaymentInfo = {
+  provider: "VNPAY";
+  paymentReference: string;
+  amountVnd: number;
+  qrContent: string;
+};
+
+/** Luồng WAREHOUSE cho đơn đã loại bỏ. DIRECT = seller giao thẳng buyer. */
 export type OrderFulfillmentType = "WAREHOUSE" | "DIRECT";
 
 export type Order = {
@@ -49,9 +60,13 @@ export type Order = {
   sellerId?: string;
   status: OrderStatus;
   fulfillmentType?: OrderFulfillmentType;
+  /** DEPOSIT = cọc VNPAY + phần còn lại COD; FULL = toàn bộ qua VNPAY */
+  plan?: "DEPOSIT" | "FULL";
   totalPrice: number;
   depositAmount?: number;
   depositPaid?: boolean;
+  vnpayPaymentStatus?: "PENDING_PAYMENT" | "PAID" | "FAILED";
+  vnpayAmountVnd?: number | null;
   paymentMethod?: PaymentMethod;
   shippingAddress?: {
     street?: string;
@@ -82,10 +97,8 @@ export type CreateOrderRequest = {
 };
 
 export type InitiatePaymentRequest = {
-  method: PaymentMethod;
+  method: InitiatePaymentMethod;
   amount?: number;
-  cardDetails?: { number: string; name: string; exp: string; cvc: string };
-  bankDetails?: { accountNumber: string; bankName: string; accountHolderName?: string };
 };
 
 export type Transaction = Order & {

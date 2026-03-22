@@ -81,6 +81,8 @@ function mockStats(): { stats: SellerDashboardStats; listings: Listing[] } {
     total: listings.length,
     published: listings.filter((x) => x.state === "PUBLISHED").length,
     inReview: listings.filter((x) => x.state === "PENDING_INSPECTION").length,
+    awaitingWarehouse: 0,
+    atWarehousePendingVerify: 0,
     needUpdate: listings.filter((x) => x.state === "NEED_UPDATE").length,
   };
   return { stats, listings };
@@ -121,6 +123,26 @@ export async function shipOrderToBuyer(orderId: string): Promise<Order> {
   return sellerApi.shipOrderToBuyer(orderId);
 }
 
+export async function markListingShippedToWarehouse(listingId: string): Promise<Listing> {
+  if (USE_MOCK) {
+    const found = SELLER_MOCK.find((l) => l.id === listingId);
+    if (found && found.state === "AWAITING_WAREHOUSE") {
+      (found as Listing).state = "AT_WAREHOUSE_PENDING_VERIFY";
+    }
+    return (
+      found ?? {
+        id: listingId,
+        title: "",
+        brand: "",
+        price: 0,
+        location: "",
+        state: "AT_WAREHOUSE_PENDING_VERIFY",
+      }
+    );
+  }
+  return sellerApi.markListingShippedToWarehouse(listingId);
+}
+
 type TFunction = (key: string, params?: Record<string, string | number>) => string;
 
 /**
@@ -128,6 +150,7 @@ type TFunction = (key: string, params?: Record<string, string | number>) => stri
  * Luồng “không thông báo” được tách trong `sellerOrderNotificationFlow.ts` (hàm partition / resolve).
  */
 export async function syncSellerOrderNotifications(t: TFunction): Promise<void> {
+  await syncSellerListingNotifications(t);
   const { addNotification } = useNotificationStore.getState();
   const orders = await fetchSellerOrders();
   const { notify } = partitionSellerOrdersByNotificationFlow(orders);
@@ -148,20 +171,36 @@ export async function syncSellerOrderNotifications(t: TFunction): Promise<void> 
         link: "/seller",
         sourceKey: `seller-order-direct-${o.id}`,
       });
-      continue;
     }
+  }
+}
 
-    addNotification({
-      role: "SELLER",
-      type: "success",
-      title: t("notifications.buyerPurchasedTitle"),
-      message: t("notifications.buyerPurchasedMessage", { orderId: o.id, bikeName }),
-      titleKey: "notifications.buyerPurchasedTitle",
-      messageKey: "notifications.buyerPurchasedMessage",
-      messageParams: { orderId: o.id, bikeName },
-      link: "/seller",
-      sourceKey: `seller-order-${o.id}`,
-    });
+/**
+ * Đồng bộ thông báo khi inspector kiểm định thành công (listing AWAITING_WAREHOUSE).
+ * Seller cần gửi xe tới kho để admin xác nhận.
+ */
+export async function syncSellerListingNotifications(t: TFunction): Promise<void> {
+  const { addNotification } = useNotificationStore.getState();
+  try {
+    const res = await sellerApi.getDashboard();
+    const listings = res.listings ?? [];
+    const awaiting = listings.filter((l) => l.state === "AWAITING_WAREHOUSE");
+    for (const l of awaiting) {
+      const bikeName = l.brand && l.model ? `${l.brand} ${l.model}` : l.title || "xe";
+      addNotification({
+        role: "SELLER",
+        type: "success",
+        title: t("notifications.inspectorApprovedTitle"),
+        message: t("notifications.inspectorApprovedMessage", { bikeName }),
+        titleKey: "notifications.inspectorApprovedTitle",
+        messageKey: "notifications.inspectorApprovedMessage",
+        messageParams: { bikeName },
+        link: "/seller",
+        sourceKey: `listing-inspected-${l.id}`,
+      });
+    }
+  } catch {
+    /* ignore */
   }
 }
 

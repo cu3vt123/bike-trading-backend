@@ -9,35 +9,47 @@ import {
   BarChart3,
   Package,
   Star,
+  ClipboardCheck,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  fetchOrdersForWarehouseConfirm,
-  confirmWarehouseArrival,
   fetchAdminStats,
   fetchAdminUsers,
   hideAdminUser,
   unhideAdminUser,
   fetchAdminListings,
+  fetchPendingWarehouseIntakeListings,
+  confirmWarehouseIntakeListing,
+  fetchOrdersForWarehouseConfirm,
+  confirmWarehouseArrival,
+  fetchReInspectionOrders,
+  submitReInspectionDone,
   hideAdminListing,
   unhideAdminListing,
   fetchAdminBrands,
   createAdminBrand,
   updateAdminBrand,
   deleteAdminBrand,
+  fetchSellerSubscriptions,
+  revokeSellerSubscriptionApi,
   type AdminStats,
   type AdminBrand,
+  type AdminSellerSubscriptionRow,
 } from "@/services/adminService";
+import { fetchPendingListings } from "@/services/inspectorService";
 import { fetchAdminReviews, adminUpdateReview } from "@/services/reviewService";
-import type { Order } from "@/types/order";
 import type { Listing } from "@/types/shopbike";
 import type { Review } from "@/types/review";
 import type { AdminUser } from "@/apis/adminApi";
 
 const TABS = [
   { id: "warehouse" as const, key: "admin.tabWarehouse", icon: Package },
+  { id: "inspection" as const, key: "admin.tabInspection", icon: ClipboardCheck },
   { id: "users" as const, key: "admin.tabUsers", icon: Users },
+  { id: "sellerPackages" as const, key: "admin.tabSellerPackages", icon: Crown },
   { id: "listings" as const, key: "admin.tabListings", icon: FileCheck },
   { id: "reviews" as const, key: "admin.tabReviews", icon: Star },
   { id: "categories" as const, key: "admin.tabCategories", icon: Tags },
@@ -57,7 +69,6 @@ export default function AdminDashboardPage() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("warehouse");
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [warehouseOrders, setWarehouseOrders] = useState<(Order & { listing?: { brand?: string; model?: string } })[]>([]);
   const [categories, setCategories] = useState<
     { id: string; name: string; slug: string; type: "ROAD" | "MTB" | "GRAVEL" | "CITY"; brandCount: number; active: boolean }[]
   >([
@@ -67,8 +78,6 @@ export default function AdminDashboardPage() {
   ]);
   const [editingCategoryId, setEditingCategoryId] = useState<string | "new" | null>(null);
   const [categoryDraft, setCategoryDraft] = useState<{ name: string; slug: string; type: "ROAD" | "MTB" | "GRAVEL" | "CITY"; brandCount: number; active: boolean } | null>(null);
-  const [platformFee, setPlatformFee] = useState<number>(5);
-  const [inspectionFee, setInspectionFee] = useState<number>(150_000);
   const [transactions] = useState<
     { id: string; orderId: string; buyer: string; seller: string; amount: number; fee: number; status: string; createdAt: string }[]
   >([
@@ -110,15 +119,51 @@ export default function AdminDashboardPage() {
   const [addingBrand, setAddingBrand] = useState(false);
   const [editingBrandId, setEditingBrandId] = useState<string | null>(null);
   const [editingBrandName, setEditingBrandName] = useState("");
+  const [inspectionListings, setInspectionListings] = useState<Listing[]>([]);
+  const [inspectionLoading, setInspectionLoading] = useState(false);
+  const [inspectionError, setInspectionError] = useState<string | null>(null);
+  const [intakeListings, setIntakeListings] = useState<Listing[]>([]);
+  const [confirmingIntakeId, setConfirmingIntakeId] = useState<string | null>(null);
+  const [warehousePendingOrders, setWarehousePendingOrders] = useState<
+    {
+      id: string;
+      listingId: string;
+      listing?: { brand?: string; model?: string };
+      status: string;
+      depositPaid?: boolean;
+      vnpayPaymentStatus?: string;
+    }[]
+  >([]);
+  const [warehouseCertifiedOrders, setWarehouseCertifiedOrders] = useState<
+    { id: string; listingId: string; listing?: { brand?: string; model?: string }; status: string }[]
+  >([]);
+  const [confirmingShipOrderId, setConfirmingShipOrderId] = useState<string | null>(null);
+  const [confirmingWarehouseOrderId, setConfirmingWarehouseOrderId] = useState<string | null>(null);
+  const [sellerSubs, setSellerSubs] = useState<AdminSellerSubscriptionRow[]>([]);
+  const [sellerSubsLoading, setSellerSubsLoading] = useState(false);
+  const [sellerSubsSearch, setSellerSubsSearch] = useState("");
+  const [revokingSellerId, setRevokingSellerId] = useState<string | null>(null);
 
   const loadStats = useCallback(() => {
     fetchAdminStats().then(setStats).catch(() => setStats(null));
   }, []);
   const loadWarehouse = useCallback(() => {
     setLoading(true);
-    fetchOrdersForWarehouseConfirm()
-      .then(setWarehouseOrders)
-      .catch(() => setWarehouseOrders([]))
+    Promise.all([
+      fetchPendingWarehouseIntakeListings(),
+      fetchOrdersForWarehouseConfirm(),
+      fetchReInspectionOrders(),
+    ])
+      .then(([listings, pendingOrders, reInspectionOrders]) => {
+        setIntakeListings(listings);
+        setWarehousePendingOrders(pendingOrders);
+        setWarehouseCertifiedOrders(reInspectionOrders);
+      })
+      .catch(() => {
+        setIntakeListings([]);
+        setWarehousePendingOrders([]);
+        setWarehouseCertifiedOrders([]);
+      })
       .finally(() => setLoading(false));
   }, []);
   const loadAdminUsers = useCallback(() => {
@@ -147,6 +192,31 @@ export default function AdminDashboardPage() {
       .catch(() => setBrands([]))
       .finally(() => setBrandsLoading(false));
   }, []);
+  const loadInspectionQueue = useCallback(() => {
+    setInspectionLoading(true);
+    setInspectionError(null);
+    fetchPendingListings()
+      .then(setInspectionListings)
+      .catch((err) => {
+        setInspectionListings([]);
+        setInspectionError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => setInspectionLoading(false));
+  }, []);
+  const loadSellerSubs = useCallback(async (q: string) => {
+    setSellerSubsLoading(true);
+    try {
+      const rows = await fetchSellerSubscriptions({
+        q: q.trim() || undefined,
+        limit: 80,
+      });
+      setSellerSubs(rows);
+    } catch {
+      setSellerSubs([]);
+    } finally {
+      setSellerSubsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadStats();
@@ -166,15 +236,44 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (activeTab === "categories") loadBrands();
   }, [activeTab, loadBrands]);
+  useEffect(() => {
+    if (activeTab === "inspection") loadInspectionQueue();
+  }, [activeTab, loadInspectionQueue]);
+  useEffect(() => {
+    if (activeTab !== "sellerPackages") return;
+    const timer = window.setTimeout(() => {
+      void loadSellerSubs(sellerSubsSearch);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, sellerSubsSearch, loadSellerSubs]);
 
-  async function handleConfirmWarehouse(orderId: string) {
-    setConfirmingId(orderId);
+  async function handleRevokeSellerPackage(userId: string) {
+    if (!window.confirm(t("admin.sellerPackagesRevokeConfirm"))) {
+      return;
+    }
+    setRevokingSellerId(userId);
     try {
-      const updated = await confirmWarehouseArrival(orderId);
-      setWarehouseOrders((prev) => prev.filter((o) => o.id !== updated.id));
-      loadStats();
+      const out = await revokeSellerSubscriptionApi(userId);
+      setSellerSubs((prev) =>
+        prev.map((row) =>
+          row.user.id === userId
+            ? { ...row, user: out.user, subscription: out.subscription }
+            : row,
+        ),
+      );
     } finally {
-      setConfirmingId(null);
+      setRevokingSellerId(null);
+    }
+  }
+
+  async function handleConfirmWarehouseIntake(listingId: string) {
+    setConfirmingIntakeId(listingId);
+    try {
+      await confirmWarehouseIntakeListing(listingId);
+      loadStats();
+      loadWarehouse();
+    } finally {
+      setConfirmingIntakeId(null);
     }
   }
 
@@ -288,7 +387,9 @@ export default function AdminDashboardPage() {
           </Card>
           <Card>
             <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-primary">{stats.ordersPendingWarehouse}</div>
+              <div className="text-2xl font-bold text-primary">
+                {(stats.ordersPendingWarehouse ?? 0) + (stats.listingsPendingWarehouseIntake ?? 0)}
+              </div>
               <div className="text-xs text-muted-foreground">{t("admin.pendingWarehouse")}</div>
             </CardContent>
           </Card>
@@ -328,44 +429,232 @@ export default function AdminDashboardPage() {
                   <Package className="h-5 w-5" />
                   {t("admin.warehouseTitle")}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {t("admin.warehouseDesc")}
-                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 w-fit"
+                  onClick={() => loadWarehouse()}
+                  disabled={loading}
+                >
+                  {loading ? t("admin.inspectionRefreshing") : t("admin.inspectionRefresh")}
+                </Button>
               </CardHeader>
               <CardContent>
                 {loading ? (
                   <div className="flex justify-center py-8">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   </div>
-                ) : warehouseOrders.length === 0 ? (
+                ) : intakeListings.length === 0 && warehousePendingOrders.length === 0 && warehouseCertifiedOrders.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    {t("admin.noWarehouseOrders")}
+                    {t("admin.noWarehouseItems")}
                   </p>
                 ) : (
-                  <div className="space-y-4">
-                    {warehouseOrders.map((order) => (
-                      <div
-                        key={order.id}
+                  <div className="space-y-6">
+                    {(() => {
+                      const pendingVerify = intakeListings.filter((l) => l.state === "AT_WAREHOUSE_PENDING_VERIFY");
+                      const pendingInspector = intakeListings.filter((l) => l.state === "AT_WAREHOUSE_PENDING_RE_INSPECTION");
+                      return (
+                        <>
+                          {pendingVerify.length > 0 && (
+                            <div>
+                              <h4 className="mb-2 text-sm font-semibold text-foreground">
+                                {t("admin.warehouseSectionAdminConfirm")}
+                              </h4>
+                              <div className="space-y-3">
+                                {pendingVerify.map((listing) => (
+                                  <div
+                                    key={`listing-${listing.id}`}
+                                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                                  >
+                                    <div className="min-w-0">
+                                      <div className="font-semibold text-foreground">
+                                        {listing.title || `${listing.brand ?? ""} ${listing.model ?? ""}`.trim() || listing.id}
+                                      </div>
+                                      <div className="mt-1 text-xs text-muted-foreground">
+                                        {listing.brand}
+                                        {listing.model ? ` · ${listing.model}` : ""} · ID: {listing.id} · {formatMoney(listing.price ?? 0)}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleConfirmWarehouseIntake(listing.id)}
+                                      disabled={confirmingIntakeId === listing.id}
+                                    >
+                                      {confirmingIntakeId === listing.id
+                                        ? t("admin.confirmingWarehouseIntake")
+                                        : t("admin.confirmWarehouseIntake")}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {pendingVerify.length === 0 && pendingInspector.length > 0 && (
+                            <p className="py-4 text-center text-sm text-muted-foreground">
+                              {t("admin.warehouseMovedToInspector", { count: pendingInspector.length })}
+                            </p>
+                          )}
+                          {warehousePendingOrders.length > 0 && (
+                            <div className="mt-6">
+                              <h4 className="mb-2 text-sm font-semibold text-foreground">
+                                {t("admin.warehouseSectionOrdersPendingConfirm")}
+                              </h4>
+                              <p className="mb-3 text-xs text-muted-foreground">
+                                {t("admin.warehouseSectionOrdersPendingConfirmDesc")}
+                              </p>
+                              <div className="space-y-3">
+                                {warehousePendingOrders.map((order) => (
+                                  <div
+                                    key={`pending-${order.id}`}
+                                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                                  >
+                                    <div className="min-w-0">
+                                      <div className="font-semibold text-foreground">
+                                        {order.listing?.brand} {order.listing?.model ?? order.listingId}
+                                      </div>
+                                      <div className="mt-1 text-xs text-muted-foreground">
+                                        {t("admin.order")} {order.id}
+                                        {(order.depositPaid || order.vnpayPaymentStatus === "PAID")
+                                          ? ` · ${t("admin.depositPaid")}`
+                                          : ""}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={async () => {
+                                        setConfirmingWarehouseOrderId(order.id);
+                                        try {
+                                          await confirmWarehouseArrival(order.id);
+                                          setWarehousePendingOrders((prev) => prev.filter((o) => o.id !== order.id));
+                                          loadStats();
+                                          loadWarehouse();
+                                        } finally {
+                                          setConfirmingWarehouseOrderId(null);
+                                        }
+                                      }}
+                                      disabled={
+                                        confirmingWarehouseOrderId === order.id ||
+                                        (!(order.depositPaid || order.vnpayPaymentStatus === "PAID"))
+                                      }
+                                    >
+                                      {confirmingWarehouseOrderId === order.id
+                                        ? t("admin.confirming")
+                                        : t("admin.warehouseConfirmStartShip")}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {warehouseCertifiedOrders.length > 0 && (
+                            <div className="mt-6">
+                              <h4 className="mb-2 text-sm font-semibold text-foreground">
+                                {t("admin.warehouseSectionStartShipToBuyer")}
+                              </h4>
+                              <p className="mb-3 text-xs text-muted-foreground">
+                                {t("admin.warehouseSectionStartShipDesc")}
+                              </p>
+                              <div className="space-y-3">
+                                {warehouseCertifiedOrders.map((order) => (
+                                  <div
+                                    key={`order-${order.id}`}
+                                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
+                                  >
+                                    <div className="min-w-0">
+                                      <div className="font-semibold text-foreground">
+                                        {order.listing?.brand} {order.listing?.model ?? order.listingId}
+                                      </div>
+                                      <div className="mt-1 text-xs text-muted-foreground">
+                                        {t("admin.order")} {order.id}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={async () => {
+                                        setConfirmingShipOrderId(order.id);
+                                        try {
+                                          await submitReInspectionDone(order.id);
+                                          setWarehouseCertifiedOrders((prev) => prev.filter((o) => o.id !== order.id));
+                                          loadStats();
+                                        } finally {
+                                          setConfirmingShipOrderId(null);
+                                        }
+                                      }}
+                                      disabled={confirmingShipOrderId === order.id}
+                                    >
+                                      {confirmingShipOrderId === order.id
+                                        ? t("admin.confirming")
+                                        : t("admin.warehouseConfirmStartShip")}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "inspection" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  <ClipboardCheck className="h-5 w-5" />
+                  {t("admin.inspectionTitle")}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">{t("admin.inspectionDesc")}</p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button asChild size="sm">
+                    <Link to="/inspector">{t("admin.goToInspectorPage")}</Link>
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => loadInspectionQueue()} disabled={inspectionLoading}>
+                    {inspectionLoading ? t("admin.inspectionRefreshing") : t("admin.inspectionRefresh")}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {inspectionError ? (
+                  <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {inspectionError}
+                  </p>
+                ) : null}
+                {inspectionLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                ) : inspectionListings.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">{t("admin.inspectionEmpty")}</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {inspectionListings.map((listing) => (
+                      <li
+                        key={listing.id}
                         className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
                       >
-                        <div>
+                        <div className="min-w-0">
                           <div className="font-semibold text-foreground">
-                            {order.listing?.brand} {order.listing?.model ?? order.listingId}
+                            {listing.title || `${listing.brand ?? ""} ${listing.model ?? ""}`.trim() || listing.id}
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            {t("admin.order")} {order.id} · {t(`order.status${order.status}` as "order.statusRESERVED") ?? order.status} · {formatMoney(order.totalPrice)}
+                            {listing.brand}
+                            {listing.model ? ` · ${listing.model}` : ""} · {listing.state ?? "—"} · {formatMoney(listing.price ?? 0)} · ID:{" "}
+                            {listing.id}
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleConfirmWarehouse(order.id)}
-                          disabled={confirmingId === order.id}
-                        >
-                          {confirmingId === order.id ? t("admin.confirming") : t("admin.confirmArrival")}
+                        <Button asChild size="sm" variant="secondary">
+                          <Link to="/inspector">{t("admin.inspectionOpenReview")}</Link>
                         </Button>
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
               </CardContent>
             </Card>
@@ -423,6 +712,122 @@ export default function AdminDashboardPage() {
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "sellerPackages" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  {t("admin.sellerPackagesTitle")}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">{t("admin.sellerPackagesDesc")}</p>
+                <div className="mt-4 flex max-w-md flex-wrap gap-2">
+                  <Input
+                    type="search"
+                    placeholder={t("admin.sellerPackagesSearchPlaceholder")}
+                    value={sellerSubsSearch}
+                    onChange={(e) => setSellerSubsSearch(e.target.value)}
+                    className="min-w-[200px] flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void loadSellerSubs(sellerSubsSearch)}
+                    disabled={sellerSubsLoading}
+                  >
+                    {t("admin.sellerPackagesRefresh")}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {sellerSubsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                ) : sellerSubs.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    {t("admin.sellerPackagesEmpty")}
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {sellerSubs.map((row) => {
+                      const sub = row.subscription;
+                      const hasActivePlan = Boolean(sub.active && sub.plan);
+                      return (
+                        <div
+                          key={row.user.id}
+                          className="rounded-xl border border-border bg-card p-4 text-sm"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-foreground">
+                                {row.user.displayName || row.user.email}
+                              </div>
+                              <div className="mt-1 text-xs text-muted-foreground">{row.user.email}</div>
+                              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                                <div>
+                                  <span className="font-medium text-foreground">
+                                    {t("admin.sellerPackagesPlan")}:{" "}
+                                  </span>
+                                  {sub.plan ?? "—"}{" "}
+                                  {hasActivePlan ? (
+                                    <span className="text-primary">({t("admin.sellerPackagesActive")})</span>
+                                  ) : (
+                                    <span>({t("admin.sellerPackagesInactive")})</span>
+                                  )}
+                                </div>
+                                {sub.expiresAt && (
+                                  <div>
+                                    <span className="font-medium text-foreground">
+                                      {t("admin.sellerPackagesExpires")}:{" "}
+                                    </span>
+                                    {new Date(sub.expiresAt).toLocaleString()}
+                                  </div>
+                                )}
+                                <div>
+                                  <span className="font-medium text-foreground">
+                                    {t("admin.sellerPackagesSlots")}:{" "}
+                                  </span>
+                                  {sub.publishedSlotsUsed}/{sub.publishedSlotsLimit}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              disabled={revokingSellerId === row.user.id}
+                              onClick={() => void handleRevokeSellerPackage(row.user.id)}
+                            >
+                              {revokingSellerId === row.user.id
+                                ? t("admin.sellerPackagesRevoking")
+                                : t("admin.sellerPackagesRevoke")}
+                            </Button>
+                          </div>
+                          {row.recentPackageOrders.length > 0 && (
+                            <div className="mt-3 border-t border-border pt-3">
+                              <div className="mb-2 text-xs font-semibold text-foreground">
+                                {t("admin.sellerPackagesRecentOrders")}
+                              </div>
+                              <ul className="space-y-1 font-mono text-[11px] text-muted-foreground">
+                                {row.recentPackageOrders.map((o) => (
+                                  <li key={o.id}>
+                                    {o.id.slice(-8)} · {o.plan} · {formatMoney(o.amountVnd)} · {o.status}
+                                    {o.createdAt ? ` · ${new Date(o.createdAt).toLocaleDateString()}` : ""}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -893,46 +1298,6 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="rounded-lg border border-border bg-card p-4">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {t("admin.transactionsFeesTitle")}
-                    </h3>
-                    <div className="mt-3 space-y-3 text-sm">
-                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                        <label className="text-muted-foreground sm:w-1/2">
-                          {t("admin.transactionsPlatformFee")}
-                        </label>
-                        <div className="flex items-center gap-2 sm:w-1/2">
-                          <input
-                            type="number"
-                            min={0}
-                            max={30}
-                            value={platformFee}
-                            onChange={(e) => setPlatformFee(Number(e.target.value) || 0)}
-                            className="w-24 rounded-md border border-input bg-background px-2 py-1 text-right text-sm"
-                          />
-                          <span className="text-xs text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                        <label className="text-muted-foreground sm:w-1/2">
-                          {t("admin.transactionsInspectionFee")}
-                        </label>
-                        <div className="flex items-center gap-2 sm:w-1/2">
-                          <input
-                            type="number"
-                            min={0}
-                            step={50000}
-                            value={inspectionFee}
-                            onChange={(e) => setInspectionFee(Number(e.target.value) || 0)}
-                            className="w-32 rounded-md border border-input bg-background px-2 py-1 text-right text-sm"
-                          />
-                          <span className="text-xs text-muted-foreground">VND</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="rounded-lg border border-border bg-card p-4">
                     <div className="mb-3 flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-foreground">

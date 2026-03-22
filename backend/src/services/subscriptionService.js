@@ -34,7 +34,15 @@ export async function countActiveListingSlots(sellerId) {
 
   return Listing.countDocuments({
     "seller.id": oid,
-    state: { $in: ["PUBLISHED", "RESERVED", "IN_TRANSACTION"] },
+    state: {
+      $in: [
+        "PUBLISHED",
+        "RESERVED",
+        "IN_TRANSACTION",
+        "AWAITING_WAREHOUSE",
+        "AT_WAREHOUSE_PENDING_VERIFY",
+      ],
+    },
     isHidden: { $ne: true },
     $or: [{ listingExpiresAt: null }, { listingExpiresAt: { $gt: now } }],
   });
@@ -76,4 +84,12 @@ export async function activateSubscription(userId, plan) {
   });
   const user = await User.findById(userId);
   return user;
+}
+
+/** Admin: gỡ gói đăng tin (xóa plan + hạn — không xóa lịch sử PackageOrder) */
+export async function clearSellerSubscription(userId) {
+  await User.findByIdAndUpdate(userId, {
+    $unset: { subscriptionPlan: 1, subscriptionExpiresAt: 1 },
+  });
+  return User.findById(userId);
 }

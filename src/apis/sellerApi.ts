@@ -11,6 +11,8 @@ export type SellerDashboardStats = {
   total: number;
   published: number;
   inReview: number;
+  awaitingWarehouse?: number;
+  atWarehousePendingVerify?: number;
   needUpdate: number;
 };
 
@@ -91,5 +93,10 @@ export const sellerApi = {
   ): Promise<Listing> =>
     apiClient
       .put(API_PATHS.SELLER.LISTING_PUBLISH(id), body)
+      .then((r) => r.data?.data ?? r.data),
+
+  markListingShippedToWarehouse: (id: string): Promise<Listing> =>
+    apiClient
+      .put(API_PATHS.SELLER.LISTING_MARK_SHIPPED_TO_WAREHOUSE(id))
       .then((r) => r.data?.data ?? r.data),
 };

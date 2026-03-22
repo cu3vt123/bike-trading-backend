@@ -13,12 +13,6 @@ export type PackagesCatalogResponse = {
   listingDurationDays: number;
   paymentProviders: Array<{ id: string; name: string; docsUrl: string; note: string }>;
   plans: PackagePlanDto[];
-  inspectionAddOn: {
-    id: string;
-    name: string;
-    priceVnd: number;
-    description: string;
-  };
   demoCallbackHint?: string;
 };
 
@@ -28,7 +22,11 @@ export type SubscriptionCheckoutResponse = {
   provider: string;
   amountVnd: number;
   paymentUrl: string;
+  /** Nội dung encode mã QR (demo: cùng luồng redirect) */
+  qrContent?: string;
   demoReturnUrl: string;
+  /** MOCK = link demo cùng origin; VNPAY_SANDBOX = URL cổng sandbox (không rewrite origin) */
+  paymentKind?: "MOCK" | "VNPAY_SANDBOX";
   message?: string;
 };
 
@@ -36,10 +34,7 @@ export const packagesApi = {
   getCatalog: (): Promise<PackagesCatalogResponse> =>
     apiClient.get(API_PATHS.PACKAGES.LIST).then((r) => r.data?.data ?? r.data),
 
-  checkout: (body: {
-    plan: "BASIC" | "VIP";
-    provider: "POSTPAY" | "VNPAY";
-  }): Promise<SubscriptionCheckoutResponse> =>
+  checkout: (body: { plan: "BASIC" | "VIP"; provider: "VNPAY" }): Promise<SubscriptionCheckoutResponse> =>
     apiClient
       .post(API_PATHS.SELLER.SUBSCRIPTION_CHECKOUT, body)
       .then((r) => r.data?.data ?? r.data),

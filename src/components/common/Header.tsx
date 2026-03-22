@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { Logo } from "@/components/common/Logo";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { syncSellerOrderNotifications } from "@/services/sellerService";
+import { syncAdminOrderNotifications } from "@/services/adminService";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import { useLanguageStore } from "@/stores/useLanguageStore";
 import { Button } from "@/components/ui/button";
@@ -107,10 +108,17 @@ export function Header() {
   }, [navigate]);
 
   useEffect(() => {
-    if (!accessToken || role !== "SELLER") return;
-    syncSellerOrderNotifications(t);
-    const intervalId = setInterval(() => syncSellerOrderNotifications(t), 10_000);
-    return () => clearInterval(intervalId);
+    if (!accessToken) return;
+    if (role === "SELLER") {
+      syncSellerOrderNotifications(t);
+      const intervalId = setInterval(() => syncSellerOrderNotifications(t), 10_000);
+      return () => clearInterval(intervalId);
+    }
+    if (role === "ADMIN") {
+      syncAdminOrderNotifications(t);
+      const intervalId = setInterval(() => syncAdminOrderNotifications(t), 10_000);
+      return () => clearInterval(intervalId);
+    }
   }, [accessToken, role, t]);
 
 
@@ -159,9 +167,9 @@ export function Header() {
 
         {/* Giữa: Ngôn ngữ | Hỗ trợ | Logo | Danh sách xe */}
         <nav
-          className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-sm text-muted-foreground"
+          className="pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-sm text-muted-foreground"
         >
-          <div className="relative" ref={langRef}>
+          <div className="pointer-events-auto relative" ref={langRef}>
             <button
               type="button"
               onClick={() => setLangOpen((o) => !o)}
@@ -194,25 +202,25 @@ export function Header() {
               </div>
             )}
           </div>
-          <span className="text-muted-foreground/50">|</span>
+          <span className="pointer-events-none text-muted-foreground/50">|</span>
           <Link
             to="/support"
-            className="min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground sm:min-w-[6rem]"
+            className="pointer-events-auto min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground sm:min-w-[6rem]"
           >
             {t("common.support")}
           </Link>
-          <span className="text-muted-foreground/50">|</span>
+          <span className="pointer-events-none text-muted-foreground/50">|</span>
           <Link
             to="/"
-            className="group flex flex-shrink-0 items-center justify-center transition-opacity hover:opacity-90 [&_img]:transition-transform group-hover:[&_img]:scale-[1.02]"
+            className="pointer-events-auto group flex flex-shrink-0 items-center justify-center transition-opacity hover:opacity-90 [&_img]:transition-transform group-hover:[&_img]:scale-[1.02]"
           >
             <Logo variant="headerStacked" />
           </Link>
-          <span className="text-muted-foreground/50">|</span>
+          <span className="pointer-events-none text-muted-foreground/50">|</span>
           <button
             type="button"
             onClick={onListings}
-            className="min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground sm:min-w-[6rem]"
+            className="pointer-events-auto min-w-[5.5rem] py-1.5 text-center font-light tracking-wide text-muted-foreground transition-all duration-200 hover:text-foreground sm:min-w-[6rem]"
           >
             {t("common.vehicleList")}
           </button>
@@ -271,6 +279,12 @@ export function Header() {
                   >
                     {t("header.sellerChannel")}
                   </button>
+                  <Link
+                    to="/seller/packages"
+                    className="rounded-lg px-3 py-2 font-light tracking-wide text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+                  >
+                    {t("seller.navPackages")}
+                  </Link>
                   <span className="text-muted-foreground/50">|</span>
                 </>
               )}

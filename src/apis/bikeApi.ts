@@ -81,9 +81,21 @@ function toListing(dto: BikeDto): Listing {
   const certificationStatus =
     certRaw === "UNVERIFIED" ||
     certRaw === "PENDING_CERTIFICATION" ||
+    certRaw === "PENDING_WAREHOUSE" ||
     certRaw === "CERTIFIED"
       ? certRaw
       : undefined;
+
+  const sellerShippedToWarehouseAt = pick<string | undefined>(
+    dto,
+    ["sellerShippedToWarehouseAt", "seller_shipped_to_warehouse_at"],
+    undefined,
+  );
+  const warehouseIntakeVerifiedAt = pick<string | undefined>(
+    dto,
+    ["warehouseIntakeVerifiedAt", "warehouse_intake_verified_at"],
+    undefined,
+  );
 
   return {
     id,
@@ -112,6 +124,8 @@ function toListing(dto: BikeDto): Listing {
     inspectionScore: inspectionScore ?? (inspectionReport ? averageReportScore(inspectionReport) : undefined),
     inspectionReport,
     certificationStatus,
+    sellerShippedToWarehouseAt,
+    warehouseIntakeVerifiedAt,
     publishedAt: pick<string | undefined>(dto, ["publishedAt", "published_at"], undefined),
     listingExpiresAt: pick<string | undefined>(
       dto,

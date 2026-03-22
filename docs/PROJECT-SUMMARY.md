@@ -2,6 +2,8 @@
 
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
 
+**Tham chiếu thêm:** [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md) (yêu cầu người dùng), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md) (hướng dẫn triển khai backend).
+
 ---
 
 ## 1. Tổng quan dự án
@@ -56,9 +58,10 @@
 ### 2.2a Đơn hàng: luồng kho (WAREHOUSE) vs giao trực tiếp (DIRECT)
 
 - **`fulfillmentType` trên Order** (backend + FE types):
-  - **WAREHOUSE** — xe **đã kiểm định** (CERTIFIED / `inspectionResult === APPROVE`): sau mua → `SELLER_SHIPPED` → admin/inspector kho → `SHIPPING` → buyer hoàn tất.
-  - **DIRECT** — xe **chưa kiểm định** (UNVERIFIED): sau mua → `PENDING_SELLER_SHIP` → seller xác nhận giao trực tiếp (`PUT /seller/orders/:id/ship-to-buyer`) → `SHIPPING` → **không** qua queue kho / re-inspection.
-- **Hủy đơn (buyer):** cho phép hủy thêm khi `PENDING_SELLER_SHIP` + `DIRECT`.
+  - **WAREHOUSE** — xe **đã kiểm định** (CERTIFIED). Xe tại kho (`warehouseIntakeVerifiedAt`) → `AT_WAREHOUSE_PENDING_ADMIN` → admin xác nhận giao → `SHIPPING` (24h countdown). Legacy: `SELLER_SHIPPED` → RE_INSPECTION → `SHIPPING`. **Buyer không hủy được.**
+  - **DIRECT** — xe **chưa kiểm định** (UNVERIFIED): sau mua → `PENDING_SELLER_SHIP` → seller xác nhận giao trực tiếp → `SHIPPING` → **không** qua kho.
+- **Hủy đơn (buyer):** chỉ khi `DIRECT`. WAREHOUSE không cho hủy.
+- **Thanh toán:** chỉ VNPAY (DEPOSIT 8% hoặc FULL). Bỏ CASH/COD.
 - **Thông báo in-app (seller):** chỉ một số trạng thái được đồng bộ — logic tách trong `src/services/sellerOrderNotificationFlow.ts` (nhóm *có thông báo* vs *im lặng*).
 - Chi tiết port sang Spring Boot: [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md).
 
@@ -90,6 +93,32 @@
 - Danh sách **brand** cho seller lấy từ backend, không còn hardcode cố định
 - Admin có thể thêm / sửa / xóa brand; brand mới sẽ xuất hiện trong form đăng tin của seller
 
+### 2.7 Thanh toán VietQR (module đồ án – SQLite)
+
+- **Tách dữ liệu:** Đơn/payment VietQR lưu **SQLite** (`data/vietqr.sqlite`), **không** thay thế Order MongoDB của luồng mua xe chính; API `/api/vietqr/*`.
+- **Mã:** `orderCode` = `ORDyyyyMMddxxx`, `paymentCode` = `PAYyyyyMMddxxx` (unique).
+- **Nội dung CK:** `TT_<orderCode>`, chuẩn hóa theo VietQR, giới hạn **≤ 25** ký tự cho `addInfo`.
+- **Cấu hình:** `VIETQR_*` chỉ trong **`.env`** — không hardcode `clientId` / `apiKey` / STK trong source.
+- **Trạng thái đơn (SQL):** `CREATED` → `AWAITING_PAYMENT` (sau khi tạo QR hợp lệ) → `PAID` (xác nhận) / `CANCELLED`.
+- **Trạng thái payment:** `PENDING` | `SUCCESS` | `FAILED` | `EXPIRED`; tự **EXPIRED** khi quá `expired_at`.
+- **Nghiệp vụ QR:** Không tạo QR mới nếu còn `PENDING` trong thời hạn; **Tạo lại QR** khi hết hạn / FAILED / flow regenerate.
+- **Audit:** Mọi lần gọi VietQR (thành công / lỗi API / lỗi mạng) ghi **`payment_logs`**.
+- **Demo xác nhận CK:** Admin `simulate-success` — production thay bằng webhook/IPN ngân hàng.
+- **RBAC:** Buyer chỉ thao tác đơn có `buyer_ref` trùng user đăng nhập; Admin xem toàn bộ lịch sử & log.
+
+### 2.8 Thanh toán QR VNPay (gói seller & checkout buyer)
+
+- **Chỉ VNPay:** Đã gỡ Postpay; initiate payment / package checkout dùng **VNPay** (`VNPAY_QR`, `provider: VNPAY`).
+- Tham chiếu: `docs/PAYMENTS-VNPAY.md`, `paymentController.js`, `CheckoutPage`, `SellerPackagePage`.
+
+### 2.9 Thông báo (i18n)
+
+- Thông báo lưu **`titleKey` / `messageKey`** (và params) để đổi ngôn ngữ theo locale; có map chuỗi legacy tiếng Anh cũ → key khi hiển thị.
+
+### 2.10 Sheet Business Rules (Excel)
+
+- File **`ReBike_BusinessRules_Template.xlsx`**, sheet **Business Rules**: các dòng **BR-PAY-VQR-01…13**, **BR-PAY-VNP-02**, **BR-NOTIF-I18N-01** được append bằng `node scripts/append-vietqr-business-rules.mjs` (xem `docs/business-rules/README.md`).
+
 ---
 
 ## 3. Luồng màn hình chính
@@ -101,10 +130,10 @@ Home → Product Detail → Checkout → Transaction → Finalize → Success
 ```
 
 1. **Home** (`/`): Hero slogan "Những chiếc xe đã được kiểm định...", danh sách listing (API / mock)
-2. **Product Detail** (`/bikes/:id`): Chi tiết xe, báo cáo kiểm định, nút Buy now
-3. **Checkout** (`/checkout/:id`): Chọn plan (FULL/DEPOSIT), phương thức thanh toán, shipping, đồng ý chính sách
+2. **Product Detail** (`/bikes/:id`): Chi tiết xe, báo cáo kiểm định, nút Buy now; tùy chọn **VietQR** (`/vietqr/checkout?listing=id`) — module đồ án
+3. **Checkout** (`/checkout/:id`): Chọn plan (FULL/DEPOSIT), phương thức thanh toán (thẻ / CK / **VNPay QR**), shipping, đồng ý chính sách
 4. **Transaction** (`/transaction/:id`): Countdown 24h, logistics, Cancel / Finalize
-5. **Finalize** (`/finalize/:id`): Thanh toán số dư, xác nhận giao hàng
+5. **Finalize** (`/finalize/:id?orderId=xxx`): Xác nhận đã nhận hàng & hoàn tất. Ưu tiên lấy tin từ `order.listing` (khi RESERVED). Bỏ form nhập địa chỉ.
 6. **Success** (`/success/:id`): Xác nhận hoàn tất
 7. **Review**: Buyer có thể để lại đánh giá cho seller sau khi hoàn tất giao dịch
 

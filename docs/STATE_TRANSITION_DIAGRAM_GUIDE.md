@@ -43,7 +43,8 @@ stateDiagram-v2
     RESERVED --> IN_TRANSACTION : Legacy interim
     PENDING_SELLER_SHIP --> SELLER_SHIPPED : Seller ships
     SELLER_SHIPPED --> AT_WAREHOUSE_PENDING_ADMIN : At warehouse
-    AT_WAREHOUSE_PENDING_ADMIN --> RE_INSPECTION : Admin confirms arrival
+    AT_WAREHOUSE_PENDING_ADMIN --> SHIPPING : Admin confirms (xe tại kho)
+    SELLER_SHIPPED --> RE_INSPECTION : Admin confirms
     RE_INSPECTION --> RE_INSPECTION_DONE : Inspector OK
     RE_INSPECTION_DONE --> SHIPPING : Ship to buyer
     SHIPPING --> COMPLETED : completeOrder API
@@ -140,11 +141,12 @@ ShopBike has 3 main entities with status/state flows:
 | RESERVED | PENDING_SELLER_SHIP | System / Seller accepts order |
 | PENDING_SELLER_SHIP | SELLER_SHIPPED | Seller marks bike as shipped |
 | SELLER_SHIPPED | AT_WAREHOUSE_PENDING_ADMIN | Bike arrives at warehouse (tracking) |
-| AT_WAREHOUSE_PENDING_ADMIN | RE_INSPECTION | Admin confirms warehouse arrival |
+| AT_WAREHOUSE_PENDING_ADMIN | SHIPPING | Admin confirms (xe tại kho từ listing) |
+| SELLER_SHIPPED | RE_INSPECTION | Admin confirms warehouse arrival |
 | RE_INSPECTION | RE_INSPECTION_DONE | Inspector confirms re-inspection OK |
 | RE_INSPECTION_DONE | SHIPPING | System moves to shipping phase |
 | SHIPPING | COMPLETED | Buyer completes final payment / delivery |
-| RESERVED / IN_TRANSACTION | CANCELLED | Buyer cancels |
+| RESERVED / IN_TRANSACTION / PENDING_SELLER_SHIP | CANCELLED | Buyer cancels (chỉ khi DIRECT) |
 | COMPLETED | REFUNDED | Refund issued (dispute) |
 
 ### 2.2 Listing state transitions

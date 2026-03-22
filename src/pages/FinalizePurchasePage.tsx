@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { fetchListingById, completeOrder } from "@/services/buyerService";
+import { fetchListingById, fetchOrderById, completeOrder } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
+import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
 
 type PaymentMethod =
+  | { type: "CASH" }
+  | { type: "VNPAY_QR"; ref?: string }
+  | { type: "VNPAY_SANDBOX"; ref?: string }
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
   | { type: "BANK_TRANSFER" };
 
@@ -33,6 +35,9 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
 
 function paymentLabel(method: PaymentMethod | undefined, t: (k: string) => string) {
   if (!method) return "—";
+  if (method.type === "CASH") return t("checkout.finalizeCash");
+  if (method.type === "VNPAY_QR") return t("transaction.payVnpayQr");
+  if (method.type === "VNPAY_SANDBOX") return t("transaction.payOnlineVnpay");
   if (method.type === "BANK_TRANSFER") return t("checkout.finalizeBankTransfer");
   return `${method.brand} •••• ${method.last4}`;
 }
@@ -42,7 +47,10 @@ export default function FinalizePurchasePage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const state = (location.state ?? {}) as LocationState;
+  const orderIdForLoad =
+    searchParams.get("orderId")?.trim() || state.orderId?.trim() || "";
 
   const [listing, setListing] = useState<BikeDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,20 +63,59 @@ export default function FinalizePurchasePage() {
       return;
     }
     let cancelled = false;
-    fetchListingById(id)
-      .then((data) => {
-        if (!cancelled) setListing(data ?? null);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message ?? t("checkout.finalizeLoadError"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      let listingData: BikeDetail | null = null;
+
+      /** Ưu tiên lấy từ order khi có orderId — tin RESERVED không còn trong GET /bikes/:id */
+      if (orderIdForLoad) {
+        try {
+          const order = await fetchOrderById(orderIdForLoad);
+          if (!cancelled && order) {
+            const lid =
+              order.listingId ?? (order.listing as { id?: string } | undefined)?.id;
+            if ((lid ?? id) === id && order.listing) {
+              const snap = listingSnapshotToDetail(id, order.listing);
+              if (snap) {
+                setListing(snap);
+                setError(null);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch {
+          /* fall through */
+        }
+      }
+
+      try {
+        listingData = await fetchListingById(id);
+      } catch {
+        listingData = null;
+      }
+
+      if (cancelled) return;
+      if (listingData) {
+        setListing(listingData);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      if (!cancelled) {
+        setListing(null);
+        setError(t("checkout.finalizeReservedHint"));
+        setLoading(false);
+      }
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, [id, t]);
+  }, [id, orderIdForLoad, t]);
 
   const total =
     state.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
@@ -77,15 +124,17 @@ export default function FinalizePurchasePage() {
   const due = Math.max(0, total - deposit);
   const currency = (listing?.currency ?? "VND") as "VND" | "USD";
 
+  const effectiveOrderId = orderIdForLoad || state.orderId;
+
   async function onComplete() {
-    if (!state.orderId) {
+    if (!effectiveOrderId) {
       setError(t("checkout.finalizeMissingOrder"));
       return;
     }
     setError(null);
     setSubmitting(true);
     try {
-      await completeOrder(state.orderId);
+      await completeOrder(effectiveOrderId);
       navigate(`/success/${listing!.id}`, {
         state: {
           ...state,
@@ -112,6 +161,12 @@ export default function FinalizePurchasePage() {
   }
 
   if (error || !listing) {
+    const txHref =
+      id && orderIdForLoad
+        ? `/transaction/${id}?orderId=${encodeURIComponent(orderIdForLoad)}`
+        : id
+          ? `/transaction/${id}`
+          : "/";
     return (
       <Card className="mx-auto max-w-3xl">
         <CardContent className="py-12">
@@ -119,9 +174,18 @@ export default function FinalizePurchasePage() {
           <p className="mt-1 text-sm text-muted-foreground">
             {error ?? t("checkout.finalizeNotFoundDesc")}
           </p>
-          <Button asChild variant="link" className="mt-4">
-            <Link to="/">{t("checkout.goHome")}</Link>
-          </Button>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            {id ? (
+              <Button asChild variant="default">
+                <Link to={txHref} state={state}>
+                  {t("checkout.finalizeGoTransaction")}
+                </Link>
+              </Button>
+            ) : null}
+            <Button asChild variant="outline">
+              <Link to="/">{t("checkout.goHome")}</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -136,28 +200,6 @@ export default function FinalizePurchasePage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
-          <Card>
-            <CardHeader>
-              <span className="text-sm font-semibold">{t("checkout.finalizeShippingContact")}</span>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <Label>{t("checkout.finalizeFullName")}</Label>
-                  <Input className="mt-1" placeholder={t("checkout.finalizeFullNamePlaceholder")} />
-                </div>
-                <div>
-                  <Label>{t("checkout.finalizePhone")}</Label>
-                  <Input className="mt-1" placeholder={t("checkout.finalizePhonePlaceholder")} />
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>{t("checkout.finalizeDeliveryAddress")}</Label>
-                  <Input className="mt-1" placeholder={t("checkout.finalizeDeliveryAddressPlaceholder")} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <span className="text-sm font-semibold">{t("checkout.finalizeBalancePayment")}</span>
@@ -182,7 +224,14 @@ export default function FinalizePurchasePage() {
                 {submitting ? t("checkout.finalizeProcessing") : t("checkout.finalizePayAndComplete")}
               </Button>
               <Button asChild variant="ghost" className="mt-3 w-full" size="sm">
-                <Link to={`/transaction/${listing.id}`} state={state}>
+                <Link
+                  to={
+                    effectiveOrderId
+                      ? `/transaction/${listing.id}?orderId=${encodeURIComponent(effectiveOrderId)}`
+                      : `/transaction/${listing.id}`
+                  }
+                  state={state}
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   {t("checkout.finalizeBackToTransaction")}
                 </Link>
@@ -214,9 +263,10 @@ export default function FinalizePurchasePage() {
                 </div>
               </div>
 
-              {state.orderId && (
+              {effectiveOrderId && (
                 <p className="mt-4 text-xs text-muted-foreground">
-                  {t("checkout.finalizeOrderId")}: <span className="font-semibold">{state.orderId}</span>
+                  {t("checkout.finalizeOrderId")}:{" "}
+                  <span className="font-semibold">{effectiveOrderId}</span>
                 </p>
               )}
             </CardContent>

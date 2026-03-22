@@ -16,17 +16,8 @@ export const PLANS = {
     maxConcurrentListings: 15,
     priceVnd: 199_000,
     description:
-      "Tối đa 15 tin đang hiển thị trên sàn cùng lúc. Mỗi tin tồn tại 30 ngày kể từ khi đăng.",
+      "Tối đa 15 tin đang hiển thị trên sàn cùng lúc. Mỗi tin tồn tại 30 ngày kể từ khi đăng. Bao gồm quyền gửi tin đi kiểm định: inspector đánh giá xe, sau duyệt tin có nhãn Đã kiểm định (Certified).",
   },
-};
-
-/** Phí kiểm định tùy chọn (thanh toán riêng khi tích hợp gateway thật) */
-export const INSPECTION_ADDON = {
-  id: "INSPECTION_OPTIONAL",
-  nameKey: "Kiểm định (tùy chọn)",
-  priceVnd: 150_000,
-  description:
-    "Inspector kiểm tra tình trạng xe; tin có nhãn Đã kiểm định (Certified) sau khi duyệt.",
 };
 
 export const SUBSCRIPTION_PERIOD_DAYS = 30;

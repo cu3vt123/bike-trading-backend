@@ -52,6 +52,8 @@ export const API_PATHS = {
     ORDER_COMPLETE: (id: string) => `/buyer/orders/${id}/complete`,
     ORDER_CANCEL: (id: string) => `/buyer/orders/${id}/cancel`,
     PAYMENTS_INITIATE: "/buyer/payments/initiate",
+    ORDERS_VNPAY_CHECKOUT: "/buyer/orders/vnpay-checkout",
+    ORDER_VNPAY_RESUME: (id: string) => `/buyer/orders/${id}/vnpay-resume`,
     PAYMENTS_CONFIRM: (orderId: string) => `/buyer/payments/confirm/${orderId}`,
     TRANSACTIONS: (orderId: string) => `/buyer/transactions/${orderId}`,
     PROFILE: "/buyer/profile",
@@ -67,6 +69,8 @@ export const API_PATHS = {
     LISTING_BY_ID: (id: string) => `/seller/listings/${id}`,
     LISTING_PUBLISH: (id: string) => `/seller/listings/${id}/publish`,
     LISTING_SUBMIT: (id: string) => `/seller/listings/${id}/submit`,
+    LISTING_MARK_SHIPPED_TO_WAREHOUSE: (id: string) =>
+      `/seller/listings/${id}/mark-shipped-to-warehouse`,
     SUBSCRIPTION_CHECKOUT: "/seller/subscription/checkout",
     SUBSCRIPTION_MOCK_COMPLETE: (orderId: string) =>
       `/seller/subscription/orders/${orderId}/mock-complete`,
@@ -89,8 +93,13 @@ export const API_PATHS = {
     RE_INSPECTION_DONE: (id: string) => `/admin/orders/${id}/re-inspection-done`,
     STATS: "/admin/dashboard/stats",
     USERS: "/admin/users",
+    SELLER_SUBSCRIPTIONS: "/admin/seller-subscriptions",
+    REVOKE_SELLER_SUBSCRIPTION: (id: string) => `/admin/users/${id}/revoke-subscription`,
     HIDE_USER: (id: string) => `/admin/users/${id}/hide`,
     UNHIDE_USER: (id: string) => `/admin/users/${id}/unhide`,
+    LISTINGS_PENDING_WAREHOUSE_INTAKE: "/admin/listings/pending-warehouse-intake",
+    CONFIRM_WAREHOUSE_INTAKE: (id: string) => `/admin/listings/${id}/confirm-warehouse-intake`,
+    CONFIRM_WAREHOUSE_RE_INSPECTION: (id: string) => `/admin/listings/${id}/confirm-warehouse-re-inspection`,
     LISTINGS: "/admin/listings",
     HIDE_LISTING: (id: string) => `/admin/listings/${id}/hide`,
     UNHIDE_LISTING: (id: string) => `/admin/listings/${id}/unhide`,
@@ -108,4 +117,5 @@ export const API_PATHS = {
 
   // Health check
   HEALTH: "/health",
+
 } as const;

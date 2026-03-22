@@ -5,7 +5,8 @@
 import * as buyerApi from "@/apis/buyerApi";
 import { getListingById } from "@/mocks/mockListings";
 import type { Listing, BikeDetail } from "@/types/shopbike";
-import type { Order, OrderFulfillmentType } from "@/types/order";
+import type { Order, OrderFulfillmentType, InitiatePaymentMethod } from "@/types/order";
+import type { VnpayCheckoutResponse } from "@/apis/buyerApi";
 
 import { USE_MOCK_API } from "@/lib/apiConfig";
 import { applyOrderOverrides, setOrderOverride } from "@/lib/orderOverrides";
@@ -52,6 +53,28 @@ export async function createOrder(
   }
 }
 
+/** Đặt hàng + redirect VNPAY Sandbox (cần backend thật, không dùng mock API) */
+export async function createVnpayCheckoutOrder(
+  data: Parameters<typeof buyerApi.orderApi.create>[0],
+): Promise<VnpayCheckoutResponse> {
+  if (USE_MOCK) {
+    throw new Error("VNPAY: tắt VITE_USE_MOCK_API và cấu hình backend + VNP_* trong .env.");
+  }
+  return await buyerApi.orderApi.createVnpayCheckout(data);
+}
+
+/** Tạo lại URL VNPAY cho đơn PENDING_PAYMENT (cùng orderId) */
+export async function resumeVnpayCheckoutOrder(orderId: string): Promise<{
+  paymentUrl: string;
+  txnRef?: string;
+  vnpayAmountVnd?: number;
+}> {
+  if (USE_MOCK) {
+    throw new Error("VNPAY: tắt VITE_USE_MOCK_API và cấu hình backend + VNP_* trong .env.");
+  }
+  return await buyerApi.orderApi.resumeVnpayCheckout(orderId);
+}
+
 function mockCreateOrder(data: {
   listingId: string;
   plan: string;
@@ -61,14 +84,14 @@ function mockCreateOrder(data: {
   const listing = getListingById(data.listingId);
   const price = listing?.price ?? 0;
   const deposit = Math.round(price * 0.08);
-  const unverified =
-    listing?.certificationStatus !== "CERTIFIED" && listing?.inspectionResult !== "APPROVE";
-  const fulfillmentType: OrderFulfillmentType = unverified ? "DIRECT" : "WAREHOUSE";
+  /** Xe CERTIFIED → WAREHOUSE (kho giao), xe chưa kiểm định → DIRECT (seller giao). */
+  const fulfillmentType: OrderFulfillmentType =
+    listing?.certificationStatus === "CERTIFIED" ? "WAREHOUSE" : "DIRECT";
   return {
     id: `ORD-${Date.now()}`,
     listingId: data.listingId,
     listing: listing ?? undefined,
-    status: unverified ? "PENDING_SELLER_SHIP" : "SELLER_SHIPPED",
+    status: fulfillmentType === "DIRECT" ? "PENDING_SELLER_SHIP" : "RESERVED",
     fulfillmentType,
     totalPrice: price,
     depositAmount: deposit,
@@ -118,30 +141,47 @@ export async function cancelOrder(orderId: string): Promise<Order> {
   return order;
 }
 
-/** Validate payment (Visa/Bank) via backend sandbox before order creation */
+export type ValidatePaymentResult = {
+  ok: boolean;
+  paymentMethod?: { type: string; brand?: string; last4?: string; bankRef?: string; provider?: string; paymentRef?: string };
+  error?: string;
+};
+
+function parseInitiateResponse(res: unknown): ValidatePaymentResult {
+  const d = res as {
+    ok?: boolean;
+    paymentMethod?: ValidatePaymentResult["paymentMethod"];
+  };
+  if (!d?.ok || !d.paymentMethod) {
+    return { ok: false, error: "Payment validation failed" };
+  }
+  return {
+    ok: true,
+    paymentMethod: d.paymentMethod,
+  };
+}
+
+/** Validate payment COD trước khi tạo đơn */
 export async function validatePayment(data: {
-  method: "CARD" | "BANK_TRANSFER";
-  cardDetails?: { number: string; name: string; exp: string; cvc: string };
-  bankDetails?: { accountNumber: string; bankName: string; accountHolderName?: string };
-}): Promise<{ ok: boolean; paymentMethod?: { type: string; brand?: string; last4?: string; bankRef?: string }; error?: string }> {
+  method: InitiatePaymentMethod;
+  amount?: number;
+}): Promise<ValidatePaymentResult> {
   if (USE_MOCK) {
-    if (data.method === "CARD" && data.cardDetails) {
-      const last4 = data.cardDetails.number.replace(/\D/g, "").slice(-4) || "0000";
-      return { ok: true, paymentMethod: { type: "CARD", brand: "Visa", last4 } };
+    if (data.method === "CASH") {
+      return { ok: true, paymentMethod: { type: "CASH" } };
     }
-    return { ok: true, paymentMethod: { type: "BANK_TRANSFER", bankRef: "BANK-MOCK" } };
+    return { ok: false, error: "Unsupported payment method" };
   }
   try {
-    const res = await buyerApi.paymentApi.initiate(data as Parameters<typeof buyerApi.paymentApi.initiate>[0]);
-    const d = res as { ok?: boolean; paymentMethod?: Record<string, unknown> };
-    if (d?.ok && d?.paymentMethod) {
-      return { ok: true, paymentMethod: d.paymentMethod };
-    }
-    return { ok: false, error: "Payment validation failed" };
+    const res = await buyerApi.paymentApi.initiate({ method: "CASH" });
+    return parseInitiateResponse(res);
   } catch (err: unknown) {
-    const msg = err && typeof err === "object" && "response" in err
-      ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-      : err instanceof Error ? err.message : "Payment validation failed";
+    const msg =
+      err && typeof err === "object" && "response" in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : err instanceof Error
+          ? err.message
+          : "Payment validation failed";
     return { ok: false, error: String(msg) };
   }
 }

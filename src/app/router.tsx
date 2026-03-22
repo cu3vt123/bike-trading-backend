@@ -66,6 +66,8 @@ const InspectorDashboardPage = lazy(() =>
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const AdminDashboardPage = lazy(() => import("@/pages/AdminDashboardPage"));
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
+const VnpayDemoPage = lazy(() => import("@/pages/VnpayDemoPage"));
+const VnpayResultPage = lazy(() => import("@/pages/VnpayResultPage"));
 
 const withSuspense = (children: ReactNode) => (
   <Suspense fallback={<RouteFallback />}>{children}</Suspense>
@@ -79,6 +81,8 @@ export const router = createBrowserRouter([
       { path: "bikes/:id", element: withSuspense(<ProductDetailPage />) },
       { path: "support", element: withSuspense(<SupportPage />) },
       { path: "wishlist", element: withSuspense(<WishlistPage />) },
+      { path: "payment/vnpay-demo", element: withSuspense(<VnpayDemoPage />) },
+      { path: "payment/vnpay-result", element: withSuspense(<VnpayResultPage />) },
 
       {
         element: <RequireAuth />,

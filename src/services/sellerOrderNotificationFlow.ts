@@ -3,13 +3,11 @@
  *
  * ─── CÓ thông báo (active) ───
  * 1. DIRECT + PENDING_SELLER_SHIP → nhắc giao xe trực tiếp cho buyer (không qua kho).
- * 2. Không phải DIRECT (WAREHOUSE / legacy) + SELLER_SHIPPED | AT_WAREHOUSE_PENDING_ADMIN
- *    → nhắc gửi kho / chờ xử lý kho.
  *
  * ─── KHÔNG thông báo (silent) ───
  * - SHIPPING, COMPLETED, RE_INSPECTION, CANCELLED, v.v.
  * - DIRECT nhưng không còn PENDING_SELLER_SHIP (đã bấm “đã giao” hoặc sai trạng thái).
- * - Luồng kho nhưng không ở hai trạng thái “cần seller/chờ kho” ở trên → không spam.
+ * - Luồng WAREHOUSE đã loại bỏ: kho chỉ dùng cho kiểm định tin đăng.
  */
 
 export type SellerOrderListItem = {
@@ -21,12 +19,10 @@ export type SellerOrderListItem = {
 };
 
 /** Luồng đang bật thông báo nhắc việc */
-export type ActiveSellerNotificationFlow =
-  | "DIRECT_SHIP_REMINDER"
-  | "WAREHOUSE_SHIP_REMINDER";
+export type ActiveSellerNotificationFlow = "DIRECT_SHIP_REMINDER";
 
 /** Lý do không đẩy thông báo (debug / tài liệu) */
-export type InactiveSellerNotificationReason = "DIRECT_WRONG_STATUS" | "WAREHOUSE_WRONG_STATUS";
+export type InactiveSellerNotificationReason = "DIRECT_WRONG_STATUS" | "WAREHOUSE_REMOVED";
 
 export type SellerNotificationResolution =
   | { active: true; flow: ActiveSellerNotificationFlow; order: SellerOrderListItem }
@@ -36,14 +32,9 @@ export type SellerNotificationResolution =
       reason: InactiveSellerNotificationReason;
     };
 
-const WAREHOUSE_PENDING_SELLER_STATUSES = ["SELLER_SHIPPED", "AT_WAREHOUSE_PENDING_ADMIN"] as const;
-
-function isWarehouseShipReminderStatus(status: string): boolean {
-  return (WAREHOUSE_PENDING_SELLER_STATUSES as readonly string[]).includes(status);
-}
-
 /**
  * Quyết định một đơn (từ GET /seller/orders) có được đồng bộ vào hộp thông báo hay không.
+ * Luồng WAREHOUSE đã loại bỏ – kho chỉ dùng cho kiểm định tin đăng, không cho đơn hàng.
  */
 export function resolveSellerOrderNotification(o: SellerOrderListItem): SellerNotificationResolution {
   const { status } = o;
@@ -56,11 +47,7 @@ export function resolveSellerOrderNotification(o: SellerOrderListItem): SellerNo
     return { active: false, order: o, reason: "DIRECT_WRONG_STATUS" };
   }
 
-  if (isWarehouseShipReminderStatus(status)) {
-    return { active: true, flow: "WAREHOUSE_SHIP_REMINDER", order: o };
-  }
-
-  return { active: false, order: o, reason: "WAREHOUSE_WRONG_STATUS" };
+  return { active: false, order: o, reason: "WAREHOUSE_REMOVED" };
 }
 
 export type PartitionSellerNotifications = {

@@ -36,13 +36,21 @@ const OrderSchema = new mongoose.Schema(
     warehouseConfirmedAt: { type: Date, default: null },
     reInspectionDoneAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
-    /** WAREHOUSE = gửi kho + kiểm định lại (xe đã kiểm định). DIRECT = seller giao thẳng buyer (xe chưa kiểm định). */
+    /** WAREHOUSE = gửi kho + kiểm định lại (chỉ khi tin CERTIFIED lúc đặt hàng). DIRECT = giao thẳng (xe chưa mác). */
     fulfillmentType: {
       type: String,
       enum: ["WAREHOUSE", "DIRECT"],
       default: "WAREHOUSE",
     },
     listing: { type: mongoose.Schema.Types.Mixed }, // snapshot for display
+    /** Thanh toán VNPAY Sandbox: IPN cập nhật PENDING_PAYMENT → PAID | FAILED */
+    vnpayPaymentStatus: {
+      type: String,
+      enum: ["PENDING_PAYMENT", "PAID", "FAILED"],
+      default: undefined,
+    },
+    /** Số tiền gửi lên VNPAY (VND) — khớp vnp_Amount/100 khi IPN */
+    vnpayAmountVnd: { type: Number, default: null },
   },
   { timestamps: true },
 );

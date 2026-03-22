@@ -5,6 +5,8 @@ import {
 } from "../middlewares/auth.middlewares.js";
 import {
   createOrder,
+  createOrderVnpayCheckout,
+  resumeBuyerOrderVnpay,
   getMyOrders,
   getOrderById,
   completeOrder,
@@ -19,6 +21,8 @@ const buyerRoutes = Router();
 buyerRoutes.use(requireAuth);
 buyerRoutes.use(requireRole(["BUYER", "ADMIN"]));
 
+buyerRoutes.post("/orders/vnpay-checkout", wrapAsync(createOrderVnpayCheckout));
+buyerRoutes.post("/orders/:id/vnpay-resume", wrapAsync(resumeBuyerOrderVnpay));
 buyerRoutes.post("/orders", wrapAsync(createOrder));
 buyerRoutes.get("/orders", wrapAsync(getMyOrders));
 buyerRoutes.get("/orders/:id", wrapAsync(getOrderById));

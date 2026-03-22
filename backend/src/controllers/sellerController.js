@@ -24,6 +24,9 @@ export async function dashboard(req, res) {
     total: listings.length,
     published: listings.filter((l) => l.state === "PUBLISHED").length,
     inReview: listings.filter((l) => l.state === "PENDING_INSPECTION").length,
+    awaitingWarehouse: listings.filter((l) => l.state === "AWAITING_WAREHOUSE").length,
+    atWarehousePendingVerify: listings.filter((l) => l.state === "AT_WAREHOUSE_PENDING_VERIFY")
+      .length,
     needUpdate: listings.filter((l) => l.state === "NEED_UPDATE").length,
   };
 
@@ -85,7 +88,7 @@ export async function createListing(req, res) {
 
 /**
  * Đăng tin lên sàn: requestInspection=false → PUBLISHED + UNVERIFIED (30 ngày).
- * requestInspection=true → PENDING_INSPECTION + PENDING_CERTIFICATION (kiểm định tùy chọn).
+ * requestInspection=true → PENDING_INSPECTION + PENDING_CERTIFICATION (chỉ khi gói VIP còn hạn).
  */
 export async function publishListing(req, res) {
   if (!isSubscriptionActive(req.user)) {
@@ -118,6 +121,10 @@ export async function publishListing(req, res) {
   const { requestInspection } = parsedBody.data;
 
   if (requestInspection) {
+    /** Kiểm định không bán riêng — chỉ gói VIP (đang hiệu lực) được gửi tin kiểm định */
+    if (req.user.subscriptionPlan !== "VIP") {
+      return forbidden(res, "VIP_REQUIRED_FOR_INSPECTION");
+    }
     if (!listing.imageUrls || listing.imageUrls.length === 0) {
       return badRequest(res, "At least 1 photo is required");
     }
@@ -172,9 +179,13 @@ export async function updateListing(req, res) {
   if (!listing) return notFound(res, "Listing not found");
   if (String(listing.seller.id) !== String(sellerId)) return forbidden(res, "Not your listing");
 
-  // Demo rule: cannot edit when pending inspection
-  if (listing.state === "PENDING_INSPECTION") {
-    return badRequest(res, "Listing is locked pending inspection");
+  // Không sửa khi đang trong luồng kiểm định / chờ kho
+  if (
+    ["PENDING_INSPECTION", "AWAITING_WAREHOUSE", "AT_WAREHOUSE_PENDING_VERIFY"].includes(
+      listing.state,
+    )
+  ) {
+    return badRequest(res, "Listing is locked during inspection / warehouse intake");
   }
 
   Object.assign(listing, parsed.data);
@@ -193,7 +204,7 @@ export async function listMyOrders(req, res) {
     listingId: { $in: listingIds },
     $or: [
       {
-        status: { $in: ["SELLER_SHIPPED", "AT_WAREHOUSE_PENDING_ADMIN"] },
+        status: { $in: ["RESERVED", "SELLER_SHIPPED", "AT_WAREHOUSE_PENDING_ADMIN"] },
         fulfillmentType: { $ne: "DIRECT" },
       },
       { status: "PENDING_SELLER_SHIP", fulfillmentType: "DIRECT" },
@@ -219,6 +230,65 @@ export async function listMyOrders(req, res) {
   });
 
   return ok(res, items);
+}
+
+/** Seller xác nhận đã gửi xe về kho (chỉ đơn WAREHOUSE, legacy: tin CERTIFIED chưa có warehouseIntakeVerifiedAt). */
+export async function shipToWarehouse(req, res) {
+  const sellerId = req.user.id;
+  const { orderId } = req.params;
+  const order = await Order.findById(orderId);
+  if (!order) return notFound(res, "Order not found");
+  const listing = await Listing.findById(order.listingId);
+  if (!listing) return notFound(res, "Listing not found");
+  if (String(listing.seller.id) !== String(sellerId)) return forbidden(res, "Not your order");
+
+  if (listing.warehouseIntakeVerifiedAt) {
+    return badRequest(
+      res,
+      "Xe đã được gửi và xác nhận tại kho trước khi bán — không cần gửi lại theo đơn.",
+    );
+  }
+
+  if (order.fulfillmentType !== "WAREHOUSE") {
+    return badRequest(res, "Chỉ áp dụng cho đơn qua kho (xe đã kiểm định). Đơn giao trực tiếp dùng nút khác.");
+  }
+  if (order.status !== "RESERVED") {
+    return badRequest(res, `Không thể xác nhận gửi kho (trạng thái: ${order.status})`);
+  }
+
+  const shippedAt = new Date();
+  order.status = "SELLER_SHIPPED";
+  order.shippedAt = shippedAt;
+  await order.save();
+
+  const o = order.toObject ? order.toObject() : order;
+  const obj = { ...o };
+  obj.id = String(order._id);
+  obj.listingId = String(order.listingId);
+  obj.buyerId = String(order.buyerId);
+  obj.fulfillmentType = order.fulfillmentType ?? "WAREHOUSE";
+  if (order.expiresAt) obj.expiresAt = order.expiresAt.toISOString?.() ?? order.expiresAt;
+  if (order.shippedAt) obj.shippedAt = order.shippedAt.toISOString?.() ?? order.shippedAt;
+  delete obj._id;
+  delete obj.__v;
+  return ok(res, obj);
+}
+
+/** Sau duyệt online: seller báo đã gửi xe thật tới kho (chờ admin xác nhận khớp ảnh). */
+export async function markListingShippedToWarehouse(req, res) {
+  const sellerId = req.user.id;
+  const { id } = req.params;
+  const listing = await Listing.findById(id);
+  if (!listing) return notFound(res, "Listing not found");
+  if (String(listing.seller.id) !== String(sellerId)) return forbidden(res, "Not your listing");
+  if (listing.state !== "AWAITING_WAREHOUSE") {
+    return badRequest(res, "Chỉ áp dụng khi tin đang chờ bạn gửi xe tới kho (sau duyệt online).");
+  }
+
+  listing.state = "AT_WAREHOUSE_PENDING_VERIFY";
+  listing.sellerShippedToWarehouseAt = new Date();
+  await listing.save();
+  return ok(res, normalizeListing(listing));
 }
 
 /** Seller xác nhận đã giao xe trực tiếp cho buyer (chỉ đơn DIRECT, chưa kiểm định). */

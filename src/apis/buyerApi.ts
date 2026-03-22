@@ -16,9 +16,29 @@ export const getListings = (): Promise<Listing[]> => bikeApi.getAll();
 export const getListingById = (id: string): Promise<BikeDetail> =>
   bikeApi.getById(id);
 
+export type VnpayCheckoutResponse = Order & {
+  paymentUrl: string;
+  txnRef: string;
+  vnpayPaymentStatus: string;
+  vnpayAmountVnd?: number;
+};
+
 export const orderApi = {
   create: (data: CreateOrderRequest): Promise<Order> =>
     apiClient.post(API_PATHS.BUYER.ORDERS, data).then((r) => r.data?.data ?? r.data),
+
+  /** Tạo đơn + URL redirect VNPAY Sandbox (IPN cập nhật PAID / FAILED) */
+  createVnpayCheckout: (data: CreateOrderRequest): Promise<VnpayCheckoutResponse> =>
+    apiClient
+      .post(API_PATHS.BUYER.ORDERS_VNPAY_CHECKOUT, data)
+      .then((r) => r.data?.data ?? r.data),
+
+  resumeVnpayCheckout: (
+    orderId: string,
+  ): Promise<{ paymentUrl: string; txnRef?: string; orderId?: string; vnpayAmountVnd?: number }> =>
+    apiClient
+      .post(API_PATHS.BUYER.ORDER_VNPAY_RESUME(orderId))
+      .then((r) => r.data?.data ?? r.data),
 
   getById: (orderId: string): Promise<Order> =>
     apiClient

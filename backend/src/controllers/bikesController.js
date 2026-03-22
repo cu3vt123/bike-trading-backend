@@ -23,8 +23,9 @@ export async function getBike(req, res) {
   const { id } = req.params;
   const item = await Listing.findById(id);
   if (!item || item.isHidden) return notFound(res, "Bike not found");
+  if (item.state !== "PUBLISHED") return notFound(res, "Bike not found");
   const now = new Date();
-  if (item.state === "PUBLISHED" && item.listingExpiresAt && item.listingExpiresAt <= now) {
+  if (item.listingExpiresAt && item.listingExpiresAt <= now) {
     return notFound(res, "Bike not found");
   }
   return ok(res, item.toJSON());

@@ -12,6 +12,11 @@ import {
   listListings,
   hideListing,
   unhideListing,
+  listWarehouseIntakePending,
+  confirmWarehouseIntake,
+  confirmWarehouseReInspection,
+  listSellerSubscriptions,
+  revokeSellerSubscription,
 } from "../controllers/adminController.js";
 import {
   adminListReviews,
@@ -35,8 +40,25 @@ adminRoutes.get("/orders/re-inspection", requireRole(["ADMIN", "INSPECTOR"]), wr
 adminRoutes.put("/orders/:id/re-inspection-done", requireRole(["ADMIN", "INSPECTOR"]), wrapAsync(markReInspectionDone));
 adminRoutes.get("/dashboard/stats", requireRole(["ADMIN"]), wrapAsync(getAdminStats));
 adminRoutes.get("/users", requireRole(["ADMIN"]), wrapAsync(listUsers));
+adminRoutes.get("/seller-subscriptions", requireRole(["ADMIN"]), wrapAsync(listSellerSubscriptions));
+adminRoutes.put("/users/:id/revoke-subscription", requireRole(["ADMIN"]), wrapAsync(revokeSellerSubscription));
 adminRoutes.put("/users/:id/hide", requireRole(["ADMIN"]), wrapAsync(hideUser));
 adminRoutes.put("/users/:id/unhide", requireRole(["ADMIN"]), wrapAsync(unhideUser));
+adminRoutes.get(
+  "/listings/pending-warehouse-intake",
+  requireRole(["ADMIN", "INSPECTOR"]),
+  wrapAsync(listWarehouseIntakePending),
+);
+adminRoutes.put(
+  "/listings/:id/confirm-warehouse-intake",
+  requireRole(["ADMIN"]),
+  wrapAsync(confirmWarehouseIntake),
+);
+adminRoutes.put(
+  "/listings/:id/confirm-warehouse-re-inspection",
+  requireRole(["ADMIN", "INSPECTOR"]),
+  wrapAsync(confirmWarehouseReInspection),
+);
 adminRoutes.get("/listings", requireRole(["ADMIN"]), wrapAsync(listListings));
 adminRoutes.put("/listings/:id/hide", requireRole(["ADMIN"]), wrapAsync(hideListing));
 adminRoutes.put("/listings/:id/unhide", requireRole(["ADMIN"]), wrapAsync(unhideListing));

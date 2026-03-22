@@ -51,21 +51,56 @@ export async function signup(req, res) {
 }
 
 export async function login(req, res) {
-  const schema = z.object({
-    emailOrUsername: z.string().min(1),
-    password: z.string().min(1),
-  });
-  const parsed = schema.safeParse(req.body);
-  if (!parsed.success) return badRequest(res, "Invalid login payload");
+  const body = req.body ?? {};
+  const emailOrUsernameRaw =
+    typeof body.emailOrUsername === "string"
+      ? body.emailOrUsername
+      : typeof body.email === "string"
+        ? body.email
+        : typeof body.username === "string"
+          ? body.username
+          : "";
+  const passwordRaw = typeof body.password === "string" ? body.password : "";
 
-  const { emailOrUsername, password } = parsed.data;
-  const email = emailOrUsername.trim().toLowerCase();
+  const emailOrUsername = emailOrUsernameRaw.trim();
+  const password = passwordRaw;
+
+  if (!emailOrUsername) {
+    return badRequest(
+      res,
+      "Vui lòng nhập email hoặc tên đăng nhập.",
+      "LOGIN_MISSING_IDENTIFIER",
+    );
+  }
+  if (!password) {
+    return badRequest(
+      res,
+      "Vui lòng nhập mật khẩu.",
+      "LOGIN_MISSING_PASSWORD",
+    );
+  }
+
+  const email = emailOrUsername.toLowerCase();
   const user = await User.findOne({ email });
-  if (!user) return unauthorized(res, "Invalid credentials");
-  if (user.isHidden) return unauthorized(res, "Account is hidden");
+  if (!user) {
+    return unauthorized(
+      res,
+      "Không tìm thấy tài khoản với email này.",
+      "LOGIN_UNKNOWN_USER",
+    );
+  }
+  if (user.isHidden) {
+    return unauthorized(
+      res,
+      "Tài khoản đã bị vô hiệu hóa.",
+      "LOGIN_ACCOUNT_HIDDEN",
+    );
+  }
 
   const okPwd = await bcrypt.compare(password, user.passwordHash);
-  if (!okPwd) return unauthorized(res, "Invalid credentials");
+  if (!okPwd) {
+    return unauthorized(res, "Mật khẩu không đúng.", "LOGIN_WRONG_PASSWORD");
+  }
 
   const accessToken = signToken(String(user._id));
   const subscription = await buildSubscriptionSummaryForUser(user);

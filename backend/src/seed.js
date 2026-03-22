@@ -342,6 +342,8 @@ export async function runSeed() {
         certificationStatus: "CERTIFIED",
         publishedAt: pubAt,
         listingExpiresAt: expAt,
+        /** Luồng mới: xe đã qua xác nhận tại kho trước bán (demo). */
+        warehouseIntakeVerifiedAt: pubAt,
       },
     },
   );

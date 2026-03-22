@@ -18,9 +18,11 @@ import {
   fetchListingById,
   fetchOrderById,
   cancelOrder,
+  resumeVnpayCheckoutOrder,
 } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
-import type { OrderFulfillmentType, OrderStatus } from "@/types/order";
+import type { Order, OrderFulfillmentType, OrderStatus } from "@/types/order";
+import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
 
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
@@ -29,17 +31,26 @@ function Stars({ value }: { value: number }) {
 }
 
 type PaymentMethod =
+  | { type: "CASH" }
+  | { type: "VNPAY_QR"; ref?: string }
+  | { type: "VNPAY_SANDBOX"; ref?: string }
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
   | { type: "BANK_TRANSFER" };
 
 type TxState = {
   orderId?: string;
+  /** Số tiền đã thanh toán online (cọc hoặc full), hiển thị ở cột tóm tắt */
   depositPaid?: number;
   totalPrice?: number;
   expiresAt?: number;
   paymentMethod?: PaymentMethod;
   totals?: { deposit?: number; totalNow?: number };
   fulfillmentType?: OrderFulfillmentType;
+  plan?: "DEPOSIT" | "FULL";
+  vnpayPaymentStatus?: "PENDING_PAYMENT" | "PAID" | "FAILED";
+  vnpayAmountVnd?: number | null;
+  /** Tiền cọc 8% (chuẩn hoá từ đơn) */
+  depositAmount?: number;
 };
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
@@ -60,6 +71,7 @@ const INSPECTION_ROW_KEYS = {
   brakingSystem: "listing.inspectionBraking",
 } as const;
 
+/** Luồng xe qua kho — chi tiết dùng cho Seller/Admin/Inspector. Buyer dùng BUYER_WAREHOUSE_STEPS. */
 const SHIPPING_FLOW_STEPS: OrderStatus[] = [
   "RESERVED",
   "PENDING_SELLER_SHIP",
@@ -79,25 +91,44 @@ const DIRECT_FLOW_STEPS: OrderStatus[] = [
   "COMPLETED",
 ];
 
-function flowSteps(isDirect: boolean): OrderStatus[] {
-  return isDirect ? DIRECT_FLOW_STEPS : SHIPPING_FLOW_STEPS;
+type BuyerStep = OrderStatus;
+
+/** Luồng warehouse cho buyer — 4 bước, bỏ qua chi tiết kho (seller gửi → kho → inspector) */
+const BUYER_WAREHOUSE_STEPS: BuyerStep[] = [
+  "RESERVED",
+  "PENDING_SELLER_SHIP",
+  "SHIPPING",
+  "COMPLETED",
+];
+
+function flowSteps(isDirect: boolean): BuyerStep[] {
+  return isDirect ? [...DIRECT_FLOW_STEPS] : BUYER_WAREHOUSE_STEPS;
 }
+
+const WAREHOUSE_PHASE_STATUSES: OrderStatus[] = [
+  "SELLER_SHIPPED",
+  "AT_WAREHOUSE_PENDING_ADMIN",
+  "RE_INSPECTION",
+  "RE_INSPECTION_DONE",
+];
 
 function isStepDoneInFlow(
   status: OrderStatus | null,
-  step: OrderStatus,
-  flow: OrderStatus[],
+  step: BuyerStep,
+  flow: BuyerStep[],
 ): boolean {
   if (!status) return step === "RESERVED";
   const idx = flow.indexOf(step);
   if (idx < 0) return false;
   const reservedIdx = flow.indexOf("RESERVED");
-  let currentIdx =
-    status === "IN_TRANSACTION"
-      ? reservedIdx >= 0
-        ? reservedIdx
-        : 0
-      : flow.indexOf(status);
+  let currentIdx: number;
+  if (status === "IN_TRANSACTION") {
+    currentIdx = reservedIdx >= 0 ? reservedIdx : 0;
+  } else if (WAREHOUSE_PHASE_STATUSES.includes(status)) {
+    currentIdx = flow.indexOf("SHIPPING");
+  } else {
+    currentIdx = flow.indexOf(status);
+  }
   if (status === "COMPLETED") {
     const cIdx = flow.indexOf("COMPLETED");
     return cIdx >= 0 && idx <= cIdx;
@@ -107,7 +138,7 @@ function isStepDoneInFlow(
 }
 
 function stepTitleFor(
-  step: OrderStatus,
+  step: BuyerStep,
   isDirect: boolean,
   t: (key: string) => string,
 ): string {
@@ -118,7 +149,7 @@ function stepTitleFor(
 }
 
 function stepDescFor(
-  step: OrderStatus,
+  step: BuyerStep,
   isDirect: boolean,
   t: (key: string) => string,
 ): string {
@@ -131,10 +162,6 @@ function stepDescFor(
     if (step === "COMPLETED") return t("transaction.ownershipTransferred");
     return "";
   }
-  if (step === "SELLER_SHIPPED") return t("transaction.sellerShipped");
-  if (step === "AT_WAREHOUSE_PENDING_ADMIN") return t("transaction.adminConfirm");
-  if (step === "RE_INSPECTION") return t("transaction.inspectorReInspect");
-  if (step === "RE_INSPECTION_DONE") return t("transaction.confirmedTransfer");
   if (step === "SHIPPING") return t("transaction.shippingToYou");
   if (step === "COMPLETED") return t("transaction.ownershipTransferred");
   if (step === "IN_TRANSACTION") return t("transaction.payBalance");
@@ -148,6 +175,11 @@ export default function TransactionPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const locationState = (location.state ?? {}) as TxState;
+  const orderIdFromQuery = searchParams.get("orderId") ?? "";
+  const orderIdFromNavState = locationState.orderId ?? "";
+  const orderIdToFetch = orderIdFromQuery || orderIdFromNavState;
+  /** Đổi khi navigate có state mới — tránh effect phụ thuộc cả object state (reference không ổn định). */
+  const locationKey = location.key;
 
   const [listing, setListing] = useState<BikeDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,70 +188,200 @@ export default function TransactionPage() {
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
 
   const state = orderState ?? locationState;
-  const isDirect =
-    state.fulfillmentType === "DIRECT" ||
-    (!state.fulfillmentType && orderStatus === "PENDING_SELLER_SHIP");
+  /** Xe CERTIFIED → warehouse giao (isDirect=false), xe chưa kiểm định → seller giao (isDirect=true). */
+  const isDirect = (state.fulfillmentType ?? orderState?.fulfillmentType ?? "DIRECT") === "DIRECT";
   const progressFlow = flowSteps(isDirect);
-
-  // Fetch order when orderId from URL or state → sync status & expiresAt
-  const orderIdToFetch = searchParams.get("orderId") ?? locationState.orderId;
-  useEffect(() => {
-    if (!orderIdToFetch || !id) return;
-    let cancelled = false;
-    fetchOrderById(orderIdToFetch)
-      .then((o) => {
-        if (!cancelled && o) {
-          const listingId = o.listingId ?? (o.listing as { id?: string })?.id;
-          if (listingId && id === listingId) {
-            setOrderStatus(o.status);
-            setOrderState((prev) => ({
-              ...(prev ?? locationState),
-              orderId: o.id,
-              depositPaid: o.depositAmount ?? Math.round((o.totalPrice ?? 0) * 0.08),
-              totalPrice: o.totalPrice ?? 0,
-              expiresAt: o.expiresAt ? new Date(o.expiresAt).getTime() : undefined,
-              fulfillmentType: o.fulfillmentType ?? prev?.fulfillmentType ?? locationState?.fulfillmentType ?? "WAREHOUSE",
-              paymentMethod: prev?.paymentMethod ?? locationState?.paymentMethod ?? { type: "BANK_TRANSFER" },
-              totals: prev?.totals ?? locationState?.totals ?? {},
-            }));
-          }
-        }
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [orderIdToFetch, id]);
 
   useEffect(() => {
     if (!id) {
       setLoading(false);
       return;
     }
+
     let cancelled = false;
-    fetchListingById(id)
-      .then((data) => {
-        if (!cancelled) setListing(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message ?? t("transaction.loadError"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    setLoading(true);
+    setError(null);
+    const navState = (location.state ?? {}) as TxState;
+
+    (async () => {
+      let order: Order | null = null;
+
+      if (orderIdToFetch) {
+        try {
+          order = await fetchOrderById(orderIdToFetch);
+        } catch {
+          order = null;
+        }
+        if (cancelled) return;
+
+        if (order) {
+          const listingIdFromOrder =
+            order.listingId ?? (order.listing as { id?: string } | undefined)?.id;
+          if (listingIdFromOrder !== id) {
+            order = null;
+          } else {
+            setOrderStatus(order.status);
+            setOrderState((prev) => {
+              const plan = order!.plan ?? "DEPOSIT";
+              const vnpaySt = order!.vnpayPaymentStatus;
+              const depAmt =
+                order!.depositAmount ??
+                Math.round((order!.totalPrice ?? 0) * 0.08);
+              const total = order!.totalPrice ?? 0;
+
+              let paidOnlineDisplay = 0;
+              if (vnpaySt === "PAID" && order!.depositPaid) {
+                paidOnlineDisplay = plan === "FULL" ? total : depAmt;
+              }
+
+              let pm: PaymentMethod;
+              if (vnpaySt === "PENDING_PAYMENT") {
+                pm = { type: "VNPAY_SANDBOX" };
+              } else if (vnpaySt === "PAID" && plan === "FULL") {
+                pm = { type: "VNPAY_SANDBOX" };
+              } else if (vnpaySt === "PAID" && plan === "DEPOSIT") {
+                pm = { type: "CASH" };
+              } else {
+                pm =
+                  prev?.paymentMethod ??
+                  navState?.paymentMethod ?? { type: "CASH" };
+              }
+
+              return {
+                ...(prev ?? navState),
+                orderId: order!.id,
+                plan,
+                vnpayPaymentStatus: vnpaySt,
+                vnpayAmountVnd: order!.vnpayAmountVnd ?? undefined,
+                depositAmount: depAmt,
+                depositPaid: paidOnlineDisplay,
+                totalPrice: total,
+                expiresAt: order!.expiresAt
+                  ? new Date(order!.expiresAt).getTime()
+                  : undefined,
+                fulfillmentType:
+                  order!.fulfillmentType ??
+                  prev?.fulfillmentType ??
+                  navState?.fulfillmentType ??
+                  "WAREHOUSE",
+                paymentMethod: pm,
+                totals: prev?.totals ?? navState?.totals ?? {},
+              };
+            });
+          }
+        }
+      }
+
+      let listingData: BikeDetail | null = null;
+      try {
+        listingData = await fetchListingById(id);
+      } catch {
+        listingData = null;
+      }
+
+      if (cancelled) return;
+
+      if (listingData) {
+        setListing(listingData);
+        setError(null);
+      } else if (order?.listing) {
+        const fromOrder = listingSnapshotToDetail(id, order.listing);
+        if (fromOrder) {
+          setListing(fromOrder);
+          setError(null);
+        } else {
+          setListing(null);
+          setError(t("transaction.loadError"));
+        }
+      } else {
+        setListing(null);
+        setError(t("transaction.loadError"));
+      }
+
+      setLoading(false);
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, orderIdToFetch, t, locationKey]);
 
   const [now, setNow] = useState(() => Date.now());
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
+  const [vnpayResuming, setVnpayResuming] = useState(false);
+  const [vnpayResumeError, setVnpayResumeError] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 250);
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  /** Refetch order định kỳ khi đang chờ seller/kho xác nhận giao → cập nhật countdown ngay khi chuyển SHIPPING */
+  const waitingForShip: OrderStatus[] = [
+    "PENDING_SELLER_SHIP",
+    "SELLER_SHIPPED",
+    "AT_WAREHOUSE_PENDING_ADMIN",
+    "RE_INSPECTION",
+    "RE_INSPECTION_DONE",
+  ];
+  useEffect(() => {
+    if (!orderIdToFetch || !orderStatus || !waitingForShip.includes(orderStatus)) return;
+    const interval = setInterval(async () => {
+      try {
+        const order = await fetchOrderById(orderIdToFetch);
+        const lid = order?.listingId ?? (order?.listing as { id?: string })?.id;
+        if (!order || lid !== id) return;
+        if (order.status !== orderStatus) {
+          setOrderStatus(order.status);
+          setOrderState((prev) => {
+            const base = prev ?? {};
+            return {
+              ...base,
+              orderId: order.id,
+              plan: order.plan ?? base.plan ?? "DEPOSIT",
+              vnpayPaymentStatus: order.vnpayPaymentStatus ?? base.vnpayPaymentStatus,
+              depositAmount: order.depositAmount ?? base.depositAmount,
+              totalPrice: order.totalPrice ?? base.totalPrice,
+              fulfillmentType: (order.fulfillmentType ?? base.fulfillmentType) as OrderFulfillmentType,
+              expiresAt: order.expiresAt
+                ? new Date(order.expiresAt).getTime()
+                : base.expiresAt,
+              depositPaid: base.depositPaid,
+              paymentMethod: base.paymentMethod,
+              totals: base.totals,
+            };
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [id, orderIdToFetch, orderStatus]);
+
+  async function handleResumeVnpay() {
+    if (!state.orderId) return;
+    setVnpayResumeError(null);
+    setVnpayResuming(true);
+    try {
+      const { paymentUrl } = await resumeVnpayCheckoutOrder(state.orderId);
+      const url = paymentUrl?.trim();
+      if (!url) {
+        setVnpayResumeError(t("checkout.vnpayNoUrl"));
+        return;
+      }
+      window.location.assign(url);
+    } catch (e) {
+      setVnpayResumeError(
+        e instanceof Error ? e.message : t("transaction.resumeVnpayError"),
+      );
+    } finally {
+      setVnpayResuming(false);
+    }
+  }
 
   async function handleCancelReservation() {
     if (!state.orderId) {
@@ -251,8 +413,34 @@ export default function TransactionPage() {
     inspectionReport?.brakingSystem;
   const totalPrice =
     state.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
-  const depositPaid =
-    state.depositPaid ?? state.totals?.deposit ?? Math.round(totalPrice * 0.08);
+  const plan = state.plan ?? "DEPOSIT";
+  const vnpayPending = state.vnpayPaymentStatus === "PENDING_PAYMENT";
+  const vnpayPaid = state.vnpayPaymentStatus === "PAID";
+  const depositAmountValue =
+    state.depositAmount ?? Math.round(totalPrice * 0.08);
+  const vnpayDueNow =
+    state.vnpayAmountVnd != null
+      ? Math.round(Number(state.vnpayAmountVnd))
+      : plan === "DEPOSIT"
+        ? depositAmountValue
+        : totalPrice;
+  const codAfterDeposit =
+    plan === "DEPOSIT"
+      ? Math.max(0, totalPrice - depositAmountValue)
+      : 0;
+
+  let depositPaid: number;
+  if (vnpayPending) {
+    depositPaid = 0;
+  } else if (vnpayPaid) {
+    depositPaid = plan === "FULL" ? totalPrice : depositAmountValue;
+  } else {
+    depositPaid =
+      typeof state.depositPaid === "number"
+        ? state.depositPaid
+        : state.totals?.deposit ?? depositAmountValue;
+  }
+
   const orderId = state.orderId ?? "SB-9921";
   const expiresAt = state.expiresAt ?? Date.now() + 24 * 60 * 60 * 1000;
 
@@ -267,8 +455,23 @@ export default function TransactionPage() {
     listing?.thumbnailUrl ??
     "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=800&q=60";
 
-  function formatPaymentMethod(pm?: PaymentMethod) {
+  function formatPaymentMethod(
+    pm?: PaymentMethod,
+    ctx?: { plan?: "DEPOSIT" | "FULL"; vnpay?: TxState["vnpayPaymentStatus"] },
+  ) {
+    if (ctx?.vnpay === "PENDING_PAYMENT") {
+      return t("transaction.paymentPendingVnpay");
+    }
+    if (ctx?.vnpay === "PAID" && ctx.plan === "DEPOSIT") {
+      return t("transaction.payDepositOnlineRestCod");
+    }
+    if (ctx?.vnpay === "PAID" && ctx.plan === "FULL") {
+      return t("transaction.payFullVnpayOnly");
+    }
     if (!pm) return "—";
+    if (pm.type === "CASH") return t("transaction.payCash");
+    if (pm.type === "VNPAY_QR") return t("transaction.payVnpayQr");
+    if (pm.type === "VNPAY_SANDBOX") return t("transaction.payOnlineVnpay");
     if (pm.type === "CARD") return `${pm.brand} ending in ${pm.last4}`;
     return t("transaction.bankTransfer");
   }
@@ -324,13 +527,38 @@ export default function TransactionPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
-          {/* Countdown: chỉ hiển thị khi admin đã xác nhận kho & inspector kiểm định xong (SHIPPING) */}
+          {vnpayPending && state.orderId ? (
+            <Card className="border-amber-500/40 bg-amber-500/5">
+              <CardContent className="space-y-3 pt-6">
+                <p className="text-sm font-semibold">
+                  {t("transaction.pendingVnpayBannerTitle")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("transaction.pendingVnpayBannerDesc")}
+                </p>
+                {vnpayResumeError ? (
+                  <p className="text-sm text-destructive">{vnpayResumeError}</p>
+                ) : null}
+                <Button
+                  className="w-full sm:w-auto"
+                  onClick={handleResumeVnpay}
+                  disabled={vnpayResuming}
+                >
+                  {vnpayResuming
+                    ? t("transaction.resumingVnpay")
+                    : t("transaction.resumeVnpay")}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {/* Countdown: hiển thị khi đơn đã vào giai đoạn giao hàng (SHIPPING) */}
           <Card>
             <CardHeader>
               <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 {orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE"
-                  ? t("transaction.timeRemaining")
+                  ? t("transaction.timeRemainingCompleteOrder")
                   : t("transaction.nextStep")}
               </span>
             </CardHeader>
@@ -375,7 +603,12 @@ export default function TransactionPage() {
                     : t(`order.status${step}` as "order.statusRESERVED");
                 const desc =
                   orderStatus && progressFlow.includes(step)
-                    ? stepDescFor(step, isDirect, t)
+                    ? step === "RESERVED" && vnpayPending
+                      ? t("transaction.depositPendingVnpayProgress")
+                      : step === "SHIPPING" &&
+                          WAREHOUSE_PHASE_STATUSES.includes(orderStatus)
+                        ? t("transaction.waitingForShippingStart")
+                        : stepDescFor(step, isDirect, t)
                     : step === "RESERVED" || step === "IN_TRANSACTION"
                       ? step === "RESERVED"
                         ? t("transaction.depositSuccess")
@@ -412,7 +645,10 @@ export default function TransactionPage() {
                 <div className="rounded-lg border bg-muted/50 p-4">
                   <div className="text-xs text-muted-foreground">{t("transaction.paymentMethod")}</div>
                   <div className="mt-1 font-semibold">
-                    {formatPaymentMethod(state.paymentMethod)}
+                    {formatPaymentMethod(state.paymentMethod, {
+                      plan,
+                      vnpay: state.vnpayPaymentStatus,
+                    })}
                   </div>
                 </div>
                 <div className="rounded-lg border bg-muted/50 p-4 sm:col-span-2">
@@ -446,7 +682,11 @@ export default function TransactionPage() {
               ) : orderStatus === "SHIPPING" || orderStatus === "RE_INSPECTION_DONE" ? (
                 <Button asChild className="w-full">
                   <Link
-                    to={`/finalize/${listing.id}`}
+                    to={
+                      orderId
+                        ? `/finalize/${listing.id}?orderId=${encodeURIComponent(orderId)}`
+                        : `/finalize/${listing.id}`
+                    }
                     state={{
                       orderId,
                       depositPaid,
@@ -462,24 +702,25 @@ export default function TransactionPage() {
               ) : (
                 <p className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-center text-sm text-muted-foreground">
                   {orderStatus === "RESERVED" || orderStatus === "IN_TRANSACTION"
-                    ? t("transaction.waitPaymentDone")
+                    ? vnpayPending
+                      ? t("transaction.waitCompleteVnpayDeposit")
+                      : t("transaction.waitPaymentDone")
                     : orderStatus === "PENDING_SELLER_SHIP"
                       ? isDirect
                         ? t("transaction.waitSellerShipDirect")
                         : t("transaction.waitSellerShip")
-                      : orderStatus === "SELLER_SHIPPED" || orderStatus === "AT_WAREHOUSE_PENDING_ADMIN"
-                        ? t("transaction.bikeEnRoute")
-                        : orderStatus === "RE_INSPECTION"
-                          ? t("transaction.reInspectionAtWarehouse")
-                          : isDirect
-                            ? t("transaction.orderInProgressDirect")
-                            : t("transaction.orderInProgress")}
+                      : (orderStatus && WAREHOUSE_PHASE_STATUSES.includes(orderStatus))
+                        ? t("transaction.waitingForShippingStart")
+                        : isDirect
+                          ? t("transaction.orderInProgressDirect")
+                          : t("transaction.orderInProgress")}
                 </p>
               )}
               {(orderStatus === "RESERVED" ||
                 orderStatus === "IN_TRANSACTION" ||
                 !orderStatus ||
-                (orderStatus === "PENDING_SELLER_SHIP" && isDirect)) && (
+                orderStatus === "PENDING_SELLER_SHIP") &&
+                isDirect && (
                 <Button
                   variant="outline"
                   className="mt-3 w-full"
@@ -488,9 +729,11 @@ export default function TransactionPage() {
                   {t("transaction.cancelReservation")}
                 </Button>
               )}
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                {t("transaction.refundPolicyNote")}
-              </p>
+              {isDirect && (
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  {t("transaction.refundPolicyNote")}
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -518,18 +761,74 @@ export default function TransactionPage() {
                 </div>
 
                 <div className="mt-4 overflow-hidden rounded-lg border">
-                  <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
-                    <span className="text-muted-foreground">{t("transaction.depositPaid")}</span>
-                    <span className="font-semibold">
-                      {formatMoney(depositPaid, currency)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between px-4 py-3 text-sm">
-                    <span className="text-muted-foreground">{t("transaction.remainingOnDelivery")}</span>
-                    <span className="font-semibold">
-                      {formatMoney(Math.max(0, totalPrice - depositPaid), currency)}
-                    </span>
-                  </div>
+                  {vnpayPending ? (
+                    <>
+                      <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transaction.paidOnlineSoFar")}
+                        </span>
+                        <span className="font-semibold">
+                          {formatMoney(0, currency)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transaction.dueViaVnpayNow")}
+                        </span>
+                        <span className="font-semibold text-primary">
+                          {formatMoney(vnpayDueNow, currency)}
+                        </span>
+                      </div>
+                      {plan === "DEPOSIT" ? (
+                        <div className="flex items-center justify-between border-t px-4 py-3 text-sm">
+                          <span className="text-muted-foreground">
+                            {t("transaction.remainingOnDeliveryAfterDeposit")}
+                          </span>
+                          <span className="font-semibold">
+                            {formatMoney(codAfterDeposit, currency)}
+                          </span>
+                        </div>
+                      ) : null}
+                    </>
+                  ) : vnpayPaid && plan === "FULL" ? (
+                    <>
+                      <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transaction.fullyPaidOnline")}
+                        </span>
+                        <span className="font-semibold">
+                          {formatMoney(totalPrice, currency)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transaction.remainingOnDelivery")}
+                        </span>
+                        <span className="font-semibold">
+                          {formatMoney(0, currency)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between bg-muted/50 px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transaction.depositPaid")}
+                        </span>
+                        <span className="font-semibold">
+                          {formatMoney(depositPaid, currency)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transaction.remainingOnDelivery")}
+                        </span>
+                        <span className="font-semibold">
+                          {formatMoney(Math.max(0, totalPrice - depositPaid), currency)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
@@ -537,7 +836,10 @@ export default function TransactionPage() {
                   <span>
                     {t("transaction.payment")}:{" "}
                     <span className="font-semibold">
-                      {formatPaymentMethod(state.paymentMethod)}
+                      {formatPaymentMethod(state.paymentMethod, {
+                        plan,
+                        vnpay: state.vnpayPaymentStatus,
+                      })}
                     </span>
                   </span>
                 </div>

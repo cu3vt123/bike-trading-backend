@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useTranslation } from "react-i18next";
-import { CreditCard, Building2 } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -16,17 +16,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  fetchListingById,
-  createOrder,
-  validatePayment,
-} from "@/services/buyerService";
+import { fetchListingById, createVnpayCheckoutOrder } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { cn } from "@/lib/utils";
-import { validateExpiry } from "@/lib/validateExpiry";
-
 type Plan = "DEPOSIT" | "FULL";
-type Method = "CARD" | "BANK";
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
@@ -34,11 +27,6 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
     maximumFractionDigits: currency === "VND" ? 0 : 2,
   }).format(value);
 }
-
-const METHOD_KEYS: Record<Method, string> = {
-  CARD: "checkout.card",
-  BANK: "checkout.bankTransfer",
-};
 
 export default function CheckoutPage() {
   const { t } = useTranslation();
@@ -52,7 +40,6 @@ export default function CheckoutPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [plan, setPlan] = useState<Plan>("DEPOSIT");
-  const [method, setMethod] = useState<Method>("CARD");
   const [agree, setAgree] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -70,26 +57,7 @@ export default function CheckoutPage() {
     "Da Lat",
   ] as const;
 
-  const BANK_OPTIONS = [
-    "Vietcombank",
-    "VietinBank",
-    "BIDV",
-    "Agribank",
-    "Techcombank",
-    "MB Bank",
-    "ACB",
-    "Sacombank",
-    "TPBank",
-    "VPBank",
-  ] as const;
-
-  const [ship, setShip] = useState({ street: "", city: "", postalCode: "" });
-  const [card, setCard] = useState({ number: "", name: "", exp: "", cvc: "" });
-  const [bank, setBank] = useState({
-    accountNumber: "",
-    bankName: "",
-    accountHolderName: "",
-  });
+  const [ship, setShip] = useState({ street: "", city: "" });
 
   useEffect(() => {
     if (!id) {
@@ -113,12 +81,17 @@ export default function CheckoutPage() {
     };
   }, [id]);
 
-  /** Popup chính sách cho mọi đơn: đã kiểm định & chưa kiểm định */
+  /** Chỉ xe chưa kiểm định: bắt buộc popup cảnh báo. Xe đã kiểm định: không popup, sàn đảm nhận theo nghiệp vụ. */
   useEffect(() => {
-    if (listing) {
+    if (!listing) return;
+    if (isBuyerUnverifiedRisk(listing)) {
       setCheckoutPolicyOpen(true);
       setCheckoutPolicyAccepted(false);
       checkoutPolicyAcceptedRef.current = false;
+    } else {
+      setCheckoutPolicyOpen(false);
+      setCheckoutPolicyAccepted(true);
+      checkoutPolicyAcceptedRef.current = true;
     }
   }, [listing?.id]);
 
@@ -149,7 +122,6 @@ export default function CheckoutPage() {
 
   const currency = (listing.currency ?? "VND") as "VND" | "USD";
   const itemPrice = listing.price;
-  // Khớp backend: deposit 8% giá xe; shipping = 0 (BE chưa có phí giao hàng trong order)
   const shipping = 0;
   const deposit = Math.round(itemPrice * 0.08);
   const totalNowDeposit = deposit;
@@ -160,20 +132,6 @@ export default function CheckoutPage() {
     const errs: Record<string, string> = {};
     if (!ship.street.trim()) errs.shipStreet = t("checkout.errStreet");
     if (!ship.city.trim()) errs.shipCity = t("checkout.errCity");
-    if (method === "CARD") {
-      const n = card.number.replace(/\D/g, "");
-      if (n.length < 12 || n.length > 19)
-        errs.cardNumber = t("checkout.errCardNumber");
-      if (!card.name.trim()) errs.cardName = t("checkout.errCardName");
-      const expValidation = validateExpiry(card.exp);
-      if (!expValidation.valid) errs.cardExp = expValidation.errorKey ? t(expValidation.errorKey) : t("checkout.errCardExp");
-      const cvcDigits = card.cvc.replace(/\D/g, "");
-      if (cvcDigits.length !== 3) errs.cardCvc = t("checkout.errCardCvc");
-    } else {
-      if (bank.accountNumber.replace(/\D/g, "").length < 8)
-        errs.bankAccount = t("checkout.errBankAccount");
-      if (!bank.bankName.trim()) errs.bankName = t("checkout.errBankName");
-    }
     return errs;
   }
 
@@ -196,75 +154,31 @@ export default function CheckoutPage() {
       return;
     }
     setFieldErrors({});
+
     setSubmitting(true);
     try {
-      const validation = await validatePayment({
-        method: method === "CARD" ? "CARD" : "BANK_TRANSFER",
-        cardDetails: method === "CARD" ? card : undefined,
-        bankDetails: method === "BANK" ? bank : undefined,
-      });
-      if (!validation.ok) {
-        setApiError(
-          validation.error ??
-            "Xác thực thanh toán thất bại. Dùng thẻ thử 4242 4242 4242 4242.",
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      const order = await createOrder({
+      const res = await createVnpayCheckoutOrder({
         listingId: listing.id,
         plan,
         shippingAddress: {
           street: ship.street,
           city: ship.city,
-          postalCode: ship.postalCode,
         },
         acceptedUnverifiedDisclaimer: needsUnverifiedDisclaimer
           ? true
           : undefined,
       });
-      const paymentMethod =
-        validation.paymentMethod?.type === "CARD"
-          ? {
-              type: "CARD" as const,
-              brand: (validation.paymentMethod.brand ?? "Visa") as
-                | "Visa"
-                | "Mastercard",
-              last4: String(
-                validation.paymentMethod.last4 ?? card.number.slice(-4),
-              ).slice(-4),
-            }
-          : { type: "BANK_TRANSFER" as const };
-
-      navigate(`/transaction/${listing.id}`, {
-        state: {
-          orderId: order.id,
-          listingId: listing.id,
-          fulfillmentType: order.fulfillmentType ?? "WAREHOUSE",
-          plan,
-          method,
-          expiresAt: order.expiresAt
-            ? new Date(order.expiresAt).getTime()
-            : Date.now() + 24 * 60 * 60 * 1000,
-          ship,
-          depositPaid: deposit,
-          totalPrice: itemPrice + shipping,
-          paymentMethod,
-          totals: {
-            itemPrice,
-            shipping,
-            deposit,
-            totalNow: plan === "DEPOSIT" ? totalNowDeposit : totalNowFull,
-            dueOnDelivery: plan === "DEPOSIT" ? dueOnDeliveryDeposit : 0,
-          },
-        },
-      });
+      const url = res.paymentUrl?.trim();
+      if (!url) {
+        setApiError(t("checkout.vnpayNoUrl"));
+        setSubmitting(false);
+        return;
+      }
+      window.location.assign(url);
     } catch (err) {
       setApiError(
         err instanceof Error ? err.message : t("checkout.createOrderError"),
       );
-    } finally {
       setSubmitting(false);
     }
   }
@@ -291,12 +205,12 @@ export default function CheckoutPage() {
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>{t("checkout.policyTitle")}</DialogTitle>
+            <DialogTitle>{t("checkout.unverifiedTitle")}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">{t("checkout.policyBody")}</p>
+          <p className="text-sm text-muted-foreground">{t("checkout.unverifiedBody")}</p>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-              {t("checkout.policyDecline")}
+              {t("checkout.unverifiedDecline")}
             </Button>
             <Button
               type="button"
@@ -306,17 +220,25 @@ export default function CheckoutPage() {
                 setCheckoutPolicyOpen(false);
               }}
             >
-              {t("checkout.policyAccept")}
+              {t("checkout.unverifiedAccept")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">{t("checkout.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("checkout.subtitle")}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold">{t("checkout.title")}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("checkout.subtitle")}
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm" className="shrink-0">
+            <Link to={`/bikes/${listing.id}`}>{t("checkout.backToListing")}</Link>
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">{t("checkout.abandonHint")}</p>
       </div>
 
       {apiError && (
@@ -336,18 +258,18 @@ export default function CheckoutPage() {
             <CardContent className="space-y-3">
               {[
                 {
-                  p: "FULL" as Plan,
-                  titleKey: "checkout.fullPayment",
-                  descKey: "checkout.fullPaymentDesc",
-                  badgeKey: null as string | null,
-                  price: totalNowFull,
-                },
-                {
                   p: "DEPOSIT" as Plan,
-                  titleKey: "checkout.depositCOD",
-                  descKey: "checkout.depositCODDesc",
+                  titleKey: "checkout.depositOnline",
+                  descKey: "checkout.depositOnlineDesc",
                   badgeKey: "checkout.mostPopular",
                   price: totalNowDeposit,
+                },
+                {
+                  p: "FULL" as Plan,
+                  titleKey: "checkout.fullPayment",
+                  descKey: "checkout.fullPaymentDescVnpay",
+                  badgeKey: null as string | null,
+                  price: totalNowFull,
                 },
               ].map(({ p, titleKey, descKey, badgeKey, price }) => (
                 <button
@@ -390,31 +312,24 @@ export default function CheckoutPage() {
                 {t("checkout.paymentMethod")}
               </span>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-3">
-                {(["CARD", "BANK"] as Method[]).map((m) => {
-                  const Icon = m === "CARD" ? CreditCard : Building2;
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => {
-                        setMethod(m);
-                        setFieldErrors({});
-                        setApiError(null);
-                      }}
-                      className={cn(
-                        "flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-sm font-semibold transition",
-                        method === m
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-input hover:border-primary/50",
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      {t(METHOD_KEYS[m])}
-                    </button>
-                  );
-                })}
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+                <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {plan === "FULL"
+                      ? t("checkout.vnpayFullOnlyTitle")
+                      : t("checkout.vnpayDepositTitle")}
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
+                    {plan === "FULL"
+                      ? t("checkout.vnpayFullOnlyDesc")
+                      : t("checkout.vnpayDepositDesc")}
+                  </p>
+                  <p className="mt-2 text-[11px] text-muted-foreground leading-relaxed">
+                    {t("checkout.vnpayRedirectHint")}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -472,209 +387,8 @@ export default function CheckoutPage() {
                   </p>
                 )}
               </div>
-              <div>
-                <Label>{t("checkout.postalCode")}</Label>
-                <Input
-                  className="mt-1"
-                  placeholder={t("checkout.postalCode")}
-                  value={ship.postalCode}
-                  onChange={(e) =>
-                    setShip((s) => ({ ...s, postalCode: e.target.value }))
-                  }
-                />
-              </div>
             </CardContent>
           </Card>
-
-          {method === "CARD" && (
-            <Card>
-              <CardHeader>
-                <span className="text-sm font-semibold">
-                  {t("checkout.cardInfo")}
-                </span>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("checkout.cardInfoHint")}
-                </p>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <Label>{t("checkout.cardNumber")}</Label>
-                  <Input
-                    className={cn(
-                      "mt-1 font-mono",
-                      fieldErrors.cardNumber && "border-destructive",
-                    )}
-                    placeholder="4242 4242 4242 4242"
-                    value={card.number}
-                    onChange={(e) => {
-                      let digits = e.target.value.replace(/\D/g, "");
-                      // allow 12–19 digits, hard cap at 19 digits
-                      digits = digits.slice(0, 19);
-                      const formatted = digits.replace(/(.{4})/g, "$1 ").trim();
-                      setCard((c) => ({ ...c, number: formatted }));
-                      if (fieldErrors.cardNumber)
-                        setFieldErrors((prev) => ({ ...prev, cardNumber: "" }));
-                    }}
-                  />
-                  {fieldErrors.cardNumber && (
-                    <p className="mt-1 text-xs text-destructive">
-                      {fieldErrors.cardNumber}
-                    </p>
-                  )}
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>{t("checkout.cardholderName")}</Label>
-                  <Input
-                    className={cn(
-                      "mt-1",
-                      fieldErrors.cardName && "border-destructive",
-                    )}
-                    placeholder={t("checkout.cardholderPlaceholder")}
-                    value={card.name}
-                    onChange={(e) => {
-                      const cleaned = e.target.value
-                        .replace(/[^\p{L}\s']/gu, "")
-                        .replace(/\s{2,}/g, " ");
-                      setCard((c) => ({ ...c, name: cleaned }));
-                      if (fieldErrors.cardName)
-                        setFieldErrors((prev) => ({ ...prev, cardName: "" }));
-                    }}
-                  />
-                  {fieldErrors.cardName && (
-                    <p className="mt-1 text-xs text-destructive">
-                      {fieldErrors.cardName}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label>{t("checkout.expiry")}</Label>
-                  <Input
-                    className={cn(
-                      "mt-1",
-                      fieldErrors.cardExp && "border-destructive",
-                    )}
-                    placeholder="12/28"
-                    value={card.exp}
-                    onChange={(e) => {
-                      let v = e.target.value.replace(/\D/g, "");
-                      if (v.length >= 2) {
-                        let mm = parseInt(v.slice(0, 2), 10);
-                        if (mm > 12) mm = 12;
-                        if (mm < 1) mm = 1;
-                        v = String(mm).padStart(2, "0") + "/" + v.slice(2, 4);
-                      }
-                      setCard((c) => ({ ...c, exp: v }));
-                      if (fieldErrors.cardExp)
-                        setFieldErrors((prev) => ({ ...prev, cardExp: "" }));
-                    }}
-                    maxLength={5}
-                  />
-                  {fieldErrors.cardExp && (
-                    <p className="mt-1 text-xs text-destructive">
-                      {fieldErrors.cardExp}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label>{t("checkout.cvc")}</Label>
-                  <Input
-                    className={cn(
-                      "mt-1",
-                      fieldErrors.cardCvc && "border-destructive",
-                    )}
-                    placeholder="123"
-                    value={card.cvc}
-                    onChange={(e) => {
-                      const v = e.target.value.replace(/\D/g, "").slice(0, 3);
-                      setCard((c) => ({
-                        ...c,
-                        cvc: v,
-                      }));
-                      if (fieldErrors.cardCvc)
-                        setFieldErrors((prev) => ({ ...prev, cardCvc: "" }));
-                    }}
-                    maxLength={3}
-                  />
-                  {fieldErrors.cardCvc && (
-                    <p className="mt-1 text-xs text-destructive">
-                      {fieldErrors.cardCvc}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {method === "BANK" && (
-            <Card>
-              <CardHeader>
-                <span className="text-sm font-semibold">
-                  {t("checkout.bankInfo")}
-                </span>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("checkout.bankInfoHint")}
-                </p>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <Label>Account number</Label>
-                  <Input
-                    className="mt-1"
-                    placeholder="e.g. 123456789012"
-                    value={bank.accountNumber}
-                    onChange={(e) =>
-                      setBank((b) => ({
-                        ...b,
-                        accountNumber: e.target.value.replace(/\D/g, ""),
-                      }))
-                    }
-                    maxLength={24}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>{t("checkout.bankName")}</Label>
-                  <select
-                    className={cn(
-                      "mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                      fieldErrors.bankName && "border-destructive",
-                    )}
-                    value={bank.bankName}
-                    onChange={(e) => {
-                      setBank((b) => ({ ...b, bankName: e.target.value }));
-                      if (fieldErrors.bankName)
-                        setFieldErrors((prev) => ({ ...prev, bankName: "" }));
-                    }}
-                  >
-                    <option value="">{t("checkout.selectBank")}</option>
-                    {BANK_OPTIONS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.bankName && (
-                    <p className="mt-1 text-xs text-destructive">
-                      {fieldErrors.bankName}
-                    </p>
-                  )}
-                </div>
-                <div className="sm:col-span-2">
-                  <Label>{t("checkout.accountHolder")}</Label>
-                  <Input
-                    className="mt-1"
-                    placeholder="VD: Nguyễn Văn A"
-                    value={bank.accountHolderName}
-                    onChange={(e) =>
-                      setBank((b) => ({
-                        ...b,
-                        accountHolderName: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           <div className="flex flex-col gap-2">
             <div className="flex items-start gap-2">
@@ -712,10 +426,10 @@ export default function CheckoutPage() {
             disabled={submitting}
           >
             {submitting
-              ? t("checkout.creating")
+              ? t("checkout.redirectingVnpay")
               : plan === "DEPOSIT"
-                ? t("checkout.depositReserve")
-                : t("checkout.payFull")}
+                ? t("checkout.payDepositVnpay")
+                : t("checkout.payFullVnpay")}
           </Button>
         </div>
 
@@ -757,7 +471,6 @@ export default function CheckoutPage() {
                     <span>{formatMoney(deposit, currency)}</span>
                   </div>
                 )}
-
                 <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
                   <div className="flex justify-between font-semibold text-primary">
                     <span>{t("checkout.totalPayNow")}</span>

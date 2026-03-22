@@ -4,6 +4,19 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03] Luồng kho/DIRECT, thanh toán VNPAY, Finalize, docs
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Hai luồng giao hàng** | WAREHOUSE: xe certified tại kho → AT_WAREHOUSE_PENDING_ADMIN → admin confirm → SHIPPING (24h countdown). DIRECT: seller giao → SHIPPING. |
+| **Thanh toán chỉ VNPAY** | Bỏ CASH/COD. Checkout: DEPOSIT 8% hoặc FULL. Return URL cập nhật depositPaid khi IPN không gọi được. |
+| **Hủy đơn** | Chỉ DIRECT được hủy. WAREHOUSE không hủy. |
+| **Finalize** | Ưu tiên lấy listing từ order khi có orderId (fix "Không tải được tin đăng"). Bỏ form địa chỉ. |
+| **Countdown** | Khi SHIPPING hiển thị đếm ngược 24h. Refetch định kỳ khi chờ seller/kho xác nhận. |
+| **Docs** | Cập nhật BACKEND-NODE-TO-SPRING-BOOT, backend/README, BACKEND-GUIDE, PROJECT-SUMMARY, STATE_TRANSITION, CHANGELOG. |
+
+---
+
 ## [2026-03] Nhánh follow thầy Lâm — docs Spring Boot + đồng bộ MD
 
 | Thay đổi | Chi tiết |

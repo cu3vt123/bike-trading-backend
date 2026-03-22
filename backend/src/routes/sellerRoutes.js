@@ -11,6 +11,8 @@ import {
   publishListing,
   getMyRatings,
   shipDirectToBuyer,
+  shipToWarehouse,
+  markListingShippedToWarehouse,
 } from "../controllers/sellerController.js";
 import {
   checkoutSubscription,
@@ -26,6 +28,11 @@ sellerRoutes.get("/dashboard", wrapAsync(dashboard));
 sellerRoutes.get("/ratings", wrapAsync(getMyRatings));
 sellerRoutes.get("/orders", wrapAsync(listMyOrders));
 sellerRoutes.put("/orders/:orderId/ship-to-buyer", wrapAsync(shipDirectToBuyer));
+sellerRoutes.put("/orders/:orderId/ship-to-warehouse", wrapAsync(shipToWarehouse));
+sellerRoutes.put(
+  "/listings/:id/mark-shipped-to-warehouse",
+  wrapAsync(markListingShippedToWarehouse),
+);
 sellerRoutes.get("/listings", wrapAsync(listMyListings));
 sellerRoutes.get("/listings/:id", wrapAsync(getMyListing));
 sellerRoutes.post("/listings", wrapAsync(createListing));

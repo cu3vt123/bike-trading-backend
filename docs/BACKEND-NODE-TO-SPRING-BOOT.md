@@ -49,16 +49,16 @@
 
 ### Bikes (public) — `/api/bikes`
 
-| GET | `/`, `/:id` | `listBikes`, `getBike` | Chỉ listing **PUBLISHED** + điều kiện marketplace (đồng bộ rule `bikesController`). |
+| GET | `/`, `/:id` | `listBikes`, `getBike` | Chỉ listing **PUBLISHED** + điều kiện marketplace. **RESERVED** trả 404 — Finalize lấy từ `order.listing`. |
 
 ### Buyer — `/api/buyer`
 
-| POST | `/orders` | `createOrder` | **Quan trọng:** set `fulfillmentType` + `status` theo listing (xem mục 5). |
+| POST | `/orders/vnpay-checkout` | `createOrderVnpayCheckout` | Tạo đơn + `paymentUrl` VNPAY. Set `fulfillmentType` + `status` theo listing (xem mục 5). Bỏ `POST /orders` COD. |
 | GET | `/orders` | `getMyOrders` | Filter `buyerId` |
 | GET | `/orders/:id` | `getOrderById` | 403 nếu không phải chủ đơn |
 | PUT | `/orders/:id/complete` | `completeOrder` | Chỉ khi `status == SHIPPING` |
-| PUT | `/orders/:id/cancel` | `cancelOrder` | Cho phép hủy thêm `PENDING_SELLER_SHIP` nếu `fulfillmentType == DIRECT` |
-| POST | `/payments/initiate` | `initiatePayment` | Demo validate thẻ/CK |
+| PUT | `/orders/:id/cancel` | `cancelOrder` | **Chỉ DIRECT.** Không cho phép hủy khi `fulfillmentType == WAREHOUSE`. |
+| POST | `/payments/initiate` | `initiatePayment` | Legacy (chỉ CASH). Thanh toán buyer dùng `orders/vnpay-checkout`. |
 | POST | `/orders/:id/review` | `createReviewForOrder` | Sau COMPLETED |
 | GET | `/reviews` | `listMyReviews` | |
 
@@ -107,25 +107,39 @@
 
 ### 5.1 `fulfillmentType` trên `Order`
 
-- **`WAREHOUSE`**: Xe **đã kiểm định** (CERTIFIED hoặc `inspectionResult == APPROVE`).  
-  - Sau thanh toán: `status = SELLER_SHIPPED`, `shippedAt` set (demo), luồng kho + re-inspection như hiện tại.
+- **`WAREHOUSE`**: Xe **đã kiểm định** (CERTIFIED).  
+  - **Xe tại kho từ luồng tin:** Nếu listing có `warehouseIntakeVerifiedAt` → order tạo ra `AT_WAREHOUSE_PENDING_ADMIN`. Admin xác nhận → `SHIPPING` trực tiếp (không RE_INSPECTION), set `expiresAt = now + 24h`.  
+  - **Legacy seller gửi kho:** `SELLER_SHIPPED` → `confirm-warehouse` → `RE_INSPECTION` → `re-inspection-done` → `SHIPPING` + `expiresAt`.  
+  - Buyer **không** được hủy khi WAREHOUSE.
 - **`DIRECT`**: Xe **chưa kiểm định** (UNVERIFIED).  
-  - Sau thanh toán: `status = PENDING_SELLER_SHIP`, **không** giả lập đã về kho.  
-  - Seller: `PUT .../ship-to-buyer` → `SHIPPING`.  
-  - **Không** đưa vào `warehouse-pending` / `re-inspection`.  
+  - Sau thanh toán: `status = PENDING_SELLER_SHIP`.  
+  - Seller: `PUT .../ship-to-buyer` → `SHIPPING` + `expiresAt`.  
+  - Buyer có thể hủy khi RESERVED / PENDING_SELLER_SHIP.  
   - `confirm-warehouse` trả 400 nếu `DIRECT`.
 
-Logic gốc Node: `buyerController.js` — `listingUsesWarehouseFlow()` / `listingNeedsUnverifiedDisclaimer()`.
+Logic gốc Node: `buyerController.js` — `listingUsesWarehouseFlow()`.
 
-### 5.2 Query admin warehouse & re-inspection
+### 5.2 Thanh toán — chỉ VNPAY
 
-Chỉ đơn có `fulfillmentType` là `WAREHOUSE` hoặc field không tồn tại (legacy) — xem `adminController.js` (`WAREHOUSE_ONLY_FILTER`).
+- **Bỏ CASH/COD.** Tạo đơn: `POST /api/buyer/orders/vnpay-checkout` (plan DEPOSIT hoặc FULL).  
+- IPN hoặc Return URL cập nhật `depositPaid`, `vnpayPaymentStatus = PAID`.  
+- `confirm-warehouse` cho AT_WAREHOUSE_PENDING_ADMIN: yêu cầu `depositPaid` hoặc `vnpayPaymentStatus === "PAID"`.
 
-### 5.3 Seller `GET /orders`
+### 5.3 Query admin warehouse & re-inspection
+
+Chỉ đơn có `fulfillmentType` là `WAREHOUSE` — xem `adminController.js` (`WAREHOUSE_ONLY_FILTER`).
+
+### 5.4 Seller `GET /orders`
 
 Hai nhánh trong `$or` (Node):  
 - Kho: `SELLER_SHIPPED` / `AT_WAREHOUSE_PENDING_ADMIN` và **không** `DIRECT`.  
 - Direct: `PENDING_SELLER_SHIP` và `DIRECT`.
+
+### 5.5 `GET /bikes/:id` và Finalize
+
+- `GET /bikes/:id` chỉ trả listing **PUBLISHED**. Khi order RESERVED, listing → RESERVED nên API 404.  
+- Finalize page (`/finalize/:id?orderId=xxx`): FE **ưu tiên** lấy listing từ `order.listing` (snapshot) khi có `orderId`. Không phụ thuộc `GET /bikes/:id` cho tin đã reserved.  
+- Bỏ form nhập địa chỉ/giao hàng ở Finalize — buyer đã nhập ở checkout.
 
 ---
 

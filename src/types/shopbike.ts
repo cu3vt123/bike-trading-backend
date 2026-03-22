@@ -5,6 +5,9 @@ export type InspectionResult = "APPROVE" | "REJECT" | "NEED_UPDATE";
 export type ListingState =
   | "DRAFT"
   | "PENDING_INSPECTION"
+  | "AWAITING_WAREHOUSE"
+  | "AT_WAREHOUSE_PENDING_VERIFY"
+  | "AT_WAREHOUSE_PENDING_RE_INSPECTION"
   | "NEED_UPDATE"
   | "PUBLISHED"
   | "RESERVED"
@@ -28,6 +31,7 @@ export type Currency = "VND" | "USD";
 export type CertificationStatus =
   | "UNVERIFIED"
   | "PENDING_CERTIFICATION"
+  | "PENDING_WAREHOUSE"
   | "CERTIFIED";
 
 export type Listing = {
@@ -52,6 +56,10 @@ export type Listing = {
   state: ListingState;
   inspectionResult?: InspectionResult | null;
   certificationStatus?: CertificationStatus;
+  /** Seller đã báo gửi xe tới kho (sau duyệt online) */
+  sellerShippedToWarehouseAt?: string | null;
+  /** Admin đã xác nhận xe tại kho khớp ảnh */
+  warehouseIntakeVerifiedAt?: string | null;
   publishedAt?: string;
   listingExpiresAt?: string;
   inspectionScore?: number;
@@ -74,11 +82,9 @@ export type BikeDetail = Listing & {
   seller?: { id?: string; name?: string; email?: string };
 };
 
-/** Đã kiểm định / certified (legacy: inspection APPROVE) */
+/** Đã có mác kiểm định — chỉ theo certificationStatus (không dùng inspectionResult một mình). */
 export function isListingCertified(item: Listing): boolean {
-  if (item.certificationStatus === "CERTIFIED") return true;
-  if (item.inspectionResult === "APPROVE") return true;
-  return false;
+  return item.certificationStatus === "CERTIFIED";
 }
 
 /** Tin đang bán trên sàn nhưng chưa certified — buyer cần disclaimer */

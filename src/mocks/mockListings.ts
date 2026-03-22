@@ -14,6 +14,7 @@ export const MOCK_LISTINGS: Listing[] = [
     msrp: 8950,
     currency: "VND",
     state: "PUBLISHED",
+    certificationStatus: "CERTIFIED",
     inspectionResult: "APPROVE",
     inspectionScore: 4.6,
     inspectionReport: {
@@ -47,6 +48,7 @@ export const MOCK_LISTINGS: Listing[] = [
     price: 3100,
     currency: "VND",
     state: "PUBLISHED",
+    certificationStatus: "CERTIFIED",
     inspectionResult: "APPROVE",
     inspectionScore: 4.2,
     inspectionReport: {

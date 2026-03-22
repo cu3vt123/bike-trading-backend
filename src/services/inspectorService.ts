@@ -3,6 +3,7 @@
  * Có timeout để tránh load mãi khi backend treo.
  */
 import { inspectorApi } from "@/apis/inspectorApi";
+import { adminApi } from "@/apis/adminApi";
 import type { Listing } from "@/types/shopbike";
 import { USE_MOCK_API } from "@/lib/apiConfig";
 
@@ -51,8 +52,11 @@ export async function fetchPendingListings(): Promise<Listing[]> {
       FETCH_TIMEOUT_MS,
       "Backend không phản hồi.",
     );
-  } catch {
-    return MOCK_PENDING;
+  } catch (e) {
+    console.warn("[inspector] fetchPendingListings failed:", e);
+    const msg =
+      e instanceof Error ? e.message : "Không tải được danh sách chờ kiểm định.";
+    throw new Error(msg);
   }
 }
 
@@ -75,4 +79,15 @@ export async function rejectListing(id: string): Promise<void> {
 export async function needUpdateListing(id: string, reason?: string): Promise<void> {
   if (USE_MOCK) return;
   await inspectorApi.needUpdate(id, reason);
+}
+
+/** Tin tại kho chờ inspector xác nhận lại (Bước 6) — Admin đã xác nhận xe tới. */
+export async function fetchWarehouseReInspectionListings(): Promise<Listing[]> {
+  if (USE_MOCK) return [];
+  try {
+    const all = await adminApi.getPendingWarehouseIntakeListings();
+    return all.filter((l) => l.state === "AT_WAREHOUSE_PENDING_RE_INSPECTION");
+  } catch {
+    return [];
+  }
 }

@@ -48,6 +48,8 @@ Checklist mở rộng: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.
 
 | File | Nội dung |
 |------|----------|
+| **[docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc `backend/src`, Mongo + SQLite, `.env`, auth, thêm API, VietQR/VNPay, curl mẫu. |
+| [docs/USER-REQUIREMENTS.md](docs/USER-REQUIREMENTS.md) | **User requirements (UR)** — yêu cầu theo stakeholder (Must/Should), trace tài liệu kỹ thuật. |
 | `docs/ERD.md` | ERD – MongoDB entities + SQL schema (User, Listing, Order, Review, Brand). |
 | `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen Flow từng Actor – luồng người dùng, endpoint tương ứng. |
 | `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md` | State diagram Order/Listing/Review. |

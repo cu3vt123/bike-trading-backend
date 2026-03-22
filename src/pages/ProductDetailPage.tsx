@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
-
 const INSPECTION_ROW_KEYS = {
   frameIntegrity: "listing.inspectionFrameIntegrity",
   drivetrainHealth: "listing.inspectionDrivetrain",
@@ -247,7 +246,7 @@ export default function ProductDetailPage() {
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-2">
               {showVerifiedBadge && (
-                <Badge variant="default" className="border-0 bg-blue-600 text-white hover:bg-blue-600/90">
+                <Badge variant="default" className="border-0 bg-emerald-600 text-white hover:bg-emerald-600/90">
                   <Shield className="mr-1 h-3 w-3" />
                   {t("seller.listingCertified")}
                 </Badge>
@@ -280,7 +279,7 @@ export default function ProductDetailPage() {
               <p className="mt-2 text-xs text-orange-800 dark:text-orange-200/90">{t("seller.listingUnverifiedHint")}</p>
             )}
             {showVerifiedBadge && (
-              <p className="mt-1 text-xs text-blue-800 dark:text-blue-200/90">{t("seller.listingCertifiedHint")}</p>
+              <p className="mt-1 text-xs text-emerald-800 dark:text-emerald-200/90">{t("seller.listingCertifiedHint")}</p>
             )}
           </div>
 
@@ -425,7 +424,7 @@ export default function ProductDetailPage() {
                   <div
                     className={`rounded-lg px-3 py-2 text-center ${
                       isCertified
-                        ? "bg-blue-600/15 text-blue-800 dark:text-blue-200"
+                        ? "bg-emerald-600/15 text-emerald-800 dark:text-emerald-200"
                         : isPendingInspection
                           ? "bg-warning/15 text-warning"
                           : isUnverifiedPublished

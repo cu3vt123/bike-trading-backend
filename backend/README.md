@@ -2,7 +2,14 @@
 
 Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppingCartBE`.
 
-Tài liệu liên quan: `docs/ERD.md`, `docs/SCREEN_FLOW_BY_ACTOR.md`, **`docs/BACKEND-NODE-TO-SPRING-BOOT.md`** (port sang Spring Boot).
+### Tài liệu hướng dẫn (đọc trước khi sửa code)
+
+| Tài liệu | Nội dung |
+|----------|----------|
+| **[docs/BACKEND-GUIDE.md](../docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc thư mục, Mongo, env, auth, thêm API, VNPAY Sandbox, kiểm tra nhanh |
+| [docs/USER-REQUIREMENTS.md](../docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR) — đối chiếu chức năng |
+| [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port flow Express → Spring Boot |
+| `docs/ERD.md`, `docs/SCREEN_FLOW_BY_ACTOR.md` | ERD, luồng màn hình |
 
 ## Quick start (no Mongo install required)
 
@@ -18,6 +25,12 @@ npm run dev
 ```
 
 API runs at `http://localhost:8081/api`.
+
+## VNPAY Sandbox (không dùng VietQR)
+
+- Biến môi trường: `VNP_TMNCODE`, `VNP_HASHSECRET`, `VNP_PAYURL`, `VNP_RETURNURL`, `VNP_IPNURL` (xem `backend/.env.example`, chi tiết `docs/VNPAY-SANDBOX-HOC-TAP.md`).
+- **Public routes (không prefix `/api`):** `POST /payment/create`, `GET /payment/vnpay-return`, `GET /payment/vnpay-ipn`.
+- Checkout buyer: `POST /api/buyer/orders/vnpay-checkout` (JWT) → `paymentUrl` redirect cổng sandbox.
 
 ## Run with real MongoDB (optional)
 
@@ -45,19 +58,19 @@ API runs at `http://localhost:8081/api`.
 - `GET /api/bikes/:id`
 
 ### Buyer (orders – requires BUYER login)
-- `POST /api/buyer/orders` – tạo đơn; body: `listingId`, `plan`, `shippingAddress`, optional `acceptedUnverifiedDisclaimer` (bắt buộc nếu listing UNVERIFIED). Set `fulfillmentType` **WAREHOUSE** (xe đã kiểm định) hoặc **DIRECT** (chưa kiểm định) + `status` tương ứng.
+- `POST /api/buyer/orders/vnpay-checkout` – tạo đơn chờ thanh toán VNPAY (`vnpayPaymentStatus: PENDING_PAYMENT`, `depositPaid: false`) + trả `paymentUrl` (TxnRef `B` + `orderId`). IPN hoặc Return URL cập nhật **PAID** / **FAILED**. Plan DEPOSIT (8%) hoặc FULL.
 - `GET /api/buyer/orders` – danh sách đơn của buyer
 - `GET /api/buyer/orders/:id` – chi tiết đơn (có `fulfillmentType`)
 - `PUT /api/buyer/orders/:id/complete` – hoàn tất khi `status === SHIPPING` → `COMPLETED`, listing → SOLD
-- `PUT /api/buyer/orders/:id/cancel` – hủy: RESERVED / IN_TRANSACTION / (PENDING_SELLER_SHIP + DIRECT)
+- `PUT /api/buyer/orders/:id/cancel` – hủy chỉ khi `fulfillmentType === DIRECT`. Không hủy khi WAREHOUSE.
 - `POST /api/buyer/orders/:id/review` – tạo review sau giao dịch
 - `GET /api/buyer/reviews` – reviews của buyer
 
 ### Buyer (payments – requires BUYER login)
-- `POST /api/buyer/payments/initiate` – validate card/bank details (demo sandbox), returns paymentMethod metadata
+- `POST /api/buyer/payments/initiate` – legacy CASH. **Thanh toán chỉ qua VNPAY** (`orders/vnpay-checkout`).
 
 ### Packages & subscription (seller)
-- `GET /api/packages` — catalog gói Basic/VIP, gợi ý Postpay/VNPay
+- `GET /api/packages` — catalog gói Basic/VIP, gợi ý VNPay
 - `POST /api/seller/subscription/checkout` — tạo đơn thanh toán gói (demo URL)
 - `POST /api/seller/subscription/orders/:orderId/mock-complete` — **dev only**: kích hoạt gói 30 ngày
 
@@ -66,6 +79,7 @@ API runs at `http://localhost:8081/api`.
 - `GET /api/seller/ratings` — tổng hợp đánh giá
 - `GET /api/seller/orders` — đơn cần xử lý (kho: SELLER_SHIPPED / AT_WAREHOUSE…; direct: PENDING_SELLER_SHIP + DIRECT)
 - `PUT /api/seller/orders/:orderId/ship-to-buyer` — chỉ **DIRECT** + **PENDING_SELLER_SHIP** → SHIPPING
+- `PUT /api/seller/listings/:id/mark-shipped-to-warehouse` — sau duyệt online: **AWAITING_WAREHOUSE** → **AT_WAREHOUSE_PENDING_VERIFY**
 - `GET /api/seller/listings`
 - `GET /api/seller/listings/:id`
 - `POST /api/seller/listings`
@@ -76,7 +90,7 @@ API runs at `http://localhost:8081/api`.
 ### Inspector
 - `GET /api/inspector/pending-listings`
 - `GET /api/inspector/listings/:id`
-- `PUT /api/inspector/listings/:id/approve`
+- `PUT /api/inspector/listings/:id/approve` — vòng 1 (online): tin → `AWAITING_WAREHOUSE` + `PENDING_WAREHOUSE` (chưa lên sàn)
 - `PUT /api/inspector/listings/:id/reject`
 - `PUT /api/inspector/listings/:id/need-update`
 
@@ -84,8 +98,10 @@ API runs at `http://localhost:8081/api`.
 - `GET /api/brands`
 
 ### Admin
-- `GET /api/admin/orders/warehouse-pending` — chỉ đơn luồng **kho** (không DIRECT)
-- `PUT /api/admin/orders/:id/confirm-warehouse` — từ chối nếu DIRECT
+- `GET /api/admin/listings/pending-warehouse-intake` — tin kiểm định **AT_WAREHOUSE_PENDING_VERIFY** (seller đã báo gửi xe)
+- `PUT /api/admin/listings/:id/confirm-warehouse-intake` — xác nhận xe khớp ảnh → **PUBLISHED** + **CERTIFIED** + `warehouseIntakeVerifiedAt`
+- `GET /api/admin/orders/warehouse-pending` — SELLER_SHIPPED, AT_WAREHOUSE_PENDING_ADMIN (chỉ WAREHOUSE)
+- `PUT /api/admin/orders/:id/confirm-warehouse` — AT_WAREHOUSE_PENDING_ADMIN + depositPaid → **SHIPPING** trực tiếp + `expiresAt`. SELLER_SHIPPED → RE_INSPECTION. Từ chối nếu DIRECT.
 - `GET /api/admin/orders/re-inspection`
 - `PUT /api/admin/orders/:id/re-inspection-done`
 - `GET /api/admin/dashboard/stats`

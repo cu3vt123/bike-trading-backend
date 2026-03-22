@@ -4,7 +4,7 @@ const PackageOrderSchema = new mongoose.Schema(
   {
     sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     plan: { type: String, required: true, enum: ["BASIC", "VIP"] },
-    provider: { type: String, required: true, enum: ["POSTPAY", "VNPAY"] },
+    provider: { type: String, required: true, enum: ["VNPAY"] },
     amountVnd: { type: Number, required: true },
     status: {
       type: String,
@@ -12,7 +12,7 @@ const PackageOrderSchema = new mongoose.Schema(
       enum: ["PENDING", "COMPLETED", "FAILED"],
       default: "PENDING",
     },
-    /** URL sandbox (Postpay / VNPay) — demo: frontend callback */
+    /** URL sandbox VNPay — demo: frontend callback */
     paymentUrl: { type: String, default: "" },
   },
   { timestamps: true },

@@ -14,6 +14,8 @@ export type AdminStats = {
   totalOrders: number;
   ordersPendingWarehouse: number;
   ordersReInspection: number;
+  /** Tin đăng chờ admin xác nhận xe tại kho (seller đã gửi xe sau duyệt kiểm định) */
+  listingsPendingWarehouseIntake?: number;
 };
 
 export type AdminUser = {
@@ -25,6 +27,33 @@ export type AdminUser = {
   hiddenAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  subscriptionPlan?: string;
+  subscriptionExpiresAt?: string | null;
+};
+
+export type AdminSubscriptionSummary = {
+  active: boolean;
+  plan: string | null;
+  expiresAt: string | null;
+  publishedSlotsUsed: number;
+  publishedSlotsLimit: number;
+  listingDurationDays: number;
+};
+
+export type AdminPackageOrderRow = {
+  id: string;
+  sellerId: string;
+  plan: string;
+  provider: string;
+  amountVnd: number;
+  status: string;
+  createdAt?: string;
+};
+
+export type AdminSellerSubscriptionRow = {
+  user: AdminUser;
+  subscription: AdminSubscriptionSummary;
+  recentPackageOrders: AdminPackageOrderRow[];
 };
 
 export const adminApi = {
@@ -58,6 +87,25 @@ export const adminApi = {
       .get(API_PATHS.ADMIN.USERS)
       .then((r) => r.data?.data ?? r.data ?? []),
 
+  getSellerSubscriptions: (params?: {
+    q?: string;
+    limit?: number;
+  }): Promise<AdminSellerSubscriptionRow[]> =>
+    apiClient
+      .get(API_PATHS.ADMIN.SELLER_SUBSCRIPTIONS, { params })
+      .then((r) => r.data?.data ?? r.data ?? []),
+
+  revokeSellerSubscription: (
+    userId: string,
+  ): Promise<{
+    user: AdminUser;
+    subscription: AdminSubscriptionSummary;
+    revoked: boolean;
+  }> =>
+    apiClient
+      .put(API_PATHS.ADMIN.REVOKE_SELLER_SUBSCRIPTION(userId))
+      .then((r) => r.data?.data ?? r.data),
+
   hideUser: (id: string): Promise<AdminUser> =>
     apiClient
       .put(API_PATHS.ADMIN.HIDE_USER(id))
@@ -66,6 +114,24 @@ export const adminApi = {
   unhideUser: (id: string): Promise<AdminUser> =>
     apiClient
       .put(API_PATHS.ADMIN.UNHIDE_USER(id))
+      .then((r) => r.data?.data ?? r.data),
+
+  getPendingWarehouseIntakeListings: (): Promise<Listing[]> =>
+    apiClient
+      .get(API_PATHS.ADMIN.LISTINGS_PENDING_WAREHOUSE_INTAKE)
+      .then((r) => r.data?.data ?? r.data ?? []),
+
+  confirmWarehouseIntake: (listingId: string): Promise<Listing> =>
+    apiClient
+      .put(API_PATHS.ADMIN.CONFIRM_WAREHOUSE_INTAKE(listingId))
+      .then((r) => r.data?.data ?? r.data),
+
+  confirmWarehouseReInspection: (
+    listingId: string,
+    body: { action: "approve" | "need_update"; reason?: string },
+  ): Promise<Listing> =>
+    apiClient
+      .put(API_PATHS.ADMIN.CONFIRM_WAREHOUSE_RE_INSPECTION(listingId), body)
       .then((r) => r.data?.data ?? r.data),
 
   getListings: (): Promise<Listing[]> =>

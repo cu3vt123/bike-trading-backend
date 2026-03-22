@@ -6,12 +6,16 @@ export function created(res, data) {
   return res.status(201).json({ data });
 }
 
-export function badRequest(res, message = "Bad request") {
-  return res.status(400).json({ message });
+export function badRequest(res, message = "Bad request", code) {
+  const body = { message };
+  if (code) body.code = code;
+  return res.status(400).json(body);
 }
 
-export function unauthorized(res, message = "Unauthorized") {
-  return res.status(401).json({ message });
+export function unauthorized(res, message = "Unauthorized", code) {
+  const body = { message };
+  if (code) body.code = code;
+  return res.status(401).json(body);
 }
 
 export function forbidden(res, message = "Forbidden") {
@@ -20,5 +24,9 @@ export function forbidden(res, message = "Forbidden") {
 
 export function notFound(res, message = "Not found") {
   return res.status(404).json({ message });
+}
+
+export function serviceUnavailable(res, message = "Service unavailable") {
+  return res.status(503).json({ message });
 }
 

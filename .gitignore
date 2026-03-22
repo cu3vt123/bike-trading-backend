@@ -14,6 +14,8 @@ dist-ssr
 .env
 .env.local
 backend/.env
+backend/data/*.sqlite
+backend/data/*.sqlite-*
 
 # Editor directories and files
 .vscode/*

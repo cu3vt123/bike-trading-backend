@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { syncSellerOrderNotifications } from "@/services/sellerService";
+import { syncAdminOrderNotifications } from "@/services/adminService";
 import { Trash2 } from "lucide-react";
 
 export default function NotificationsPage() {
@@ -25,17 +26,28 @@ export default function NotificationsPage() {
   const readCount = myItems.filter((x) => x.read).length;
 
   async function handleCheckNewOrders() {
-    if (role !== "SELLER") return;
-    setSyncing(true);
-    try {
-      await syncSellerOrderNotifications(t);
-    } finally {
-      setSyncing(false);
+    if (role === "SELLER") {
+      setSyncing(true);
+      try {
+        await syncSellerOrderNotifications(t);
+      } finally {
+        setSyncing(false);
+      }
+      return;
+    }
+    if (role === "ADMIN") {
+      setSyncing(true);
+      try {
+        await syncAdminOrderNotifications(t);
+      } finally {
+        setSyncing(false);
+      }
     }
   }
 
   useEffect(() => {
     if (role === "SELLER") syncSellerOrderNotifications(t);
+    if (role === "ADMIN") syncAdminOrderNotifications(t);
   }, [role, t]);
 
   return (
@@ -48,7 +60,7 @@ export default function NotificationsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {role === "SELLER" && (
+          {(role === "SELLER" || role === "ADMIN") && (
             <Button
               variant="default"
               size="sm"

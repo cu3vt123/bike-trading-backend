@@ -11,6 +11,9 @@ import { createReview } from "@/services/reviewService";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
 type PaymentMethod =
+  | { type: "CASH" }
+  | { type: "VNPAY_QR"; ref?: string }
+  | { type: "VNPAY_SANDBOX"; ref?: string }
   | { type: "CARD"; brand: "Visa" | "Mastercard"; last4: string }
   | { type: "BANK_TRANSFER" };
 
@@ -32,6 +35,9 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
 
 function formatPaymentMethod(pm: PaymentMethod | undefined, t: (k: string) => string) {
   if (!pm) return "—";
+  if (pm.type === "CASH") return t("transaction.payCash");
+  if (pm.type === "VNPAY_QR") return t("transaction.payVnpayQr");
+  if (pm.type === "VNPAY_SANDBOX") return t("transaction.payOnlineVnpay");
   if (pm.type === "CARD") return `${pm.brand} •••• ${pm.last4}`;
   return t("checkout.successBankTransfer");
 }
@@ -84,6 +90,8 @@ export default function PurchaseSuccessPage() {
         type: "success",
         title: t("checkout.successPurchaseTitle"),
         message: t("checkout.successOrderConfirmedMsg"),
+        titleKey: "checkout.successPurchaseTitle",
+        messageKey: "checkout.successOrderConfirmedMsg",
         link: "/profile",
         sourceKey: `order-success-${state.orderId}`,
       });
@@ -120,6 +128,8 @@ export default function PurchaseSuccessPage() {
         type: "success",
         title: t("checkout.successReviewSubmittedTitle"),
         message: t("checkout.successReviewSubmittedMsg"),
+        titleKey: "checkout.successReviewSubmittedTitle",
+        messageKey: "checkout.successReviewSubmittedMsg",
         link: "/profile",
       });
     } catch (err) {
@@ -132,6 +142,7 @@ export default function PurchaseSuccessPage() {
         type: "error",
         title: t("checkout.successReviewFailTitle"),
         message: msg,
+        titleKey: "checkout.successReviewFailTitle",
         link: "/profile",
       });
     } finally {

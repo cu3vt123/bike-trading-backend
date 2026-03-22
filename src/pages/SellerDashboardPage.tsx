@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Package, Star } from "lucide-react";
@@ -23,6 +23,7 @@ import {
   fetchSellerDashboardOrders,
   fetchSellerRatings,
   shipOrderToBuyer,
+  markListingShippedToWarehouse,
   syncSellerOrderNotifications,
 } from "@/services/sellerService";
 import type { SellerRatingsSummary } from "@/apis/sellerApi";
@@ -38,6 +39,9 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
 const LISTING_STATE_KEYS: Partial<Record<ListingState, string>> = {
   DRAFT: "seller.stateDraft",
   PENDING_INSPECTION: "seller.statePendingReview",
+  AWAITING_WAREHOUSE: "seller.stateAwaitingWarehouse",
+  AT_WAREHOUSE_PENDING_VERIFY: "seller.stateAtWarehousePendingVerify",
+  AT_WAREHOUSE_PENDING_RE_INSPECTION: "seller.stateAtWarehousePendingReInspection",
   NEED_UPDATE: "seller.stateNeedUpdate",
   PUBLISHED: "seller.statePublished",
   REJECTED: "seller.stateRejected",
@@ -52,6 +56,11 @@ function stateLabel(state: ListingState, t: (k: string) => string) {
     case "DRAFT":
       return { text, cls: "bg-muted text-foreground border-border" };
     case "PENDING_INSPECTION":
+      return { text, cls: "bg-warning/15 text-warning border-warning/30" };
+    case "AWAITING_WAREHOUSE":
+      return { text, cls: "bg-primary/10 text-primary border-primary/30" };
+    case "AT_WAREHOUSE_PENDING_VERIFY":
+    case "AT_WAREHOUSE_PENDING_RE_INSPECTION":
       return { text, cls: "bg-warning/15 text-warning border-warning/30" };
     case "NEED_UPDATE":
       return { text, cls: "bg-destructive/10 text-destructive border-destructive/30" };
@@ -72,6 +81,14 @@ function getBikeLabel(o: Order): string {
   if (l?.brand && l?.model) return `${l.brand} ${l.model}`;
   if (l?.title) return l.title;
   return o.listingId;
+}
+
+function getOrderForListing(orders: Order[], listingId: string): Order | undefined {
+  return orders.find(
+    (o) =>
+      o.listingId === listingId ||
+      (o.listing as { id?: string } | undefined)?.id === listingId,
+  );
 }
 
 function StatCard({
@@ -102,6 +119,7 @@ export default function SellerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [packageDialogOpen, setPackageDialogOpen] = useState(false);
   const [shippingOrderId, setShippingOrderId] = useState<string | null>(null);
+  const [markShippedListingId, setMarkShippedListingId] = useState<string | null>(null);
   const subscription = useSellerSubscriptionStore((s) => s.subscription);
   const setSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
 
@@ -157,6 +175,20 @@ export default function SellerDashboardPage() {
     }
   }
 
+  async function onMarkListingShippedToWarehouse(listingId: string) {
+    setMarkShippedListingId(listingId);
+    try {
+      await markListingShippedToWarehouse(listingId);
+      const dash = await fetchSellerDashboard();
+      setStats(dash.stats);
+      setListings(dash.listings);
+    } catch {
+      /* toast optional */
+    } finally {
+      setMarkShippedListingId(null);
+    }
+  }
+
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl py-12">
@@ -180,13 +212,21 @@ export default function SellerDashboardPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onCreateListingClick}
-          className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          {t("seller.createNew")}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/seller/packages"
+            className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
+          >
+            {t("seller.packageBuy")}
+          </Link>
+          <button
+            type="button"
+            onClick={onCreateListingClick}
+            className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            {t("seller.createNew")}
+          </button>
+        </div>
       </div>
 
       <Dialog open={packageDialogOpen} onOpenChange={setPackageDialogOpen}>
@@ -238,13 +278,129 @@ export default function SellerDashboardPage() {
 
             <div className="divide-y divide-border">
               {listings.map((x) => {
-                const badge = stateLabel(x.state, t);
-                const canEdit =
-                  x.state === "DRAFT" || x.state === "NEED_UPDATE";
+                const orderForListing = getOrderForListing(orders, x.id);
                 const needUpdateReason =
                   x.state === "NEED_UPDATE"
                     ? (x as any).inspectionNeedUpdateReason || ""
                     : "";
+                const canEdit =
+                  x.state === "DRAFT" || x.state === "NEED_UPDATE";
+
+                let badge = stateLabel(x.state, t);
+                let actionNode: ReactNode = null;
+
+                if (orderForListing) {
+                  const o = orderForListing;
+                  const isPaid = o.depositPaid === true || o.status === "COMPLETED";
+                  const isWarehouse = o.fulfillmentType === "WAREHOUSE";
+                  const needsShip =
+                    o.fulfillmentType === "DIRECT" && o.status === "PENDING_SELLER_SHIP";
+
+                  if (needsShip) {
+                    badge = { text: t("seller.stateDepositPaidAwaitShip"), cls: "bg-warning/15 text-warning border-warning/30" };
+                    actionNode = (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="w-full max-w-[11rem]"
+                        disabled={shippingOrderId === o.id}
+                        onClick={() => onShipToBuyer(o.id)}
+                      >
+                        {shippingOrderId === o.id ? t("seller.shippingToBuyer") : t("seller.confirmShipToBuyer")}
+                      </Button>
+                    );
+                  } else if (isWarehouse && (o.status === "RESERVED" || o.status === "AT_WAREHOUSE_PENDING_ADMIN")) {
+                    badge = { text: t("seller.stateAwaitWarehouseShip"), cls: "bg-warning/15 text-warning border-warning/30" };
+                    actionNode = (
+                      <span className="inline-flex cursor-default rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                        {t("seller.actionAwaitWarehouseShip")}
+                      </span>
+                    );
+                  } else if (o.status === "RESERVED" || o.status === "IN_TRANSACTION") {
+                    if (!isPaid) {
+                      badge = { text: t("seller.stateAwaitDeposit"), cls: "bg-muted text-muted-foreground border-border" };
+                      actionNode = (
+                        <span className="inline-flex cursor-default rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                          {t("seller.actionAwaitDeposit")}
+                        </span>
+                      );
+                    } else {
+                      badge = { text: t("seller.stateDepositPaidAwaitShip"), cls: "bg-warning/15 text-warning border-warning/30" };
+                      actionNode = (
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="w-full max-w-[11rem]"
+                          disabled={shippingOrderId === o.id}
+                          onClick={() => onShipToBuyer(o.id)}
+                        >
+                          {shippingOrderId === o.id ? t("seller.shippingToBuyer") : t("seller.confirmShipToBuyer")}
+                        </Button>
+                      );
+                    }
+                  } else if (o.status === "SHIPPING") {
+                    badge = { text: t("seller.stateShippedToBuyer"), cls: "bg-primary/10 text-primary border-primary/30" };
+                    actionNode = (
+                      <span className="inline-flex cursor-default rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                        {t("seller.actionShipped")}
+                      </span>
+                    );
+                  } else if (o.status === "COMPLETED") {
+                    badge = { text: t("seller.stateOrderCompleted"), cls: "bg-primary/10 text-primary border-primary/30" };
+                    actionNode = (
+                      <span className="inline-flex cursor-default rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                        {t("seller.actionCompleted")}
+                      </span>
+                    );
+                  } else {
+                    actionNode = (
+                      <button type="button" disabled className="inline-flex cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                        {t("seller.lock")}
+                      </button>
+                    );
+                  }
+                } else {
+                  if (x.state === "AWAITING_WAREHOUSE") {
+                    actionNode = (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="w-full max-w-[11rem]"
+                        disabled={markShippedListingId === x.id}
+                        onClick={() => onMarkListingShippedToWarehouse(x.id)}
+                      >
+                        {markShippedListingId === x.id
+                          ? t("seller.markShippedToWarehouseSending")
+                          : t("seller.markShippedToWarehouse")}
+                      </Button>
+                    );
+                  } else if (x.state === "AT_WAREHOUSE_PENDING_VERIFY" || x.state === "AT_WAREHOUSE_PENDING_RE_INSPECTION") {
+                    actionNode = (
+                      <span className="max-w-[11rem] text-right text-xs text-muted-foreground">
+                        {t("seller.waitingWarehouseVerify")}
+                      </span>
+                    );
+                  } else if (canEdit) {
+                    actionNode = (
+                      <Link
+                        to={`/seller/listings/${x.id}/edit`}
+                        className="inline-flex rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+                      >
+                        {t("seller.edit")}
+                      </Link>
+                    );
+                  } else {
+                    actionNode = (
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+                      >
+                        {t("seller.lock")}
+                      </button>
+                    );
+                  }
+                }
 
                 return (
                   <div
@@ -288,22 +444,8 @@ export default function SellerDashboardPage() {
                       </span>
                     </div>
 
-                    <div className="col-span-2 text-right">
-                      {canEdit ? (
-                        <Link
-                          to={`/seller/listings/${x.id}/edit`}
-                          className="inline-flex rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
-                        >
-                          {t("seller.edit")}
-                        </Link>
-                      ) : (
-                        <button
-                          disabled
-                          className="inline-flex cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
-                        >
-                          {t("seller.lock")}
-                        </button>
-                      )}
+                    <div className="col-span-2 flex flex-col items-end gap-2 text-right">
+                      {actionNode}
                     </div>
                   </div>
                 );

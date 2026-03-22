@@ -9,10 +9,25 @@ import { fetchMyOrders } from "@/services/buyerService";
 import { authApi } from "@/apis/authApi";
 import type { Order, OrderStatus } from "@/types/order";
 
-/** Trạng thái hiển thị: đơn COMPLETED nhưng chưa có warehouseConfirmedAt → coi như đang giao tới kho (chờ admin xác nhận). */
+/** Trạng thái đơn trong giai đoạn chuẩn bị giao (dùng cho đơn cũ từ backend). */
+const IN_PROGRESS_PHASE: OrderStatus[] = [
+  "PENDING_SELLER_SHIP",
+  "SELLER_SHIPPED",
+  "AT_WAREHOUSE_PENDING_ADMIN",
+  "RE_INSPECTION",
+  "RE_INSPECTION_DONE",
+  "SHIPPING",
+];
+
 function getOrderDisplayStatus(o: Order): OrderStatus {
-  if (o.status === "COMPLETED" && !o.warehouseConfirmedAt) return "SELLER_SHIPPED";
   return o.status;
+}
+
+function getBuyerStatusLabel(displayStatus: OrderStatus, t: (k: string) => string): string {
+  if (IN_PROGRESS_PHASE.includes(displayStatus)) {
+    return t("transaction.waitingForShippingLabel");
+  }
+  return t(`order.status${displayStatus}` as "order.statusRESERVED") ?? displayStatus;
 }
 
 export default function BuyerProfilePage() {
@@ -195,8 +210,7 @@ export default function BuyerProfilePage() {
                     const displayStatus = getOrderDisplayStatus(o);
                     const isPending =
                       o.status === "RESERVED" || o.status === "IN_TRANSACTION";
-                    const isCompletedAndConfirmed =
-                      o.status === "COMPLETED" && !!o.warehouseConfirmedAt;
+                    const isCompleted = o.status === "COMPLETED";
                     const inProgressStatuses = [
                       "PENDING_SELLER_SHIP",
                       "SELLER_SHIPPED",
@@ -219,7 +233,7 @@ export default function BuyerProfilePage() {
                             expiresAt: o.expiresAt
                               ? new Date(o.expiresAt).getTime()
                               : Date.now() + 24 * 60 * 60 * 1000,
-                            paymentMethod: { type: "BANK_TRANSFER" as const },
+                            paymentMethod: { type: "CASH" as const },
                             totals: {
                               deposit:
                                 o.depositAmount ??
@@ -256,7 +270,7 @@ export default function BuyerProfilePage() {
                         </div>
                         <div className="col-span-2 flex justify-end">
                           <Badge variant={isPending ? "secondary" : "default"}>
-                            {t(`order.status${displayStatus}` as "order.statusRESERVED") ?? displayStatus}
+                            {getBuyerStatusLabel(displayStatus, t)}
                           </Badge>
                         </div>
                         <div className="col-span-2 flex justify-end">
@@ -278,13 +292,9 @@ export default function BuyerProfilePage() {
                                 {t("profile.viewProgress")}
                               </Link>
                             </Button>
-                          ) : isCompletedAndConfirmed ? (
+                          ) : isCompleted ? (
                             <span className="text-xs text-muted-foreground">
                               {t("profile.completed")}
-                            </span>
-                          ) : o.status === "COMPLETED" && !o.warehouseConfirmedAt ? (
-                            <span className="text-xs text-muted-foreground">
-                              {t("profile.pendingAdminConfirm")}
                             </span>
                           ) : null}
                         </div>

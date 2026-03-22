@@ -24,6 +24,12 @@ const ListingSchema = new mongoose.Schema(
       enum: [
         "DRAFT",
         "PENDING_INSPECTION",
+        /** Đã duyệt online; seller phải gửi xe thật tới kho */
+        "AWAITING_WAREHOUSE",
+        /** Seller đã báo gửi; admin xác nhận xe tới kho */
+        "AT_WAREHOUSE_PENDING_VERIFY",
+        /** Admin đã xác nhận xe tới; inspector xác nhận lần 2 tại kho */
+        "AT_WAREHOUSE_PENDING_RE_INSPECTION",
         "NEED_UPDATE",
         "PUBLISHED",
         "RESERVED",
@@ -55,12 +61,21 @@ const ListingSchema = new mongoose.Schema(
     },
     isHidden: { type: Boolean, default: false, index: true },
     hiddenAt: { type: Date, default: null },
-    /** UNVERIFIED = lên sàn chưa kiểm định; CERTIFIED = đã inspector duyệt; PENDING_CERTIFICATION = chờ duyệt */
+    /**
+     * UNVERIFIED = lên sàn không kiểm định;
+     * PENDING_CERTIFICATION = chờ duyệt online;
+     * PENDING_WAREHOUSE = đã duyệt online, chờ gửi xe / xác nhận tại kho;
+     * CERTIFIED = đủ 2 vòng (online + kho khớp ảnh), được bán luồng kho.
+     */
     certificationStatus: {
       type: String,
-      enum: ["UNVERIFIED", "PENDING_CERTIFICATION", "CERTIFIED"],
+      enum: ["UNVERIFIED", "PENDING_CERTIFICATION", "PENDING_WAREHOUSE", "CERTIFIED"],
       default: "UNVERIFIED",
     },
+    /** Seller báo đã gửi xe tới kho (sau duyệt online) */
+    sellerShippedToWarehouseAt: { type: Date, default: null },
+    /** Admin xác nhận xe thật tại kho khớp ảnh — mới được PUBLISHED + CERTIFIED */
+    warehouseIntakeVerifiedAt: { type: Date, default: null },
     publishedAt: { type: Date, default: null },
     /** Hết hạn thì không hiển thị trên marketplace (30 ngày từ publishedAt) */
     listingExpiresAt: { type: Date, default: null, index: true },

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { packagesApi, type PackagesCatalogResponse } from "@/apis/packagesApi";
 import { authApi } from "@/apis/authApi";
@@ -8,6 +8,9 @@ import {
   normalizeSubscriptionPayload,
 } from "@/stores/useSellerSubscriptionStore";
 import { getApiErrorMessage } from "@/lib/apiErrors";
+import { VNPAY_UI_MAINTENANCE } from "@/lib/featureFlags";
+import { VnpayMaintenanceNotice } from "@/components/payment/VnpayMaintenanceNotice";
+import type { SubscriptionCheckoutResponse } from "@/apis/packagesApi";
 
 function formatVnd(n: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -17,8 +20,26 @@ function formatVnd(n: number) {
   }).format(n);
 }
 
+/** Tránh BE trả localhost:5173 trong khi user đang dùng 127.0.0.1 (tab mới mất token → login → về nhầm). */
+function paymentUrlOnCurrentOrigin(url: string): string {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    return `${window.location.origin}${u.pathname}${u.search}${u.hash}`;
+  } catch {
+    if (url.startsWith("/")) return `${window.location.origin}${url}`;
+    return url;
+  }
+}
+
+function resolveCheckoutOpenUrl(res: SubscriptionCheckoutResponse): string {
+  if (res.paymentKind === "VNPAY_SANDBOX") return res.paymentUrl;
+  return paymentUrlOnCurrentOrigin(res.paymentUrl);
+}
+
 export default function SellerPackagePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const subscription = useSellerSubscriptionStore((s) => s.subscription);
   const setSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
@@ -26,9 +47,18 @@ export default function SellerPackagePage() {
   const [catalog, setCatalog] = useState<PackagesCatalogResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [plan, setPlan] = useState<"BASIC" | "VIP">("BASIC");
-  const [provider, setProvider] = useState<"POSTPAY" | "VNPAY">("POSTPAY");
-  const [busy, setBusy] = useState(false);
+  /** Chỉ khóa nút Pay / Simulate — tách khỏi luồng return URL để tránh kẹt disabled */
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const returnOrderId = searchParams.get("orderId") ?? "";
+  const returnStatus = searchParams.get("status") ?? "";
+  const vnpayReturnGate = searchParams.get("vnpay") ?? "";
+  const vnpayReturnOk = searchParams.get("ok") ?? "";
+  const payStep = searchParams.get("step") ?? "";
+  const payOrderIdFromUrl =
+    payStep === "pay" ? (searchParams.get("orderId") ?? "") : "";
+  const [demoPayBusy, setDemoPayBusy] = useState(false);
 
   const refreshSubscription = useCallback(async () => {
     try {
@@ -49,17 +79,14 @@ export default function SellerPackagePage() {
       );
   }, []);
 
-  /** Return từ URL demo sau “gateway” */
+  /** Return từ URL demo sau “gateway” — deps dùng string để tránh effect chạy lại vô hạn (URLSearchParams đổi tham chiếu) */
   useEffect(() => {
-    const orderId = searchParams.get("orderId");
-    const status = searchParams.get("status");
-    if (!orderId || status !== "success") return;
+    if (!returnOrderId || returnStatus !== "success") return;
 
     let cancelled = false;
     (async () => {
-      setBusy(true);
       try {
-        const res = await packagesApi.mockCompleteOrder(orderId);
+        const res = await packagesApi.mockCompleteOrder(returnOrderId);
         if (!cancelled && res.subscription) {
           setSubscription(res.subscription);
           await refreshSubscription();
@@ -72,7 +99,6 @@ export default function SellerPackagePage() {
           );
       } finally {
         if (!cancelled) {
-          setBusy(false);
           setSearchParams({}, { replace: true });
         }
       }
@@ -80,27 +106,97 @@ export default function SellerPackagePage() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams, setSearchParams, setSubscription, refreshSubscription, t]);
+  }, [
+    returnOrderId,
+    returnStatus,
+    setSearchParams,
+    setSubscription,
+    refreshSubscription,
+    t,
+  ]);
+
+  /** Return từ VNPAY sandbox (redirect /payment/vnpay-return → /seller/packages?vnpay=1&…) */
+  useEffect(() => {
+    if (vnpayReturnGate !== "1") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await refreshSubscription();
+        if (!cancelled) {
+          setMessage(
+            vnpayReturnOk === "1"
+              ? t("seller.packageVnpayReturnSuccess")
+              : t("seller.packageVnpayReturnFail"),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setSearchParams({}, { replace: true });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    vnpayReturnGate,
+    vnpayReturnOk,
+    setSearchParams,
+    refreshSubscription,
+    t,
+  ]);
+
+  async function onDemoPayComplete() {
+    if (!payOrderIdFromUrl) return;
+    setDemoPayBusy(true);
+    setMessage(null);
+    try {
+      const done = await packagesApi.mockCompleteOrder(payOrderIdFromUrl);
+      if (done.subscription) setSubscription(done.subscription);
+      await refreshSubscription();
+      setMessage(t("seller.packageActive"));
+      setSearchParams({}, { replace: true });
+    } catch (e: unknown) {
+      setMessage(getApiErrorMessage(e, t("seller.packageDemoCompleteError")));
+    } finally {
+      setDemoPayBusy(false);
+    }
+  }
 
   async function onCheckout() {
+    if (VNPAY_UI_MAINTENANCE) {
+      setMessage(t("payment.vnpayMaintenanceTitle"));
+      return;
+    }
     setMessage(null);
-    setBusy(true);
+    setCheckoutBusy(true);
     try {
-      const res = await packagesApi.checkout({ plan, provider });
-      setMessage(res.message ?? "");
-      window.open(res.paymentUrl, "_blank", "noopener,noreferrer");
+      const res = await packagesApi.checkout({ plan, provider: "VNPAY" });
+      const apiMsg = res.message?.trim();
+      const openUrl = resolveCheckoutOpenUrl(res);
+      const w = window.open(openUrl, "_blank", "noopener,noreferrer");
+      if (!w) {
+        setMessage(`${t("seller.packagePopupBlocked")} ${openUrl}`);
+      } else {
+        setMessage(
+          [apiMsg, t("seller.packageCheckoutCreated"), t("seller.packageOpenedSameOriginHint")]
+            .filter(Boolean)
+            .join(" — "),
+        );
+      }
     } catch (e: unknown) {
       setMessage(getApiErrorMessage(e, "Không tạo được đơn thanh toán."));
     } finally {
-      setBusy(false);
+      setCheckoutBusy(false);
     }
   }
 
   async function onSimulatePaid() {
     setMessage(null);
-    setBusy(true);
+    setCheckoutBusy(true);
     try {
-      const res = await packagesApi.checkout({ plan, provider });
+      const res = await packagesApi.checkout({ plan, provider: "VNPAY" });
       const done = await packagesApi.mockCompleteOrder(res.orderId);
       if (done.subscription) setSubscription(done.subscription);
       await refreshSubscription();
@@ -108,7 +204,7 @@ export default function SellerPackagePage() {
     } catch (e: unknown) {
       setMessage(getApiErrorMessage(e, "Giả lập thanh toán thất bại."));
     } finally {
-      setBusy(false);
+      setCheckoutBusy(false);
     }
   }
 
@@ -178,6 +274,50 @@ export default function SellerPackagePage() {
         </div>
       )}
 
+      {payOrderIdFromUrl && (
+        <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm">
+          <div className="font-semibold text-foreground">
+            {t("seller.packageDemoPayTitle")}
+          </div>
+          <p className="mt-1 text-muted-foreground">{t("seller.packageDemoPayBody")}</p>
+          <p className="mt-2 font-mono text-xs text-muted-foreground">
+            orderId: {payOrderIdFromUrl}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={demoPayBusy}
+              onClick={onDemoPayComplete}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              {demoPayBusy ? t("seller.packageDemoCompleting") : t("seller.packageDemoComplete")}
+            </button>
+            <button
+              type="button"
+              disabled={demoPayBusy}
+              onClick={() => {
+                setSearchParams({}, { replace: true });
+              }}
+              className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold disabled:opacity-50"
+            >
+              {t("seller.packageDemoCancel")}
+            </button>
+            <button
+              type="button"
+              disabled={demoPayBusy}
+              onClick={() => {
+                const u = new URL(window.location.href);
+                u.search = `?orderId=${encodeURIComponent(payOrderIdFromUrl)}&status=success`;
+                navigate(`${u.pathname}${u.search}`, { replace: true });
+              }}
+              className="rounded-xl border border-dashed border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-50"
+            >
+              {t("seller.packageDemoSimulateReturn")}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
         {catalog.plans.map((p) => (
           <button
@@ -205,65 +345,29 @@ export default function SellerPackagePage() {
         ))}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5">
-        <div className="text-sm font-semibold text-foreground">
-          {t("seller.inspectionAddonTitle")}
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {catalog.inspectionAddOn.description}
-        </p>
-        <p className="mt-2 text-sm font-medium text-foreground">
-          {t("seller.inspectionAddonPrice", {
-            price: formatVnd(catalog.inspectionAddOn.priceVnd),
-          })}
-        </p>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <div className="text-sm font-semibold text-foreground">Provider</div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setProvider("POSTPAY")}
-            className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
-              provider === "POSTPAY"
-                ? "border-primary bg-primary/10"
-                : "border-border"
-            }`}
-          >
-            Postpay
-          </button>
-          <button
-            type="button"
-            onClick={() => setProvider("VNPAY")}
-            className={`rounded-xl border px-4 py-2 text-sm font-semibold ${
-              provider === "VNPAY"
-                ? "border-primary bg-primary/10"
-                : "border-border"
-            }`}
-          >
-            VNPay
-          </button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {catalog.paymentProviders.find((x) => x.id === provider)?.note}
-        </p>
+      <div className="mt-6 space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
+        <p className="text-sm font-semibold text-foreground">VNPay</p>
+        {VNPAY_UI_MAINTENANCE ? (
+          <VnpayMaintenanceNotice />
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            {t("seller.packageVnpayNote")}
+          </p>
+        )}
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
         <button
           type="button"
-          disabled={busy}
+          disabled={checkoutBusy || VNPAY_UI_MAINTENANCE}
           onClick={onCheckout}
           className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
-          {provider === "POSTPAY"
-            ? t("seller.packagePayPostpay")
-            : t("seller.packagePayVnpay")}
+          {t("seller.packagePayVnpay")}
         </button>
         <button
           type="button"
-          disabled={busy}
+          disabled={checkoutBusy}
           onClick={onSimulatePaid}
           className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold disabled:opacity-50"
         >
@@ -271,10 +375,6 @@ export default function SellerPackagePage() {
         </button>
       </div>
 
-      <p className="mt-6 text-xs text-muted-foreground">
-        Production: dùng webhook Postpay/VNPay để xác nhận thanh toán, sau đó gọi cùng logic
-        kích hoạt gói như mock-complete.
-      </p>
     </div>
   );
 }

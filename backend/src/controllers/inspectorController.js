@@ -47,13 +47,13 @@ export async function approve(req, res) {
   } else {
     listing.inspectionScore = listing.inspectionScore ?? 4.5;
   }
-  listing.state = "PUBLISHED";
-  listing.certificationStatus = "CERTIFIED";
-  const pubAt = new Date();
-  listing.publishedAt = listing.publishedAt ?? pubAt;
-  listing.listingExpiresAt = new Date(
-    pubAt.getTime() + LISTING_DURATION_DAYS * 24 * 60 * 60 * 1000,
-  );
+  /** Vòng 1 xong: chờ seller gửi xe tới kho → admin xác nhận (vòng 2) mới lên sàn CERTIFIED */
+  listing.state = "AWAITING_WAREHOUSE";
+  listing.certificationStatus = "PENDING_WAREHOUSE";
+  listing.publishedAt = null;
+  listing.listingExpiresAt = null;
+  listing.sellerShippedToWarehouseAt = null;
+  listing.warehouseIntakeVerifiedAt = null;
   listing.inspectionNeedUpdateReason = "";
   await listing.save();
   return ok(res, normalize(listing));
