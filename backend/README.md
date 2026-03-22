@@ -9,7 +9,7 @@ Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppi
 | **[docs/BACKEND-GUIDE.md](../docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc thư mục, Mongo, env, auth, thêm API, VNPAY Sandbox, kiểm tra nhanh |
 | [docs/USER-REQUIREMENTS.md](../docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR) — đối chiếu chức năng |
 | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port flow Express → Spring Boot |
-| `docs/ERD.md`, `docs/SCREEN_FLOW_BY_ACTOR.md` | ERD, luồng màn hình |
+| `docs/ERD-MYSQL.md`, `docs/SCREEN_FLOW_BY_ACTOR.md` | Thiết kế DB MySQL, luồng màn hình |
 
 ## Quick start (no Mongo install required)
 
@@ -28,7 +28,7 @@ API runs at `http://localhost:8081/api`.
 
 ## VNPAY Sandbox (không dùng VietQR)
 
-- Biến môi trường: `VNP_TMNCODE`, `VNP_HASHSECRET`, `VNP_PAYURL`, `VNP_RETURNURL`, `VNP_IPNURL` (xem `backend/.env.example`, chi tiết `docs/VNPAY-SANDBOX-HOC-TAP.md`).
+- Biến môi trường: `VNP_TMNCODE`, `VNP_HASHSECRET`, `VNP_PAYURL`, `VNP_RETURNURL`, `VNP_IPNURL` (xem `backend/.env.example`, chi tiết `docs/PAYMENTS-VNPAY.md`).
 - **Public routes (không prefix `/api`):** `POST /payment/create`, `GET /payment/vnpay-return`, `GET /payment/vnpay-ipn`.
 - Checkout buyer: `POST /api/buyer/orders/vnpay-checkout` (JWT) → `paymentUrl` redirect cổng sandbox.
 

@@ -151,10 +151,10 @@ ShopBike là nền tảng **mua bán xe đạp thể thao đã qua sử dụng**
 
 | Nhóm UR | Tài liệu / mã |
 |---------|----------------|
-| UR-PAY-03, 04, 05 | [VIETQR-MODULE.md](./VIETQR-MODULE.md), `backend/src/vietqr/` |
+| UR-PAY-03, 04, 05 | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.7, [business-rules/BUSINESS-RULES.md](./business-rules/BUSINESS-RULES.md), `backend/src/vietqr/` |
 | UR-PAY-01, 02 | [PAYMENTS-VNPAY.md](./PAYMENTS-VNPAY.md), `paymentController.js`, `packageController.js` |
 | UR-ORD-* | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.2a, `buyerController.js` |
-| Business rules chi tiết | `ReBike_BusinessRules_Template.xlsx`, [business-rules/README.md](./business-rules/README.md) |
+| Business rules chi tiết | [business-rules/BUSINESS-RULES.md](./business-rules/BUSINESS-RULES.md), `ReBike_BusinessRules_Template.xlsx`, [business-rules/README.md](./business-rules/README.md) |
 
 ---
 

@@ -115,9 +115,10 @@
 
 - Thông báo lưu **`titleKey` / `messageKey`** (và params) để đổi ngôn ngữ theo locale; có map chuỗi legacy tiếng Anh cũ → key khi hiển thị.
 
-### 2.10 Sheet Business Rules (Excel)
+### 2.10 Business Rules (tài liệu & Excel)
 
-- File **`ReBike_BusinessRules_Template.xlsx`**, sheet **Business Rules**: các dòng **BR-PAY-VQR-01…13**, **BR-PAY-VNP-02**, **BR-NOTIF-I18N-01** được append bằng `node scripts/append-vietqr-business-rules.mjs` (xem `docs/business-rules/README.md`).
+- **Tài liệu đầy đủ:** [docs/business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) — toàn bộ rule có cấu trúc (BR-ORD-*, BR-PAY-VNP-*, BR-FIN-*, BR-TIME-*, BR-PAY-VQR-*, …).
+- **File Excel:** `ReBike_BusinessRules_Template.xlsx`, sheet **Business Rules**. Append rule mới bằng `node scripts/append-business-rules.mjs` (xem [business-rules/README.md](business-rules/README.md)).
 
 ---
 
@@ -320,7 +321,7 @@ Chi tiết: `docs/STRUCTURE.md`
 |------|----------|
 | `docs/README.md` | Mục lục toàn bộ tài liệu |
 | `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
-| `docs/ERD.md` | ERD – MongoDB + SQL (entities, schema Starter & Normalized) |
+| `docs/ERD-MYSQL.md` | Thiết kế MySQL 17 bảng — ERD Mermaid, SQL schema |
 | `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen flow theo Guest/Buyer/Seller/Inspector/Admin |
 | `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md` | State diagram Order/Listing/Review |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |

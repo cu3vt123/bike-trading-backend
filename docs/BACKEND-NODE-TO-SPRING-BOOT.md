@@ -31,7 +31,7 @@
 
 **Persistence:**  
 - Nếu giữ **MongoDB**: Spring Data MongoDB + `MongoRepository` (tương đương Mongoose gần nhất).  
-- Nếu chuyển **SQL** (MySQL/PostgreSQL): xem `docs/ERD.md` (phần SQL Starter & Normalized); map entity quan hệ `User`, `Listing`, `Order`, `Review`, `Brand`.
+- Nếu chuyển **SQL** (MySQL/PostgreSQL): xem **`docs/ERD-MYSQL.md`** (17 bảng đầy đủ + SQL schema).
 
 ---
 
@@ -161,7 +161,8 @@ Hai nhánh trong `$or` (Node):
 
 | File | Nội dung |
 |------|----------|
-| [ERD.md](ERD.md) | Entity, field gợi ý |
+| [ERD-MYSQL.md](ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid, SQL schema |
+| [ERD-MYSQL.md](ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid |
 | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) | Luồng màn hình ↔ API |
 | [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md) | Trạng thái Order/Listing |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Business rules tổng hợp |

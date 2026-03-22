@@ -4,6 +4,39 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03] Dọn MD thừa — xóa ERD.md, VNPAY-SANDBOX-HOC-TAP
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Xóa ERD.md** | Nội dung trùng ERD-MYSQL.md; cập nhật mọi ref → ERD-MYSQL. |
+| **Xóa VNPAY-SANDBOX-HOC-TAP.md** | Gộp nội dung học tập (Return vs IPN, biến .env, thẻ test) vào PAYMENTS-VNPAY.md. |
+| **Sửa ref VIETQR-MODULE** | File không tồn tại; trỏ về PROJECT-SUMMARY §2.7, business-rules. |
+
+---
+
+## [2026-03] Thiết kế MySQL 17 bảng + ERD
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/ERD-MYSQL.md** | Mới: thiết kế database MySQL 17 bảng (user, brand, category, listing, listing_media, inspection_report, order, order_snapshot, shipment, order_payment, review, subscription_plan, package_order, user_payment_method, wishlist, notification, vnpay_transaction_log). |
+| **docs/sql/shopbike_mysql_schema.sql** | Mới: CREATE TABLE đầy đủ, InnoDB, utf8mb4. |
+| **Sơ đồ ERD Mermaid** | Trong ERD-MYSQL.md — quan hệ 17 bảng. |
+| **docs/ERD.md** | Thêm link tới ERD-MYSQL.md. |
+| **docs/README, PROJECT-SUMMARY, BACKEND-GUIDE, BACKEND-NODE-TO-SPRING-BOOT** | Tham chiếu MySQL 17 bảng. |
+
+---
+
+## [2026-03] Business Rules đầy đủ
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/business-rules/BUSINESS-RULES.md** | Mới: toàn bộ business rules có cấu trúc (BR-ORD-*, BR-PAY-VNP-*, BR-FIN-*, BR-TIME-*, …). |
+| **docs/business-rules/README.md** | Cập nhật: link BUSINESS-RULES.md, danh sách Rule ID, script append. |
+| **scripts/append-business-rules.mjs** | Mới: append rule mới vào Excel (tránh trùng Rule ID). |
+| **PROJECT-SUMMARY, USER-REQUIREMENTS, docs/README** | Tham chiếu tới BUSINESS-RULES.md. |
+
+---
+
 ## [2026-03] Luồng kho/DIRECT, thanh toán VNPAY, Finalize, docs
 
 | Thay đổi | Chi tiết |

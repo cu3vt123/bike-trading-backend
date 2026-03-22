@@ -20,7 +20,7 @@ React + Vite frontend cho **Bike Trading** – mua bán xe đạp thể thao cũ
 | `src/shared/` | Layout, guards, UI dùng chung |
 | `src/lib/` | apiClient, apiConfig, `apiErrors`, utils |
 | `src/stores/` | Zustand (auth, wishlist, …) |
-| `docs/` | ERD, flow, **Production hardening** |
+| `docs/` | Tài liệu MD — xem [docs/README.md](docs/README.md) |
 
 ## Cài đặt nhanh
 
@@ -44,17 +44,25 @@ Checklist mở rộng: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.
 
 ---
 
-## Backend – Tài liệu cho team Backend
+## Tài liệu (docs/)
 
-| File | Nội dung |
-|------|----------|
-| **[docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc `backend/src`, Mongo + SQLite, `.env`, auth, thêm API, VietQR/VNPay, curl mẫu. |
-| [docs/USER-REQUIREMENTS.md](docs/USER-REQUIREMENTS.md) | **User requirements (UR)** — yêu cầu theo stakeholder (Must/Should), trace tài liệu kỹ thuật. |
-| `docs/ERD.md` | ERD – MongoDB entities + SQL schema (User, Listing, Order, Review, Brand). |
-| `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen Flow từng Actor – luồng người dùng, endpoint tương ứng. |
-| `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md` | State diagram Order/Listing/Review. |
-| `backend/README.md` | Chạy backend Node demo – endpoints, tài khoản demo. |
-| [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Hướng dẫn chuyển BE từ Node sang **Java Spring Boot** (giữ contract cho FE). |
+**Mục lục đầy đủ:** [docs/README.md](docs/README.md)
+
+| Nhóm | File | Nội dung |
+|------|------|----------|
+| **Tổng quan** | [PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) | Business rules, luồng màn hình, flow runtime |
+| | [USER-REQUIREMENTS.md](docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR), trace chức năng |
+| **Backend** | [BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md) | Hướng dẫn Node/Express, Mongo, API, VietQR/VNPay |
+| | [BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port Node → Spring Boot |
+| **Database** | [ERD-MYSQL.md](docs/ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid |
+| | [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | CREATE TABLE |
+| **Luồng** | [SCREEN_FLOW_BY_ACTOR.md](docs/SCREEN_FLOW_BY_ACTOR.md) | Screen flow theo Actor |
+| | [STATE_TRANSITION_DIAGRAM_GUIDE.md](docs/STATE_TRANSITION_DIAGRAM_GUIDE.md) | State diagram Order/Listing/Review |
+| **Thanh toán** | [PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | VNPay gói seller, buyer checkout, sandbox |
+| **Quy tắc** | [business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Business rules đầy đủ |
+| **Khác** | [STRUCTURE.md](docs/STRUCTURE.md) | Cấu trúc FE feature-based |
+| | [PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) | Ship-ready checklist |
+| | [CHANGELOG.md](docs/CHANGELOG.md) | Lịch sử thay đổi |
 
 ### Thông tin quan trọng
 
@@ -74,16 +82,4 @@ VITE_USE_MOCK_API=false
 npm install && npm run dev
 ```
 
-Mở `http://localhost:5173`.
-
----
-
-## Tài liệu flow hệ thống
-
-| File | Nội dung |
-|------|----------|
-| [docs/PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) | Tổng kết dự án, business rules, flow runtime, i18n, chức năng đã hoàn thành. |
-| [docs/SCREEN_FLOW_BY_ACTOR.md](docs/SCREEN_FLOW_BY_ACTOR.md) | Screen Flow chi tiết theo từng Actor (Guest, Buyer, Seller, Inspector, Admin). |
-| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Lịch sử thay đổi. |
-
-**i18n:** Ứng dụng hỗ trợ Tiếng Việt / English (react-i18next). Chuyển đổi qua icon Globe trên Header.
+Mở `http://localhost:5173`. Chạy backend: [backend/README.md](backend/README.md). **i18n:** Tiếng Việt / English (icon Globe trên Header).

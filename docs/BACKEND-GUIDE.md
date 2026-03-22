@@ -78,7 +78,7 @@ src/
 | `MONGODB_URI` | Chuỗi Mongo; để trống = in-memory demo |
 | `JWT_SECRET`, `JWT_EXPIRES_IN` | Ký JWT |
 | `CLIENT_ORIGIN` | CORS (vd. `http://localhost:5173`) |
-| `VIETQR_*` | Xem `backend/.env.example` và [VIETQR-MODULE.md](./VIETQR-MODULE.md) |
+| `VIETQR_*` | Xem `backend/.env.example` và [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.7 |
 
 **Không** commit file `.env` lên git.
 
@@ -115,7 +115,7 @@ Chi tiết: [PAYMENTS-VNPAY.md](./PAYMENTS-VNPAY.md).
 
 - Prefix: **`/api/vietqr`**  
 - Luồng: tạo đơn → tạo payment + gọi API VietQR → log → admin simulate (demo).  
-- Chi tiết kiến trúc: [VIETQR-MODULE.md](./VIETQR-MODULE.md).
+- Chi tiết VietQR: [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.7, [business-rules/BUSINESS-RULES.md](./business-rules/BUSINESS-RULES.md) BR-PAY-VQR-*.
 
 ---
 
@@ -138,8 +138,9 @@ Chi tiết: [PAYMENTS-VNPAY.md](./PAYMENTS-VNPAY.md).
 
 ## 9. SQL tham khảo (MySQL)
 
-- VietQR: `docs/sql/vietqr_mysql.sql`  
-- ERD tổng quan: `docs/ERD.md`
+- **ShopBike đầy đủ (17 bảng):** [docs/sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql)  
+- **Thiết kế + ERD Mermaid:** [docs/ERD-MYSQL.md](ERD-MYSQL.md)  
+- VietQR: [docs/sql/vietqr_mysql.sql](sql/vietqr_mysql.sql)
 
 ---
 
@@ -168,7 +169,7 @@ Dùng `accessToken` trả về cho các request `/api/buyer/*`, `/api/vietqr/*`,
 |------|----------|
 | [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md) | Yêu cầu người dùng / stakeholder |
 | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) | Business rules + luồng FE |
-| [VIETQR-MODULE.md](./VIETQR-MODULE.md) | VietQR chi tiết |
+| [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.7 | VietQR (đồ án) |
 | [PAYMENTS-VNPAY.md](./PAYMENTS-VNPAY.md) | VNPay gói & initiate |
 | [business-rules/README.md](./business-rules/README.md) | Sheet Excel Business Rules |
 
