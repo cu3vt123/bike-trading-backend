@@ -57,8 +57,12 @@ public class DatabaseSeeder implements CommandLineRunner {
             seller.setEmail("seller@shopbike.com");
             seller.setPassword(defaultPassword);
             seller.setRole(UserRole.SELLER);
+
+            // Ép Seller này có 0 lượt đăng tin để dễ dàng Test luồng mua gói VNPay
+            seller.setRemainingListings(0);
+
             userRepository.save(seller);
-            System.out.println(">> Đã tạo Seller: seller01 / Password!1");
+            System.out.println(">> Đã tạo Seller: seller01 / Password!1 (Số lượt đăng: 0)");
         } else {
             seller = userRepository.findByUsername("seller01").get();
         }
@@ -95,8 +99,11 @@ public class DatabaseSeeder implements CommandLineRunner {
             bike1.setInspectionScore(4.8);
             bike1.setSeller(seller);
 
+            // TẶNG CHO CHIẾC XE NÀY TÍCH XANH KIỂM ĐỊNH LÀM MẪU
+            bike1.setIsVerified(true);
+
             listingRepository.save(bike1);
-            System.out.println(">> Đã tạo tin đăng xe mẫu thành công!");
+            System.out.println(">> Đã tạo tin đăng xe mẫu thành công (Có tích xanh)!");
         }
     }
 }
