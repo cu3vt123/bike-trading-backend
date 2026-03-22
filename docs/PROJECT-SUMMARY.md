@@ -115,6 +115,7 @@
 ### 2.9 Thông báo (i18n)
 
 - Thông báo lưu **`titleKey` / `messageKey`** (và params) để đổi ngôn ngữ theo locale; có map chuỗi legacy tiếng Anh cũ → key khi hiển thị.
+- **Demo-friendly:** Tránh sandbox, backend, giả lập trong text hiển thị; lỗi dùng thông báo tổng quát (xem BR-NOTIF-I18N-02).
 
 ### 2.10 Business Rules (tài liệu & Excel)
 

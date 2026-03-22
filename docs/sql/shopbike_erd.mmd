@@ -8,6 +8,7 @@ erDiagram
     user ||--o{ notification : "receives"
     user ||--o{ user_payment_method : "has"
     user ||--o{ inspection_report : "inspects"
+    user ||--o{ order_snapshot : "seller_snapshot"
 
     brand ||--o{ listing : "brands"
     category ||--o{ listing : "categorizes"
@@ -17,6 +18,7 @@ erDiagram
     listing ||--o{ order : "ordered"
     listing ||--o{ review : "reviewed"
     listing ||--o{ wishlist : "in"
+    listing ||--o{ order_snapshot : "snapshotted"
 
     order ||--o| order_snapshot : "has"
     order ||--o| shipment : "has"
@@ -80,18 +82,24 @@ erDiagram
         bigint buyer_id FK
         bigint listing_id FK
         enum status
+        enum plan
         enum fulfillment_type
         decimal total_price
         decimal deposit_amount
         tinyint deposit_paid
+        tinyint balance_paid
     }
 
     order_snapshot {
         bigint snapshot_id PK
         bigint order_id FK
+        bigint listing_id FK
+        bigint seller_id FK
         varchar title
         decimal price
         json image_urls
+        json seller_json
+        varchar currency
     }
 
     shipment {
@@ -107,6 +115,7 @@ erDiagram
         bigint order_id FK
         decimal amount
         varchar provider
+        enum payment_type
         enum status
     }
 

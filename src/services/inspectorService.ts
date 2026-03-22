@@ -50,7 +50,7 @@ export async function fetchPendingListings(): Promise<Listing[]> {
     return await withTimeout(
       inspectorApi.getPendingListings(),
       FETCH_TIMEOUT_MS,
-      "Backend không phản hồi.",
+      "Hệ thống không phản hồi. Vui lòng thử lại.",
     );
   } catch (e) {
     console.warn("[inspector] fetchPendingListings failed:", e);

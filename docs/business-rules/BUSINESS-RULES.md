@@ -124,6 +124,7 @@
 | ID | Rule | Chi tiết |
 |----|------|----------|
 | BR-NOTIF-I18N-01 | titleKey / messageKey | Thông báo lưu `titleKey`, `messageKey` (+ params) để đổi ngôn ngữ theo locale. Có map chuỗi legacy → key khi hiển thị. |
+| BR-NOTIF-I18N-02 | Demo-friendly text | Tránh từ sandbox, backend, giả lập trong chuỗi hiển thị cho user. Lỗi API dùng thông báo tổng quát ("Hệ thống không phản hồi", "Vui lòng thử lại"). |
 | BR-NOTIF-02 | Seller notification flow | Logic tách trong `sellerOrderNotificationFlow.ts`: nhóm *có thông báo* vs *im lặng* tùy trạng thái đơn (kho vs direct). |
 
 ---
@@ -161,4 +162,4 @@ Script append: `node scripts/append-business-rules.mjs` (xem [README.md](./READM
 
 ---
 
-*Cập nhật: 2026-03 — WAREHOUSE/DIRECT, VNPAY only, Finalize từ order, countdown 24h, hủy cả kho & direct, pay-balance VNPay, Success từ order, review sellerId.*
+*Cập nhật: 2026-03 — WAREHOUSE/DIRECT, VNPAY only, Finalize từ order, countdown 24h, hủy cả kho & direct, pay-balance VNPay, Success từ order, review sellerId, demo-friendly UI text.*

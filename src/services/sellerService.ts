@@ -249,7 +249,7 @@ export async function fetchSellerDashboard(): Promise<{
     return await withTimeout(
       sellerApi.getDashboard(),
       FETCH_TIMEOUT_MS,
-      "Backend không phản hồi.",
+      "Hệ thống không phản hồi. Vui lòng thử lại.",
     );
   } catch (_) {
     return mockStats();

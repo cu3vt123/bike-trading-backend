@@ -202,7 +202,7 @@ export default function SellerPackagePage() {
       await refreshSubscription();
       setMessage(t("seller.packageActive"));
     } catch (e: unknown) {
-      setMessage(getApiErrorMessage(e, "Giả lập thanh toán thất bại."));
+      setMessage(getApiErrorMessage(e, t("seller.packageSimulateError")));
     } finally {
       setCheckoutBusy(false);
     }

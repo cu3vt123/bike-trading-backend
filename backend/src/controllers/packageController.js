@@ -46,7 +46,7 @@ export async function listPackages(req, res) {
         id: "VNPAY",
         name: "VNPay",
         docsUrl: "https://sandbox.vnpayment.vn/apis/",
-        note: "Sandbox: redirect + IPN; production pay.vnpay.vn.",
+        note: "Thanh toán qua cổng VNPAY.",
       },
     ],
     plans: [

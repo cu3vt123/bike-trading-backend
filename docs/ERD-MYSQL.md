@@ -119,18 +119,24 @@ erDiagram
         bigint buyer_id FK
         bigint listing_id FK
         enum status
+        enum plan
         enum fulfillment_type
         decimal total_price
         decimal deposit_amount
         tinyint deposit_paid
+        tinyint balance_paid
     }
 
     order_snapshot {
         bigint snapshot_id PK
         bigint order_id FK
+        bigint listing_id FK
+        bigint seller_id FK
         varchar title
         decimal price
         json image_urls
+        json seller_json
+        varchar currency
     }
 
     shipment {
@@ -146,6 +152,7 @@ erDiagram
         bigint order_id FK
         decimal amount
         varchar provider
+        enum payment_type
         enum status
     }
 
@@ -219,7 +226,9 @@ erDiagram
 | listing → listing_media | 1:N | Một tin nhiều ảnh |
 | listing → inspection_report | 1:1 | Một tin một báo cáo kiểm định |
 | listing → order | 1:N | Một tin có thể nhiều đơn (lịch sử) |
-| order → order_snapshot | 1:1 | Snapshot tin lúc mua |
+| listing → order_snapshot | 1:N | Snapshot tin lúc mua (denormalized) |
+| user → order_snapshot | 1:N | seller_id (seller của tin lúc mua) |
+| order → order_snapshot | 1:1 | Snapshot tin lúc mua (Finalize, Success) |
 | order → shipment | 1:1 | Một đơn một thông tin giao hàng |
 | order → order_payment | 1:N | Một đơn có thể nhiều lần thanh toán |
 | order → review | 1:1 | Một đơn một đánh giá |
@@ -252,9 +261,18 @@ Hoặc dùng client MySQL (DBeaver, phpMyAdmin, MySQL Workbench) import file `do
 | Brand | brand |
 | Listing | listing + listing_media |
 | Order | order + order_snapshot + shipment + order_payment |
+| Order.balancePaid | order.balance_paid |
+| Order.shippingAddress | shipment (street, city, postal_code) |
+| Order.listing (JSON) | order_snapshot (title, brand, model, price, image_urls, seller_id, seller_json, …) |
 | Review | review |
 | PackageOrder | package_order |
 | (không có) | category, inspection_report, user_payment_method, wishlist, notification, vnpay_transaction_log |
+
+### Ghi chú schema
+
+- **order.balance_paid**: Phần còn lại đã thanh toán VNPay (plan DEPOSIT). Map từ `Order.balancePaid`.
+- **order_snapshot.seller_id, seller_json**: Snapshot seller lúc mua — dùng cho Success page đánh giá. Map từ `order.listing.seller`.
+- **order_payment.payment_type**: DEPOSIT (cọc), BALANCE (số dư), FULL (toàn bộ).
 
 ---
 
@@ -267,4 +285,4 @@ Hoặc dùng client MySQL (DBeaver, phpMyAdmin, MySQL Workbench) import file `do
 
 ---
 
-*Cập nhật: 2026-03 — 17 bảng MySQL, ERD Mermaid.*
+*Cập nhật: 2026-03 — 17 bảng MySQL, ERD Mermaid, order.balance_paid, order_snapshot.seller, order_payment.payment_type, mapping chi tiết.*

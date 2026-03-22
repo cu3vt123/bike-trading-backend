@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS `order` (
   `total_price` DECIMAL(15,2) NOT NULL,
   `deposit_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
   `deposit_paid` TINYINT(1) NOT NULL DEFAULT 0,
+  `balance_paid` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Phần còn lại đã thanh toán VNPay (plan DEPOSIT)',
   `vnpay_payment_status` VARCHAR(32) NULL DEFAULT NULL COMMENT 'PENDING_PAYMENT, PAID, FAILED',
   `vnpay_amount_vnd` BIGINT NULL DEFAULT NULL,
   `shipped_at` DATETIME NULL DEFAULT NULL,
@@ -177,18 +178,28 @@ CREATE TABLE IF NOT EXISTS `order` (
 CREATE TABLE IF NOT EXISTS `order_snapshot` (
   `snapshot_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `order_id` BIGINT UNSIGNED NOT NULL,
-  `listing_id` BIGINT UNSIGNED NOT NULL,
+  `listing_id` BIGINT UNSIGNED NOT NULL COMMENT 'Denormalized at purchase',
   `title` VARCHAR(255) NOT NULL,
   `brand` VARCHAR(255) NOT NULL,
   `model` VARCHAR(255) NOT NULL DEFAULT '',
+  `year` INT NULL DEFAULT NULL,
+  `frame_size` VARCHAR(64) NOT NULL DEFAULT '',
+  `condition` VARCHAR(32) NULL DEFAULT NULL,
   `price` DECIMAL(15,2) NOT NULL,
+  `currency` VARCHAR(8) NOT NULL DEFAULT 'VND',
+  `location` VARCHAR(512) NOT NULL DEFAULT '',
   `thumbnail_url` VARCHAR(1024) NOT NULL DEFAULT '',
   `image_urls` JSON NULL COMMENT 'Array of URLs',
+  `seller_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT 'For review form (Success page)',
+  `seller_json` JSON NULL COMMENT '{\"id\",\"name\",\"email\"} at purchase',
   `inspection_report` JSON NULL,
   `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`snapshot_id`),
   UNIQUE KEY `uk_snapshot_order` (`order_id`),
-  CONSTRAINT `fk_snapshot_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`) ON DELETE CASCADE
+  KEY `idx_snapshot_seller` (`seller_id`),
+  CONSTRAINT `fk_snapshot_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_snapshot_listing` FOREIGN KEY (`listing_id`) REFERENCES `listing` (`listing_id`),
+  CONSTRAINT `fk_snapshot_seller` FOREIGN KEY (`seller_id`) REFERENCES `user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
@@ -220,6 +231,7 @@ CREATE TABLE IF NOT EXISTS `order_payment` (
   `order_id` BIGINT UNSIGNED NOT NULL,
   `amount` DECIMAL(15,2) NOT NULL,
   `provider` VARCHAR(32) NOT NULL DEFAULT 'VNPAY',
+  `payment_type` ENUM('DEPOSIT', 'BALANCE', 'FULL') NOT NULL DEFAULT 'DEPOSIT' COMMENT 'DEPOSIT=cọc, BALANCE=số dư, FULL=toàn bộ',
   `txn_ref` VARCHAR(128) NULL DEFAULT NULL,
   `status` ENUM('PENDING', 'PAID', 'FAILED', 'REFUNDED', 'EXPIRED') NOT NULL DEFAULT 'PENDING',
   `paid_at` DATETIME NULL DEFAULT NULL,
