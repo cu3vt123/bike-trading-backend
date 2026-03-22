@@ -13,6 +13,7 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) | **Screen Flow** – Guest, Buyer, Seller, Inspector, Admin |
 | [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md) | **State Diagram** – Order, Listing, Review + Mermaid + hướng dẫn vẽ |
 | [ERD-MYSQL.md](ERD-MYSQL.md) | **Thiết kế MySQL 17 bảng** — ERD Mermaid, SQL schema, quan hệ |
+| [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | **Hướng dẫn:** code Mermaid, vẽ Draw.io, tạo bảng MySQL |
 | [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi |
 | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | Thanh toán VNPay — gói seller, buyer checkout, sandbox (Return vs IPN, .env, thẻ test) |
 | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | **Business Rules** đầy đủ — Listing, Order, Payment, Finalize, VietQR, … |

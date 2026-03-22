@@ -2,7 +2,9 @@
 
 > Tài liệu hướng dẫn thiết kế database MySQL cho dự án ShopBike, gồm **17 bảng** và sơ đồ ERD.
 
-**File SQL:** [docs/sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql)
+**File SQL:** [docs/sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql)  
+**Hướng dẫn Mermaid + Draw.io + MySQL:** [docs/ERD-HUONG-DAN.md](ERD-HUONG-DAN.md)  
+**File Mermaid (.mmd):** [docs/sql/shopbike_erd.mmd](sql/shopbike_erd.mmd) — mở tại [mermaid.live](https://mermaid.live)
 
 ---
 

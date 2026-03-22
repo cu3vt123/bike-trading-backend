@@ -1,0 +1,166 @@
+erDiagram
+    user ||--o{ listing : "sells"
+    user ||--o{ order : "buys"
+    user ||--o{ package_order : "purchases"
+    user ||--o{ review : "receives"
+    user ||--o{ review : "writes"
+    user ||--o{ wishlist : "has"
+    user ||--o{ notification : "receives"
+    user ||--o{ user_payment_method : "has"
+    user ||--o{ inspection_report : "inspects"
+
+    brand ||--o{ listing : "brands"
+    category ||--o{ listing : "categorizes"
+
+    listing ||--o{ listing_media : "has"
+    listing ||--o| inspection_report : "has"
+    listing ||--o{ order : "ordered"
+    listing ||--o{ review : "reviewed"
+    listing ||--o{ wishlist : "in"
+
+    order ||--o| order_snapshot : "has"
+    order ||--o| shipment : "has"
+    order ||--o{ order_payment : "payments"
+    order ||--o| review : "has"
+
+    subscription_plan ||--o{ package_order : "plans"
+
+    user {
+        bigint user_id PK
+        varchar email UK
+        varchar password_hash
+        enum role
+        varchar display_name
+        varchar subscription_plan
+        datetime subscription_expires_at
+    }
+
+    brand {
+        bigint brand_id PK
+        varchar name UK
+        varchar slug
+        tinyint active
+    }
+
+    category {
+        bigint category_id PK
+        varchar name
+        bigint parent_id FK
+        int sort_order
+    }
+
+    listing {
+        bigint listing_id PK
+        bigint seller_id FK
+        bigint brand_id FK
+        bigint category_id FK
+        varchar title
+        decimal price
+        enum state
+        enum certification_status
+    }
+
+    listing_media {
+        bigint media_id PK
+        bigint listing_id FK
+        varchar url
+        int sort_order
+    }
+
+    inspection_report {
+        bigint report_id PK
+        bigint listing_id FK
+        bigint inspector_id FK
+        enum result
+        decimal score
+    }
+
+    order {
+        bigint order_id PK
+        bigint buyer_id FK
+        bigint listing_id FK
+        enum status
+        enum fulfillment_type
+        decimal total_price
+        decimal deposit_amount
+        tinyint deposit_paid
+    }
+
+    order_snapshot {
+        bigint snapshot_id PK
+        bigint order_id FK
+        varchar title
+        decimal price
+        json image_urls
+    }
+
+    shipment {
+        bigint shipment_id PK
+        bigint order_id FK
+        varchar receiver_name
+        varchar street
+        varchar city
+    }
+
+    order_payment {
+        bigint payment_id PK
+        bigint order_id FK
+        decimal amount
+        varchar provider
+        enum status
+    }
+
+    review {
+        bigint review_id PK
+        bigint order_id FK
+        bigint seller_id FK
+        bigint buyer_id FK
+        tinyint rating
+        enum status
+    }
+
+    subscription_plan {
+        bigint plan_id PK
+        varchar code UK
+        bigint amount_vnd
+        int duration_days
+        int listing_slots
+    }
+
+    package_order {
+        bigint package_order_id PK
+        bigint seller_id FK
+        enum plan
+        bigint amount_vnd
+        enum status
+    }
+
+    user_payment_method {
+        bigint method_id PK
+        bigint user_id FK
+        enum type
+        varchar account_number
+        tinyint is_default
+    }
+
+    wishlist {
+        bigint wishlist_id PK
+        bigint user_id FK
+        bigint listing_id FK
+    }
+
+    notification {
+        bigint notification_id PK
+        bigint user_id FK
+        varchar title_key
+        varchar message_key
+        tinyint is_read
+    }
+
+    vnpay_transaction_log {
+        bigint log_id PK
+        varchar entity_type
+        varchar entity_id
+        varchar action
+        json request_data
+    }

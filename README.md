@@ -55,7 +55,9 @@ Checklist mở rộng: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.
 | **Backend** | [BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md) | Hướng dẫn Node/Express, Mongo, API, VietQR/VNPay |
 | | [BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port Node → Spring Boot |
 | **Database** | [ERD-MYSQL.md](docs/ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid |
-| | [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | CREATE TABLE |
+| | [ERD-HUONG-DAN.md](docs/ERD-HUONG-DAN.md) | Hướng dẫn Mermaid, Draw.io, tạo bảng MySQL |
+| | [sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | CREATE TABLE 17 bảng |
+| | [sql/shopbike_erd.mmd](docs/sql/shopbike_erd.mmd) | Code Mermaid — mở tại mermaid.live |
 | **Luồng** | [SCREEN_FLOW_BY_ACTOR.md](docs/SCREEN_FLOW_BY_ACTOR.md) | Screen flow theo Actor |
 | | [STATE_TRANSITION_DIAGRAM_GUIDE.md](docs/STATE_TRANSITION_DIAGRAM_GUIDE.md) | State diagram Order/Listing/Review |
 | **Thanh toán** | [PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | VNPay gói seller, buyer checkout, sandbox |
