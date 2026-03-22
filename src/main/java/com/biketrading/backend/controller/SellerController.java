@@ -2,12 +2,15 @@ package com.biketrading.backend.controller;
 
 import com.biketrading.backend.entity.Listing;
 import com.biketrading.backend.entity.Order;
+import com.biketrading.backend.entity.User;
 import com.biketrading.backend.enums.ListingState;
 import com.biketrading.backend.enums.OrderStatus;
 import com.biketrading.backend.repository.ListingRepository;
 import com.biketrading.backend.repository.OrderRepository;
+import com.biketrading.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -20,13 +23,37 @@ public class SellerController {
 
     @Autowired private ListingRepository listingRepository;
     @Autowired private OrderRepository orderRepository;
+    @Autowired private UserRepository userRepository;
 
-    // 1. Gửi xe nháp lên hệ thống chờ duyệt
+    // 1. Gửi xe nháp lên hệ thống
     @PostMapping("/listings")
     public ResponseEntity<?> createListing(@RequestBody Listing listing) {
+        // Lấy thông tin Seller đang đăng nhập
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User seller = userRepository.findByUsername(username).orElseThrow();
+
+        // KIỂM TRA SỐ LƯỢNG TIN ĐĂNG CÒN LẠI
+        if (seller.getRemainingListings() <= 0) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "message", "Bạn đã hết lượt đăng tin. Vui lòng mua thêm gói cước để tiếp tục!"
+            ));
+        }
+
+        // TRỪ 1 LƯỢT ĐĂNG TIN
+        seller.setRemainingListings(seller.getRemainingListings() - 1);
+        userRepository.save(seller);
+
+        // Lưu thông tin xe
+        listing.setSeller(seller);
         listing.setState(ListingState.DRAFT);
+        listing.setIsVerified(false); // Mặc định xe mới đăng là chưa kiểm định (Unverified)
+
         Listing savedListing = listingRepository.save(listing);
-        return ResponseEntity.ok(savedListing);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Đăng xe nháp thành công! Bạn còn " + seller.getRemainingListings() + " lượt đăng tin.",
+                "listing", savedListing
+        ));
     }
 
     // 2. Yêu cầu kiểm định để đăng sàn

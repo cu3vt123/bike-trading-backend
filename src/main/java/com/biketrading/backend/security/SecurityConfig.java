@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,20 +35,28 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {})
+                .cors(cors -> {}) // Để mặc định cho CorsConfig xử lý
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+
+                        // 1. CÁC API PUBLIC (Ai cũng vào được, không cần Token)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bikes/**").permitAll()
 
-                        // PHÂN QUYỀN THEO ROLE (Thêm dòng Admin ở đây)
+                        // 🔥 MỞ KHÓA CHO VNPAY TRẢ KẾT QUẢ VỀ HỆ THỐNG 🔥
+                        .requestMatchers("/api/vnpay/**").permitAll()
+
+                        // 2. PHÂN QUYỀN THEO ROLE (Chỉ đúng Role mới gọi được)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/inspector/**").hasRole("INSPECTOR")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
 
+                        // 3. CÁC API CÒN LẠI (Bắt buộc phải có Token đăng nhập)
                         .anyRequest().authenticated()
                 );
 
+        // Thêm bộ lọc JWT vào trước bộ lọc xác thực mặc định
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
