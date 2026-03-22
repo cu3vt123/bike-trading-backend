@@ -28,8 +28,8 @@ public class ListingDTO {
     private InspectionResult inspectionResult;
     private Double inspectionScore;
 
-    // --- TRƯỜNG ĐÁNH DẤU TÍCH XANH ---
-    private Boolean isVerified;
+    // 🔥 TRƯỜNG ĐÁNH DẤU TÍCH XANH ĐÃ ĐƯỢC ĐỔI TÊN KHỚP VỚI FRONTEND 🔥
+    private String certificationStatus;
 
     private String sellerUsername;
 
@@ -52,8 +52,12 @@ public class ListingDTO {
         dto.setInspectionResult(listing.getInspectionResult());
         dto.setInspectionScore(listing.getInspectionScore());
 
-        // Gán giá trị tích xanh từ Entity (Database) sang DTO (Frontend)
-        dto.setIsVerified(listing.getIsVerified());
+        // Gán giá trị tích xanh
+        if (listing.getIsVerified() != null && listing.getIsVerified()) {
+            dto.setCertificationStatus("CERTIFIED");
+        } else {
+            dto.setCertificationStatus("UNVERIFIED");
+        }
 
         if (listing.getSeller() != null) {
             dto.setSellerUsername(listing.getSeller().getUsername());
