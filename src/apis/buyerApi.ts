@@ -40,6 +40,13 @@ export const orderApi = {
       .post(API_PATHS.BUYER.ORDER_VNPAY_RESUME(orderId))
       .then((r) => r.data?.data ?? r.data),
 
+  payBalanceVnpay: (
+    orderId: string,
+  ): Promise<{ paymentUrl: string; orderId: string; balanceAmount: number }> =>
+    apiClient
+      .post(API_PATHS.BUYER.ORDER_VNPAY_PAY_BALANCE(orderId))
+      .then((r) => r.data?.data ?? r.data),
+
   getById: (orderId: string): Promise<Order> =>
     apiClient
       .get(API_PATHS.BUYER.ORDER_BY_ID(orderId))

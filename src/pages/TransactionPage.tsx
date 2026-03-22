@@ -51,7 +51,15 @@ type TxState = {
   vnpayAmountVnd?: number | null;
   /** Tiền cọc 8% (chuẩn hoá từ đơn) */
   depositAmount?: number;
+  /** Địa chỉ giao hàng từ đơn (street, city, postalCode) */
+  shippingAddress?: { street?: string; city?: string; postalCode?: string };
 };
+
+function formatShippingAddress(addr?: { street?: string; city?: string; postalCode?: string }): string {
+  if (!addr) return "—";
+  const parts = [addr.street, addr.city, addr.postalCode].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "—";
+}
 
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
@@ -266,6 +274,7 @@ export default function TransactionPage() {
                   "WAREHOUSE",
                 paymentMethod: pm,
                 totals: prev?.totals ?? navState?.totals ?? {},
+                shippingAddress: order!.shippingAddress ?? prev?.shippingAddress ?? navState?.shippingAddress,
               };
             });
           }
@@ -654,7 +663,7 @@ export default function TransactionPage() {
                 <div className="rounded-lg border bg-muted/50 p-4 sm:col-span-2">
                   <div className="text-xs text-muted-foreground">{t("transaction.shippingAddress")}</div>
                   <div className="mt-1 font-semibold">
-                    123 Cycling Way, District 1, HCMC
+                    {formatShippingAddress(state.shippingAddress)}
                   </div>
                 </div>
               </div>
@@ -719,8 +728,12 @@ export default function TransactionPage() {
               {(orderStatus === "RESERVED" ||
                 orderStatus === "IN_TRANSACTION" ||
                 !orderStatus ||
-                orderStatus === "PENDING_SELLER_SHIP") &&
-                isDirect && (
+                orderStatus === "PENDING_SELLER_SHIP" ||
+                orderStatus === "SHIPPING" ||
+                orderStatus === "SELLER_SHIPPED" ||
+                orderStatus === "AT_WAREHOUSE_PENDING_ADMIN" ||
+                orderStatus === "RE_INSPECTION" ||
+                orderStatus === "RE_INSPECTION_DONE") && (
                 <Button
                   variant="outline"
                   className="mt-3 w-full"
@@ -729,11 +742,9 @@ export default function TransactionPage() {
                   {t("transaction.cancelReservation")}
                 </Button>
               )}
-              {isDirect && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  {t("transaction.refundPolicyNote")}
-                </p>
-              )}
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                {t("transaction.refundPolicyNote")}
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -12,7 +12,7 @@ import {
 } from "../utils/http.js";
 import { buildVnpaySandboxPaymentUrl } from "../utils/vnpaySandbox.js";
 import { getVnpayDemoConfig } from "../config/vnpayDemoConfig.js";
-import { buildBuyerOrderVnpayTxnRef } from "../utils/vnpayBuyerTxnRef.js";
+import { buildBuyerOrderVnpayTxnRef, buildBuyerBalanceVnpayTxnRef } from "../utils/vnpayBuyerTxnRef.js";
 
 function clientIp(req) {
   const xf = req.headers["x-forwarded-for"];
@@ -190,6 +190,7 @@ export async function createOrderVnpayCheckout(req, res) {
       thumbnailUrl: listing.thumbnailUrl,
       frameSize: listing.frameSize,
       condition: listing.condition,
+      seller: listing.seller ? { id: String(listing.seller.id), name: listing.seller.name, email: listing.seller.email } : undefined,
     },
   });
 
@@ -290,6 +291,16 @@ export async function getOrderById(req, res) {
   if (order.expiresAt) obj.expiresAt = order.expiresAt.toISOString();
   delete obj._id;
 
+  /** sellerId cần cho đánh giá — lấy từ Listing (Order không lưu sellerId) */
+  if (!obj.sellerId && order.listingId) {
+    const listing = await Listing.findById(order.listingId).select("seller").lean();
+    if (listing?.seller?.id) obj.sellerId = String(listing.seller.id);
+  }
+  /** Bổ sung seller vào snapshot nếu thiếu (để Success page đánh giá) */
+  if (!obj.listing?.seller && obj.sellerId) {
+    obj.listing = obj.listing ? { ...obj.listing, seller: { id: obj.sellerId } } : { seller: { id: obj.sellerId } };
+  }
+
   return ok(res, obj);
 }
 
@@ -317,6 +328,65 @@ export async function completeOrder(req, res) {
   return ok(res, out);
 }
 
+/** POST /api/buyer/orders/:id/vnpay-pay-balance — thanh toán số dư qua VNPay (plan DEPOSIT) */
+export async function payBalanceVnpay(req, res) {
+  const { id } = req.params;
+  const order = await Order.findById(id);
+  if (!order) return notFound(res, "Order not found");
+  if (order.buyerId.toString() !== req.user.id) {
+    return forbidden(res, "Not your order");
+  }
+  if (order.plan !== "DEPOSIT") {
+    return badRequest(res, "Chỉ đơn đặt cọc mới thanh toán số dư.");
+  }
+  if (order.status !== "SHIPPING") {
+    return badRequest(res, "Chỉ thanh toán số dư khi đơn đang giao hàng (SHIPPING).");
+  }
+  if (order.balancePaid) {
+    return badRequest(res, "Số dư đã thanh toán.");
+  }
+  const depositAmount = order.depositAmount ?? Math.round(order.totalPrice * 0.08);
+  const balanceAmount = Math.max(0, order.totalPrice - depositAmount);
+  if (balanceAmount <= 0) {
+    return badRequest(res, "Không còn số dư cần thanh toán.");
+  }
+
+  const cfg = getVnpayDemoConfig();
+  if (!cfg.isReady) {
+    return serviceUnavailable(
+      res,
+      "VNPAY chưa cấu hình. Thêm VNP_TMNCODE, VNP_HASHSECRET, VNP_RETURNURL vào .env.",
+    );
+  }
+
+  const txnRef = buildBuyerBalanceVnpayTxnRef(order._id);
+  let paymentUrl;
+  try {
+    paymentUrl = buildVnpaySandboxPaymentUrl({
+      tmnCode: cfg.tmnCode,
+      hashSecret: cfg.hashSecret,
+      amountVnd: balanceAmount,
+      txnRef,
+      orderInfo: `ShopBike so du don ${String(order._id).slice(-8)}`,
+      returnUrl: cfg.returnUrl,
+      ipAddr: clientIp(req),
+      payUrl: cfg.payUrl,
+      ipnUrl: cfg.ipnUrl || undefined,
+      bankCode: cfg.bankCode,
+    });
+  } catch (e) {
+    console.error("[buyer-pay-balance] build URL failed:", e?.message ?? e);
+    return badRequest(res, "Không tạo được URL thanh toán VNPAY");
+  }
+
+  return ok(res, {
+    paymentUrl,
+    orderId: String(order._id),
+    balanceAmount,
+    txnRef,
+  });
+}
+
 export async function cancelOrder(req, res) {
   const { id } = req.params;
   const order = await Order.findById(id);
@@ -324,17 +394,19 @@ export async function cancelOrder(req, res) {
   if (order.buyerId.toString() !== req.user.id) {
     return forbidden(res, "Not your order");
   }
-  /** Cho phép hủy khi chưa qua bước seller đã gửi xe đi (chưa SELLER_SHIPPED trở đi), hoặc đơn VNPAY chưa thanh toán */
-  const cancellable =
-    order.vnpayPaymentStatus === "PENDING_PAYMENT" ||
-    order.status === "RESERVED" ||
-    order.status === "IN_TRANSACTION" ||
-    order.status === "PENDING_SELLER_SHIP";
-  if (!cancellable) {
-    return badRequest(res, `Order cannot be cancelled (status: ${order.status})`);
-  }
-  if (order.vnpayPaymentStatus === "PAID" && order.depositPaid) {
-    return badRequest(res, "Đơn đã thanh toán — không hủy qua API này.");
+  /** Cả DIRECT và WAREHOUSE: hủy được trước khi buyer xác nhận nhận hàng (COMPLETED) */
+  const cancellableStatuses = [
+    "RESERVED",
+    "IN_TRANSACTION",
+    "PENDING_SELLER_SHIP",
+    "SELLER_SHIPPED",
+    "AT_WAREHOUSE_PENDING_ADMIN",
+    "RE_INSPECTION",
+    "RE_INSPECTION_DONE",
+    "SHIPPING",
+  ];
+  if (!cancellableStatuses.includes(order.status)) {
+    return badRequest(res, `Không thể hủy đơn ở trạng thái ${order.status}.`);
   }
 
   order.status = "CANCELLED";

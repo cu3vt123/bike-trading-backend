@@ -121,7 +121,7 @@ Chi tiết: [PAYMENTS-VNPAY.md](./PAYMENTS-VNPAY.md).
 
 ## 7. Đơn hàng mua xe & `fulfillmentType`
 
-- **`WAREHOUSE`**: xe đã kiểm định (CERTIFIED). Xe tại kho (`warehouseIntakeVerifiedAt`) → `AT_WAREHOUSE_PENDING_ADMIN` → admin confirm → `SHIPPING`. Buyer không hủy được.  
+- **`WAREHOUSE`**: xe đã kiểm định (CERTIFIED). Xe tại kho (`warehouseIntakeVerifiedAt`) → `AT_WAREHOUSE_PENDING_ADMIN` → admin confirm → `SHIPPING`. Buyer có thể hủy trước khi xác nhận nhận hàng.  
 - **`DIRECT`**: xe chưa kiểm định — seller giao thẳng, không qua kho. Buyer có thể hủy.
 
 Được set khi `POST /api/buyer/orders/vnpay-checkout`. Thanh toán **chỉ VNPAY** (bỏ CASH/COD). Port Spring Boot: xem [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md).

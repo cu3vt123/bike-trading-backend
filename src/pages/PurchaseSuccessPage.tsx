@@ -5,8 +5,9 @@ import { CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchListingById } from "@/services/buyerService";
+import { fetchListingById, fetchOrderById } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
+import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
 import { createReview } from "@/services/reviewService";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
@@ -66,20 +67,44 @@ export default function PurchaseSuccessPage() {
       return;
     }
     let cancelled = false;
-    fetchListingById(id)
-      .then((data) => {
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      /** Tin đã SOLD/RESERVED không còn trong GET /bikes/:id — ưu tiên lấy từ order snapshot */
+      if (state.orderId) {
+        try {
+          const order = await fetchOrderById(state.orderId);
+          if (!cancelled && order?.listing && (order.listingId ?? (order.listing as { id?: string })?.id) === id) {
+            const snap = listingSnapshotToDetail(id, order.listing);
+            if (snap) {
+              if (order.sellerId) {
+                (snap as BikeDetail).seller = { id: String(order.sellerId) };
+              }
+              setListing(snap);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch {
+          /* fall through to fetchListingById */
+        }
+      }
+
+      try {
+        const data = await fetchListingById(id);
         if (!cancelled) setListing(data ?? null);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) setError(err?.message ?? t("checkout.successLoadError"));
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, [id, t]);
+  }, [id, state.orderId, t]);
 
   useEffect(() => {
     if (loading || error || !listing) return;

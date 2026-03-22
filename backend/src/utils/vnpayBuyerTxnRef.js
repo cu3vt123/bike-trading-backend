@@ -10,3 +10,13 @@ export function parseBuyerOrderVnpayTxnRef(txnRef) {
   const m = /^B([\da-f]{24})$/i.exec(String(txnRef ?? ""));
   return m ? m[1] : null;
 }
+
+/** TxnRef thanh toán số dư = "BB" + orderId (B=balance) */
+export function buildBuyerBalanceVnpayTxnRef(orderId) {
+  return `BB${String(orderId)}`;
+}
+
+export function parseBuyerBalanceTxnRef(txnRef) {
+  const m = /^BB([\da-f]{24})$/i.exec(String(txnRef ?? ""));
+  return m ? m[1] : null;
+}

@@ -55,9 +55,10 @@
 
 | POST | `/orders/vnpay-checkout` | `createOrderVnpayCheckout` | Tạo đơn + `paymentUrl` VNPAY. Set `fulfillmentType` + `status` theo listing (xem mục 5). Bỏ `POST /orders` COD. |
 | GET | `/orders` | `getMyOrders` | Filter `buyerId` |
-| GET | `/orders/:id` | `getOrderById` | 403 nếu không phải chủ đơn |
+| GET | `/orders/:id` | `getOrderById` | 403 nếu không phải chủ đơn. Trả `sellerId` (từ Listing) và bổ sung `listing.seller` nếu thiếu — dùng cho Success page đánh giá. |
 | PUT | `/orders/:id/complete` | `completeOrder` | Chỉ khi `status == SHIPPING` |
-| PUT | `/orders/:id/cancel` | `cancelOrder` | **Chỉ DIRECT.** Không cho phép hủy khi `fulfillmentType == WAREHOUSE`. |
+| PUT | `/orders/:id/cancel` | `cancelOrder` | **Cả DIRECT và WAREHOUSE.** Hủy được khi RESERVED, IN_TRANSACTION, PENDING_SELLER_SHIP, SELLER_SHIPPED, AT_WAREHOUSE_PENDING_ADMIN, RE_INSPECTION, RE_INSPECTION_DONE, SHIPPING. |
+| POST | `/orders/:id/vnpay-pay-balance` | `payBalanceVnpay` | Thanh toán số dư (plan DEPOSIT) qua VNPay → redirect; Return về Finalize `?vnpay_balance=1`. |
 | POST | `/payments/initiate` | `initiatePayment` | Legacy (chỉ CASH). Thanh toán buyer dùng `orders/vnpay-checkout`. |
 | POST | `/orders/:id/review` | `createReviewForOrder` | Sau COMPLETED |
 | GET | `/reviews` | `listMyReviews` | |
@@ -110,11 +111,11 @@
 - **`WAREHOUSE`**: Xe **đã kiểm định** (CERTIFIED).  
   - **Xe tại kho từ luồng tin:** Nếu listing có `warehouseIntakeVerifiedAt` → order tạo ra `AT_WAREHOUSE_PENDING_ADMIN`. Admin xác nhận → `SHIPPING` trực tiếp (không RE_INSPECTION), set `expiresAt = now + 24h`.  
   - **Legacy seller gửi kho:** `SELLER_SHIPPED` → `confirm-warehouse` → `RE_INSPECTION` → `re-inspection-done` → `SHIPPING` + `expiresAt`.  
-  - Buyer **không** được hủy khi WAREHOUSE.
+  - Buyer **có thể hủy** khi RESERVED, SELLER_SHIPPED, AT_WAREHOUSE_PENDING_ADMIN, RE_INSPECTION, RE_INSPECTION_DONE, SHIPPING (trước khi xác nhận nhận hàng).
 - **`DIRECT`**: Xe **chưa kiểm định** (UNVERIFIED).  
   - Sau thanh toán: `status = PENDING_SELLER_SHIP`.  
   - Seller: `PUT .../ship-to-buyer` → `SHIPPING` + `expiresAt`.  
-  - Buyer có thể hủy khi RESERVED / PENDING_SELLER_SHIP.  
+  - Buyer có thể hủy khi RESERVED, PENDING_SELLER_SHIP, SHIPPING.  
   - `confirm-warehouse` trả 400 nếu `DIRECT`.
 
 Logic gốc Node: `buyerController.js` — `listingUsesWarehouseFlow()`.
@@ -123,6 +124,7 @@ Logic gốc Node: `buyerController.js` — `listingUsesWarehouseFlow()`.
 
 - **Bỏ CASH/COD.** Tạo đơn: `POST /api/buyer/orders/vnpay-checkout` (plan DEPOSIT hoặc FULL).  
 - IPN hoặc Return URL cập nhật `depositPaid`, `vnpayPaymentStatus = PAID`.  
+- **Thanh toán số dư (plan DEPOSIT):** `POST /api/buyer/orders/:id/vnpay-pay-balance` → paymentUrl → VNPay → Return về Finalize `?vnpay_balance=1` → buyer xác nhận hoàn tất. Order có field `balancePaid`.  
 - `confirm-warehouse` cho AT_WAREHOUSE_PENDING_ADMIN: yêu cầu `depositPaid` hoặc `vnpayPaymentStatus === "PAID"`.
 
 ### 5.3 Query admin warehouse & re-inspection
@@ -135,11 +137,12 @@ Hai nhánh trong `$or` (Node):
 - Kho: `SELLER_SHIPPED` / `AT_WAREHOUSE_PENDING_ADMIN` và **không** `DIRECT`.  
 - Direct: `PENDING_SELLER_SHIP` và `DIRECT`.
 
-### 5.5 `GET /bikes/:id` và Finalize
+### 5.5 `GET /bikes/:id`, Finalize & Success
 
-- `GET /bikes/:id` chỉ trả listing **PUBLISHED**. Khi order RESERVED, listing → RESERVED nên API 404.  
-- Finalize page (`/finalize/:id?orderId=xxx`): FE **ưu tiên** lấy listing từ `order.listing` (snapshot) khi có `orderId`. Không phụ thuộc `GET /bikes/:id` cho tin đã reserved.  
-- Bỏ form nhập địa chỉ/giao hàng ở Finalize — buyer đã nhập ở checkout.
+- `GET /bikes/:id` chỉ trả listing **PUBLISHED**. Khi order RESERVED/SOLD, listing → RESERVED/SOLD nên API 404.  
+- **Finalize** (`/finalize/:id?orderId=xxx`): FE ưu tiên lấy listing từ `order.listing` (snapshot) khi có `orderId`. Bỏ form địa chỉ — buyer đã nhập ở checkout. Nút "Thanh toán nốt X qua VNPay" khi `balancePaid === false`.  
+- **Success** (`/success/:id`): Ưu tiên lấy từ order khi có `state.orderId` — tin SOLD không còn trong GET /bikes. Navigate từ Finalize phải truyền `orderId` trong state.  
+- **Review form:** `getOrderById` trả `sellerId` (từ Listing) và bổ sung `listing.seller` để form đánh giá hoạt động. Snapshot tạo đơn lưu `seller` từ đầu.
 
 ---
 

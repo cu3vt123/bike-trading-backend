@@ -7,6 +7,7 @@ import {
   createOrder,
   createOrderVnpayCheckout,
   resumeBuyerOrderVnpay,
+  payBalanceVnpay,
   getMyOrders,
   getOrderById,
   completeOrder,
@@ -23,6 +24,7 @@ buyerRoutes.use(requireRole(["BUYER", "ADMIN"]));
 
 buyerRoutes.post("/orders/vnpay-checkout", wrapAsync(createOrderVnpayCheckout));
 buyerRoutes.post("/orders/:id/vnpay-resume", wrapAsync(resumeBuyerOrderVnpay));
+buyerRoutes.post("/orders/:id/vnpay-pay-balance", wrapAsync(payBalanceVnpay));
 buyerRoutes.post("/orders", wrapAsync(createOrder));
 buyerRoutes.get("/orders", wrapAsync(getMyOrders));
 buyerRoutes.get("/orders/:id", wrapAsync(getOrderById));

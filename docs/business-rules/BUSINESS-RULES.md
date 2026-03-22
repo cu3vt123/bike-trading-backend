@@ -25,7 +25,7 @@
 | BR-ORD-01 | `fulfillmentType` trên Order | **WAREHOUSE**: xe đã kiểm định (CERTIFIED). **DIRECT**: xe chưa kiểm định (UNVERIFIED). |
 | BR-ORD-02 | Luồng WAREHOUSE | Xe tại kho (`warehouseIntakeVerifiedAt`) → `AT_WAREHOUSE_PENDING_ADMIN` → admin xác nhận giao → `SHIPPING` trực tiếp (set `expiresAt` = now + 24h). Legacy: SELLER_SHIPPED → RE_INSPECTION → re-inspection-done → SHIPPING. |
 | BR-ORD-03 | Luồng DIRECT | Sau thanh toán → `PENDING_SELLER_SHIP` → seller xác nhận đã giao trực tiếp → `SHIPPING` (set `expiresAt`). Không qua kho. |
-| BR-ORD-04 | Hủy đơn (buyer) | **Chỉ khi DIRECT.** WAREHOUSE không cho hủy. |
+| BR-ORD-04 | Hủy đơn (buyer) | **Cả DIRECT và WAREHOUSE.** Hủy được khi RESERVED, IN_TRANSACTION, PENDING_SELLER_SHIP, SELLER_SHIPPED, AT_WAREHOUSE_PENDING_ADMIN, RE_INSPECTION, RE_INSPECTION_DONE, SHIPPING (trước khi buyer xác nhận nhận hàng). |
 | BR-ORD-05 | Admin confirm-warehouse | Chỉ đơn `fulfillmentType === WAREHOUSE`. Nếu DIRECT → trả 400. |
 | BR-ORD-06 | Admin yêu cầu thanh toán | `confirm-warehouse` cho AT_WAREHOUSE_PENDING_ADMIN: yêu cầu `depositPaid` hoặc `vnpayPaymentStatus === "PAID"`. |
 | BR-ORD-07 | Query đơn chờ xác nhận kho | Chỉ đơn có `fulfillmentType === WAREHOUSE` (WAREHOUSE_ONLY_FILTER). |
@@ -43,17 +43,19 @@
 | BR-PAY-VNP-02 | Chỉ VNPAY cho gói seller | Gói đăng tin, initiate payment dùng **VNPay** (VNPAY_QR, provider: VNPAY). Bỏ Postpay. |
 | BR-PAY-VNP-03 | Deposit 8% | Deposit = 8% giá trị đơn hàng (đồng bộ FE và BE). |
 | BR-PAY-VNP-04 | Cập nhật sau thanh toán | IPN hoặc Return URL cập nhật `depositPaid`, `vnpayPaymentStatus = PAID`. Return URL cũng cập nhật khi IPN không gọi được (vd. localhost). |
-| BR-PAY-VNP-05 | Finalize thanh toán số dư | Buyer hoàn tất thanh toán phần còn lại (khi chọn DEPOSIT) trước khi Complete. |
+| BR-PAY-VNP-05 | Finalize thanh toán số dư | Buyer thanh toán phần còn lại qua **VNPay** (plan DEPOSIT) trước khi Complete. Endpoint `POST /api/buyer/orders/:id/vnpay-pay-balance` → redirect VNPay → Return về Finalize (`vnpay_balance=1`) → Xác nhận hoàn tất. |
 
 ---
 
-## 4. Finalize & GET /bikes/:id
+## 4. Finalize, Success & GET /bikes/:id
 
 | ID | Rule | Chi tiết |
 |----|------|----------|
-| BR-FIN-01 | Lấy tin từ order | Finalize page: **ưu tiên** lấy listing từ `order.listing` (snapshot) khi có `orderId`. Không phụ thuộc `GET /bikes/:id` cho tin đã RESERVED. |
+| BR-FIN-01 | Lấy tin từ order | Finalize & Success: **ưu tiên** lấy listing từ `order.listing` (snapshot) khi có `orderId`. Không phụ thuộc `GET /bikes/:id` cho tin đã RESERVED/SOLD. |
 | BR-FIN-02 | Bỏ form địa chỉ | Finalize **không** hiển thị form nhập địa chỉ — buyer đã nhập ở checkout. |
-| BR-FIN-03 | GET /bikes/:id | Chỉ trả listing **PUBLISHED**. Khi order RESERVED, listing → RESERVED nên API có thể 404 — Finalize không cần gọi API này cho tin đã mua. |
+| BR-FIN-03 | GET /bikes/:id | Chỉ trả listing **PUBLISHED**. Khi order RESERVED/SOLD, listing → RESERVED/SOLD nên API 404 — Finalize & Success lấy từ order snapshot. |
+| BR-FIN-04 | Địa chỉ giao hàng | Transaction page hiển thị `order.shippingAddress` (đã nhập lúc checkout), không hardcode. |
+| BR-FIN-05 | Review form (Success) | `getOrderById` trả `sellerId` và bổ sung `seller` vào listing snapshot (Order không lưu sellerId; lấy từ Listing) để form đánh giá hoạt động. |
 
 ---
 
@@ -159,4 +161,4 @@ Script append: `node scripts/append-business-rules.mjs` (xem [README.md](./READM
 
 ---
 
-*Cập nhật: 2026-03 — WAREHOUSE/DIRECT, VNPAY only, Finalize từ order, countdown 24h, hủy chỉ DIRECT.*
+*Cập nhật: 2026-03 — WAREHOUSE/DIRECT, VNPAY only, Finalize từ order, countdown 24h, hủy cả kho & direct, pay-balance VNPay, Success từ order, review sellerId.*

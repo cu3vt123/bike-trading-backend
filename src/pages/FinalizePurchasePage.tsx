@@ -5,7 +5,13 @@ import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { fetchListingById, fetchOrderById, completeOrder } from "@/services/buyerService";
+import {
+  fetchListingById,
+  fetchOrderById,
+  completeOrder,
+  payBalanceVnpayOrder,
+} from "@/services/buyerService";
+import type { Order } from "@/types/order";
 import type { BikeDetail } from "@/types/shopbike";
 import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
 
@@ -53,9 +59,12 @@ export default function FinalizePurchasePage() {
     searchParams.get("orderId")?.trim() || state.orderId?.trim() || "";
 
   const [listing, setListing] = useState<BikeDetail | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const vnpayBalanceReturn = searchParams.get("vnpay_balance") === "1";
 
   useEffect(() => {
     if (!id) {
@@ -72,12 +81,13 @@ export default function FinalizePurchasePage() {
       /** Ưu tiên lấy từ order khi có orderId — tin RESERVED không còn trong GET /bikes/:id */
       if (orderIdForLoad) {
         try {
-          const order = await fetchOrderById(orderIdForLoad);
-          if (!cancelled && order) {
+          const fetchedOrder = await fetchOrderById(orderIdForLoad);
+          if (!cancelled && fetchedOrder) {
+            setOrder(fetchedOrder);
             const lid =
-              order.listingId ?? (order.listing as { id?: string } | undefined)?.id;
-            if ((lid ?? id) === id && order.listing) {
-              const snap = listingSnapshotToDetail(id, order.listing);
+              fetchedOrder.listingId ?? (fetchedOrder.listing as { id?: string } | undefined)?.id;
+            if ((lid ?? id) === id && fetchedOrder.listing) {
+              const snap = listingSnapshotToDetail(id, fetchedOrder.listing);
               if (snap) {
                 setListing(snap);
                 setError(null);
@@ -117,14 +127,47 @@ export default function FinalizePurchasePage() {
     };
   }, [id, orderIdForLoad, t]);
 
+  // Re-fetch order when returning from VNPay balance payment (vnpay_balance=1)
+  useEffect(() => {
+    if (!orderIdForLoad || !vnpayBalanceReturn) return;
+    let cancelled = false;
+    fetchOrderById(orderIdForLoad).then((o) => {
+      if (!cancelled && o) setOrder(o);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [orderIdForLoad, vnpayBalanceReturn]);
+
   const total =
-    state.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
+    state.totalPrice ?? order?.totalPrice ?? state.totals?.totalNow ?? listing?.price ?? 0;
   const deposit =
-    state.depositPaid ?? state.totals?.deposit ?? Math.round(total * 0.08);
+    state.depositPaid ?? order?.depositAmount ?? state.totals?.deposit ?? Math.round(total * 0.08);
   const due = Math.max(0, total - deposit);
+  const balancePaid = order?.balancePaid ?? false;
+  const isDepositPlan = order?.plan === "DEPOSIT";
+  const needsBalancePayment = due > 0 && isDepositPlan && !balancePaid;
   const currency = (listing?.currency ?? "VND") as "VND" | "USD";
 
   const effectiveOrderId = orderIdForLoad || state.orderId;
+
+  async function onPayBalanceViaVnpay() {
+    if (!effectiveOrderId) {
+      setError(t("checkout.finalizeMissingOrder"));
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+    try {
+      const { paymentUrl } = await payBalanceVnpayOrder(effectiveOrderId);
+      window.location.href = paymentUrl;
+      return;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("checkout.finalizeCompleteError"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function onComplete() {
     if (!effectiveOrderId) {
@@ -138,6 +181,7 @@ export default function FinalizePurchasePage() {
       navigate(`/success/${listing!.id}`, {
         state: {
           ...state,
+          orderId: effectiveOrderId,
           totalPrice: total,
           depositPaid: deposit,
           completedAt: Date.now(),
@@ -220,9 +264,25 @@ export default function FinalizePurchasePage() {
                   {error}
                 </div>
               )}
-              <Button onClick={onComplete} className="mt-4 w-full" disabled={submitting}>
-                {submitting ? t("checkout.finalizeProcessing") : t("checkout.finalizePayAndComplete")}
-              </Button>
+              {needsBalancePayment ? (
+                <Button
+                  onClick={onPayBalanceViaVnpay}
+                  className="mt-4 w-full"
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? t("checkout.finalizeProcessing")
+                    : t("checkout.finalizePayBalanceViaVnpay", {
+                        amount: formatMoney(due, currency),
+                      })}
+                </Button>
+              ) : (
+                <Button onClick={onComplete} className="mt-4 w-full" disabled={submitting}>
+                  {submitting
+                    ? t("checkout.finalizeProcessing")
+                    : t("checkout.finalizeConfirmComplete")}
+                </Button>
+              )}
               <Button asChild variant="ghost" className="mt-3 w-full" size="sm">
                 <Link
                   to={

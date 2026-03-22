@@ -54,6 +54,7 @@ export const API_PATHS = {
     PAYMENTS_INITIATE: "/buyer/payments/initiate",
     ORDERS_VNPAY_CHECKOUT: "/buyer/orders/vnpay-checkout",
     ORDER_VNPAY_RESUME: (id: string) => `/buyer/orders/${id}/vnpay-resume`,
+    ORDER_VNPAY_PAY_BALANCE: (id: string) => `/buyer/orders/${id}/vnpay-pay-balance`,
     PAYMENTS_CONFIRM: (orderId: string) => `/buyer/payments/confirm/${orderId}`,
     TRANSACTIONS: (orderId: string) => `/buyer/transactions/${orderId}`,
     PROFILE: "/buyer/profile",

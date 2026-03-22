@@ -64,6 +64,17 @@ export async function createVnpayCheckoutOrder(
 }
 
 /** Tạo lại URL VNPAY cho đơn PENDING_PAYMENT (cùng orderId) */
+export async function payBalanceVnpayOrder(orderId: string): Promise<{
+  paymentUrl: string;
+  orderId: string;
+  balanceAmount: number;
+}> {
+  if (USE_MOCK) {
+    throw new Error("VNPAY: tắt VITE_USE_MOCK_API và cấu hình backend.");
+  }
+  return await buyerApi.orderApi.payBalanceVnpay(orderId);
+}
+
 export async function resumeVnpayCheckoutOrder(orderId: string): Promise<{
   paymentUrl: string;
   txnRef?: string;

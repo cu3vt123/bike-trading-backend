@@ -58,9 +58,10 @@
 ### 2.2a Đơn hàng: luồng kho (WAREHOUSE) vs giao trực tiếp (DIRECT)
 
 - **`fulfillmentType` trên Order** (backend + FE types):
-  - **WAREHOUSE** — xe **đã kiểm định** (CERTIFIED). Xe tại kho (`warehouseIntakeVerifiedAt`) → `AT_WAREHOUSE_PENDING_ADMIN` → admin xác nhận giao → `SHIPPING` (24h countdown). Legacy: `SELLER_SHIPPED` → RE_INSPECTION → `SHIPPING`. **Buyer không hủy được.**
+  - **WAREHOUSE** — xe **đã kiểm định** (CERTIFIED). Xe tại kho (`warehouseIntakeVerifiedAt`) → `AT_WAREHOUSE_PENDING_ADMIN` → admin xác nhận giao → `SHIPPING` (24h countdown). Legacy: `SELLER_SHIPPED` → RE_INSPECTION → `SHIPPING`. **Buyer có thể hủy** trước khi xác nhận nhận hàng.
   - **DIRECT** — xe **chưa kiểm định** (UNVERIFIED): sau mua → `PENDING_SELLER_SHIP` → seller xác nhận giao trực tiếp → `SHIPPING` → **không** qua kho.
-- **Hủy đơn (buyer):** chỉ khi `DIRECT`. WAREHOUSE không cho hủy.
+- **Hủy đơn (buyer):** Cả DIRECT và WAREHOUSE. Hủy được khi RESERVED, IN_TRANSACTION, PENDING_SELLER_SHIP, SELLER_SHIPPED, AT_WAREHOUSE_PENDING_ADMIN, RE_INSPECTION, RE_INSPECTION_DONE, SHIPPING.
+- **Thanh toán số dư (DEPOSIT):** Finalize có nút "Thanh toán nốt X qua VNPay" → redirect VNPay → Return về Finalize → Xác nhận hoàn tất. Order có field `balancePaid`.
 - **Thanh toán:** chỉ VNPAY (DEPOSIT 8% hoặc FULL). Bỏ CASH/COD.
 - **Thông báo in-app (seller):** chỉ một số trạng thái được đồng bộ — logic tách trong `src/services/sellerOrderNotificationFlow.ts` (nhóm *có thông báo* vs *im lặng*).
 - Chi tiết port sang Spring Boot: [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md).

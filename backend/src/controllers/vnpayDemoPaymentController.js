@@ -20,7 +20,7 @@ import { PackageOrder } from "../models/PackageOrder.js";
 import { Order } from "../models/Order.js";
 import { Listing } from "../models/Listing.js";
 import { activateSubscription } from "../services/subscriptionService.js";
-import { parseBuyerOrderVnpayTxnRef } from "../utils/vnpayBuyerTxnRef.js";
+import { parseBuyerOrderVnpayTxnRef, parseBuyerBalanceTxnRef } from "../utils/vnpayBuyerTxnRef.js";
 
 /** TxnRef đơn gói seller = Mongo ObjectId (24 ký tự hex) */
 function looksLikePackageOrderTxnRef(txnRef) {
@@ -152,6 +152,24 @@ export async function vnpayReturn(req, res) {
     }
   }
 
+  /** Thanh toán số dư (BB + orderId) → redirect về Finalize */
+  const balanceOid = parseBuyerBalanceTxnRef(txnRef);
+  if (balanceOid) {
+    const mo = await Order.findById(balanceOid);
+    if (mo) {
+      if (responseCode === "00") {
+        mo.balancePaid = true;
+        await mo.save();
+      }
+      const lid = String(mo.listingId ?? "");
+      const sp = new URLSearchParams({
+        orderId: balanceOid,
+        vnpay_balance: responseCode === "00" ? "1" : "0",
+      });
+      return res.redirect(`${base}/finalize/${lid}?${sp.toString()}`);
+    }
+  }
+
   const buyerOid = parseBuyerOrderVnpayTxnRef(txnRef);
   if (buyerOid) {
     const mo = await Order.findById(buyerOid);
@@ -235,6 +253,29 @@ export async function vnpayIpn(req, res) {
       }
       return res.status(200).json({ RspCode: "00", Message: "Confirm Success" });
     }
+  }
+
+  /** Thanh toán số dư (BB + orderId) */
+  const balanceOid = parseBuyerBalanceTxnRef(txnRef);
+  if (balanceOid) {
+    const mo = await Order.findById(balanceOid);
+    if (mo && mo.plan === "DEPOSIT") {
+      const depositAmt = mo.depositAmount ?? Math.round(mo.totalPrice * 0.08);
+      const expectedBalance = Math.max(0, mo.totalPrice - depositAmt);
+      const expected = expectedBalance * 100;
+      if (Number.isNaN(amountFromVnp) || amountFromVnp !== expected) {
+        return res.status(200).json({ RspCode: "04", Message: "Invalid Amount" });
+      }
+      if (mo.balancePaid) {
+        return res.status(200).json({ RspCode: "00", Message: "Confirm Success" });
+      }
+      if (responseCode === "00" && transactionStatus === "00") {
+        mo.balancePaid = true;
+        await mo.save();
+        return res.status(200).json({ RspCode: "00", Message: "Confirm Success" });
+      }
+    }
+    return res.status(200).json({ RspCode: "00", Message: "Confirm Success" });
   }
 
   /** Đơn mua xe buyer (Mongo Order, TxnRef = B + _id) */

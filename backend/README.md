@@ -60,9 +60,10 @@ API runs at `http://localhost:8081/api`.
 ### Buyer (orders – requires BUYER login)
 - `POST /api/buyer/orders/vnpay-checkout` – tạo đơn chờ thanh toán VNPAY (`vnpayPaymentStatus: PENDING_PAYMENT`, `depositPaid: false`) + trả `paymentUrl` (TxnRef `B` + `orderId`). IPN hoặc Return URL cập nhật **PAID** / **FAILED**. Plan DEPOSIT (8%) hoặc FULL.
 - `GET /api/buyer/orders` – danh sách đơn của buyer
-- `GET /api/buyer/orders/:id` – chi tiết đơn (có `fulfillmentType`)
+- `GET /api/buyer/orders/:id` – chi tiết đơn (có `fulfillmentType`, `sellerId` và `listing.seller` cho Success/review)
 - `PUT /api/buyer/orders/:id/complete` – hoàn tất khi `status === SHIPPING` → `COMPLETED`, listing → SOLD
-- `PUT /api/buyer/orders/:id/cancel` – hủy chỉ khi `fulfillmentType === DIRECT`. Không hủy khi WAREHOUSE.
+- `PUT /api/buyer/orders/:id/cancel` – hủy được cả DIRECT và WAREHOUSE khi RESERVED, IN_TRANSACTION, PENDING_SELLER_SHIP, SELLER_SHIPPED, AT_WAREHOUSE_PENDING_ADMIN, RE_INSPECTION, RE_INSPECTION_DONE, SHIPPING.
+- `POST /api/buyer/orders/:id/vnpay-pay-balance` – thanh toán số dư (plan DEPOSIT) qua VNPay → redirect → Return về Finalize `?vnpay_balance=1`.
 - `POST /api/buyer/orders/:id/review` – tạo review sau giao dịch
 - `GET /api/buyer/reviews` – reviews của buyer
 

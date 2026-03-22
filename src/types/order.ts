@@ -65,6 +65,8 @@ export type Order = {
   totalPrice: number;
   depositAmount?: number;
   depositPaid?: boolean;
+  /** Phần còn lại đã thanh toán qua VNPay (plan DEPOSIT) */
+  balancePaid?: boolean;
   vnpayPaymentStatus?: "PENDING_PAYMENT" | "PAID" | "FAILED";
   vnpayAmountVnd?: number | null;
   paymentMethod?: PaymentMethod;

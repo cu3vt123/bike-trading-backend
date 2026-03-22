@@ -27,6 +27,8 @@ const OrderSchema = new mongoose.Schema(
     totalPrice: { type: Number, required: true },
     depositAmount: { type: Number, default: 0 },
     depositPaid: { type: Boolean, default: false },
+    /** Phần còn lại (số dư) đã thanh toán qua VNPay — khi plan DEPOSIT */
+    balancePaid: { type: Boolean, default: false },
     shippingAddress: {
       street: { type: String, default: "" },
       city: { type: String, default: "" },

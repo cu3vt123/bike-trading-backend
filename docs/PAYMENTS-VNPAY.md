@@ -18,6 +18,7 @@
 
 - `POST /api/buyer/orders/vnpay-checkout` — tạo đơn + `paymentUrl` redirect VNPAY. Plan DEPOSIT (8%) hoặc FULL. **Chỉ VNPAY**, bỏ CASH/COD.
 - IPN hoặc Return URL cập nhật `depositPaid`, `vnpayPaymentStatus = PAID`. Return URL cũng cập nhật khi IPN không gọi được (localhost).
+- **Thanh toán số dư (plan DEPOSIT):** `POST /api/buyer/orders/:id/vnpay-pay-balance` — tạo URL VNPay cho phần còn lại. TxnRef dạng `BB` + orderId. Return về `/finalize/:listingId?orderId=...&vnpay_balance=1`. IPN/Return set `balancePaid = true`.
 - `POST /api/buyer/payments/initiate` — legacy, chỉ CASH (deprecated).
 
 ---
