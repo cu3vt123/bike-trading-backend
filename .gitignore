@@ -31,6 +31,9 @@ backend/.env
 backend/data/*.sqlite
 backend/data/*.sqlite-*
 
+# Editor / Cursor (local only — không đưa lên Git)
+.cursor/
+
 # Editor
 .vscode/*
 !.vscode/extensions.json
