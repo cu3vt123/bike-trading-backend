@@ -26,19 +26,19 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         String defaultPassword = passwordEncoder.encode("Password!1");
-        // 0. Tạo Admin
-        if (userRepository.findByUsername("admin01").isEmpty()) {
+
+        // 1. Tạo Admin (Quản trị viên)
+        if (userRepository.findByUsername("admin").isEmpty()) {
             User admin = new User();
-            admin.setUsername("admin01");
+            admin.setUsername("admin");
             admin.setEmail("admin@shopbike.com");
             admin.setPassword(defaultPassword);
             admin.setRole(UserRole.ADMIN);
             userRepository.save(admin);
-            System.out.println(">> Đã tạo Admin: admin01 / Password!1");
+            System.out.println(">> Đã tạo Admin: admin / Password!1");
         }
 
-
-        // 1. Tạo Inspector (Người kiểm định)
+        // 2. Tạo Inspector (Người kiểm định)
         if (userRepository.findByUsername("inspector01").isEmpty()) {
             User inspector = new User();
             inspector.setUsername("inspector01");
@@ -49,7 +49,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println(">> Đã tạo Inspector: inspector01 / Password!1");
         }
 
-        // 2. Tạo Seller (Người bán)
+        // 3. Tạo Seller (Người bán)
         User seller;
         if (userRepository.findByUsername("seller01").isEmpty()) {
             seller = new User();
@@ -57,13 +57,17 @@ public class DatabaseSeeder implements CommandLineRunner {
             seller.setEmail("seller@shopbike.com");
             seller.setPassword(defaultPassword);
             seller.setRole(UserRole.SELLER);
+
+            // Ép Seller này có 0 lượt đăng tin để dễ dàng Test luồng mua gói VNPay
+            seller.setRemainingListings(0);
+
             userRepository.save(seller);
-            System.out.println(">> Đã tạo Seller: seller01 / Password!1");
+            System.out.println(">> Đã tạo Seller: seller01 / Password!1 (Số lượt đăng: 0)");
         } else {
             seller = userRepository.findByUsername("seller01").get();
         }
 
-        // 3. Tạo Buyer (Người mua)
+        // 4. Tạo Buyer (Người mua)
         if (userRepository.findByUsername("buyer01").isEmpty()) {
             User buyer = new User();
             buyer.setUsername("buyer01");
@@ -74,7 +78,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println(">> Đã tạo Buyer: buyer01 / Password!1");
         }
 
-        // 4. Tạo xe mẫu (Đã duyệt để hiện lên trang chủ luôn)
+        // 5. Tạo xe mẫu (Đã duyệt)
         if (listingRepository.count() == 0) {
             Listing bike1 = new Listing();
             bike1.setTitle("Specialized Tarmac SL7 2022");
@@ -87,17 +91,19 @@ public class DatabaseSeeder implements CommandLineRunner {
             bike1.setFrameSize("54cm");
             bike1.setLocation("Hồ Chí Minh");
             bike1.setDescription("Xe còn rất mới, full carbon, Group Ultegra Di2.");
-            bike1.setThumbnailUrl("https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=500&q=80"); // Ảnh xe đạp mượn tạm
+            bike1.setThumbnailUrl("https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=500&q=80");
             bike1.setImageUrls(List.of("https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=800&q=80"));
 
-            // Trạng thái đã duyệt
             bike1.setState(ListingState.PUBLISHED);
             bike1.setInspectionResult(InspectionResult.APPROVE);
             bike1.setInspectionScore(4.8);
             bike1.setSeller(seller);
 
+            // TẶNG CHO CHIẾC XE NÀY TÍCH XANH KIỂM ĐỊNH LÀM MẪU
+            bike1.setIsVerified(true);
+
             listingRepository.save(bike1);
-            System.out.println(">> Đã tạo tin đăng xe mẫu thành công!");
+            System.out.println(">> Đã tạo tin đăng xe mẫu thành công (Có tích xanh)!");
         }
     }
 }
