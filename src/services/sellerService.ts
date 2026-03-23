@@ -2,6 +2,7 @@
  * Seller service – gọi API thật hoặc fallback mock khi BE chưa sẵn sàng.
  * Có timeout để tránh load mãi khi backend treo.
  */
+import { isAxiosError } from "axios";
 import {
   sellerApi,
   type SellerDashboardStats,
@@ -95,9 +96,10 @@ export async function fetchListingById(id: string): Promise<Listing | null> {
   }
   try {
     return await sellerApi.getListingById(id);
-  } catch {
-    const found = SELLER_MOCK.find((l) => l.id === id);
-    return found ?? null;
+  } catch (e) {
+    /** Không giả mạo dữ liệu khi lỗi mạng/403 — tránh UI lệch với server (kẹt nháp / tưởng đã đăng). */
+    if (isAxiosError(e) && e.response?.status === 404) return null;
+    throw e;
   }
 }
 
@@ -291,20 +293,7 @@ export async function createListing(
       state: "DRAFT",
     };
   }
-  try {
-    return await sellerApi.create(data);
-  } catch {
-    return {
-      id: `S-${Date.now()}`,
-      title: data.title,
-      brand: data.brand,
-      model: data.model,
-      year: data.year,
-      price: data.price,
-      location: data.location ?? "",
-      state: "DRAFT",
-    };
-  }
+  return sellerApi.create(data);
 }
 
 export async function updateListing(
@@ -315,12 +304,7 @@ export async function updateListing(
     const found = SELLER_MOCK.find((l) => l.id === id);
     return { ...(found ?? {}), ...data, id } as Listing;
   }
-  try {
-    return await sellerApi.update(id, data);
-  } catch {
-    const found = SELLER_MOCK.find((l) => l.id === id);
-    return { ...(found ?? {}), ...data, id } as Listing;
-  }
+  return sellerApi.update(id, data);
 }
 
 export async function submitForInspection(id: string): Promise<Listing> {
@@ -328,12 +312,7 @@ export async function submitForInspection(id: string): Promise<Listing> {
     const found = SELLER_MOCK.find((l) => l.id === id);
     return { ...(found ?? {}), id, state: "PENDING_INSPECTION" as const } as Listing;
   }
-  try {
-    return await sellerApi.submitForInspection(id);
-  } catch {
-    const found = SELLER_MOCK.find((l) => l.id === id);
-    return { ...(found ?? {}), id, state: "PENDING_INSPECTION" as const } as Listing;
-  }
+  return sellerApi.submitForInspection(id);
 }
 
 export async function publishListing(
@@ -349,15 +328,5 @@ export async function publishListing(
       certificationStatus: opts.requestInspection ? "PENDING_CERTIFICATION" : "UNVERIFIED",
     } as Listing;
   }
-  try {
-    return await sellerApi.publishListing(id, opts);
-  } catch {
-    const found = SELLER_MOCK.find((l) => l.id === id);
-    return {
-      ...(found ?? {}),
-      id,
-      state: opts.requestInspection ? "PENDING_INSPECTION" : "PUBLISHED",
-      certificationStatus: opts.requestInspection ? "PENDING_CERTIFICATION" : "UNVERIFIED",
-    } as Listing;
-  }
+  return sellerApi.publishListing(id, opts);
 }

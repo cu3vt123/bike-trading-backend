@@ -53,7 +53,7 @@ Checklist mở rộng: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.
 | **Tổng quan** | [PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) | Business rules, luồng màn hình, flow runtime |
 | | [USER-REQUIREMENTS.md](docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR), trace chức năng |
 | **Tra cứu** | [QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | API, thuật ngữ, routes, env, vị trí file |
-| | [BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md) | Rà soát khớp API BE–FE, dead code đã xóa |
+| | [BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Rà soát khớp API BE–FE theo khu vực & theo từng trang |
 | **Backend** | [BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md) | Hướng dẫn Node/Express, Mongo, API, VietQR/VNPay |
 | | [BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port Node → Spring Boot |
 | **Database** | [ERD-MYSQL.md](docs/ERD-MYSQL.md) | Thiết kế MySQL 17 bảng, ERD Mermaid |
@@ -94,5 +94,5 @@ Mở `http://localhost:5173`. Chạy backend: [backend/README.md](backend/README
 
 | Ngày | Thay đổi so với bản trước |
 |------|---------------------------|
-| **2026-03** | **Rà soát API BE–FE:** Báo cáo [BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md) — so sánh endpoint Auth, Bikes, Buyer, Seller, Inspector, Admin. Kết quả: khớp, không bug nghiêm trọng. Xóa dead code: `PAYMENTS_CONFIRM`, `TRANSACTIONS` (FE có config, BE không route, không có code gọi). Cập nhật docs: README, QUICK-REFERENCE, PROJECT-SUMMARY, CHANGELOG. |
+| **2026-03** | **Rà soát API BE–FE:** [BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md) + [BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) — mapping theo khu vực và theo từng trang/actor. Kết quả: khớp. Xóa dead code: `PAYMENTS_CONFIRM`, `TRANSACTIONS`, `BUYER.PROFILE`, `buyerProfileApi` (BE không có route `/buyer/profile`; BuyerProfilePage dùng `authApi.getProfile`). Cập nhật docs: README, QUICK-REFERENCE, CHANGELOG. |
 | **2026-03** | **Chore:** Thêm `scripts/e2e-api-test.mjs` vào .gitignore — script test API chạy local, không đưa vào repo. |

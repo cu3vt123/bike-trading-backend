@@ -76,14 +76,31 @@ export async function buildSubscriptionSummaryForUser(userDoc) {
   };
 }
 
+/**
+ * @param {string} userId
+ * @param {string} plan - BASIC | VIP
+ * Nâng cấp Basic→VIP: giữ nguyên hạn, chỉ đổi plan. Mua mới: set hạn 30 ngày.
+ */
 export async function activateSubscription(userId, plan) {
-  const expires = new Date(Date.now() + SUBSCRIPTION_PERIOD_DAYS * 24 * 60 * 60 * 1000);
-  await User.findByIdAndUpdate(userId, {
-    subscriptionPlan: plan,
-    subscriptionExpiresAt: expires,
-  });
   const user = await User.findById(userId);
-  return user;
+  const isUpgrade =
+    user &&
+    isSubscriptionActive(user) &&
+    user.subscriptionPlan === "BASIC" &&
+    plan === "VIP";
+
+  if (isUpgrade) {
+    await User.findByIdAndUpdate(userId, { subscriptionPlan: plan });
+  } else {
+    const expires = new Date(
+      Date.now() + SUBSCRIPTION_PERIOD_DAYS * 24 * 60 * 60 * 1000,
+    );
+    await User.findByIdAndUpdate(userId, {
+      subscriptionPlan: plan,
+      subscriptionExpiresAt: expires,
+    });
+  }
+  return User.findById(userId);
 }
 
 /** Admin: gỡ gói đăng tin (xóa plan + hạn — không xóa lịch sử PackageOrder) */

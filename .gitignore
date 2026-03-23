@@ -30,3 +30,7 @@ backend/data/*.sqlite-*
 
 # E2E API test (chạy local, không commit)
 scripts/e2e-api-test.mjs
+
+# Backup files
+*.backup.xlsx
+*.backup.*

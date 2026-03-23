@@ -247,7 +247,7 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_minmax(280px,380px)]">
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -433,8 +433,8 @@ export default function CheckoutPage() {
           </Button>
         </div>
 
-        <div>
-          <Card className="sticky top-24">
+        <div className="lg:min-w-0">
+          <Card className="sticky top-20 sm:top-24">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 overflow-hidden rounded-xl bg-muted">

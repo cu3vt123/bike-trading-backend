@@ -33,7 +33,7 @@ export default function ForbiddenPage() {
             <ShieldX className="h-8 w-8 text-destructive" />
           </div>
           <CardTitle className="text-2xl">{t("forbidden.title")}</CardTitle>
-          <CardDescription>
+          <CardDescription className="break-words text-left">
             {t("forbidden.description")}
           </CardDescription>
         </CardHeader>

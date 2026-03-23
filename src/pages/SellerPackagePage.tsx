@@ -59,6 +59,7 @@ export default function SellerPackagePage() {
   const payOrderIdFromUrl =
     payStep === "pay" ? (searchParams.get("orderId") ?? "") : "";
   const [demoPayBusy, setDemoPayBusy] = useState(false);
+  const [revokeBusy, setRevokeBusy] = useState(false);
 
   const refreshSubscription = useCallback(async () => {
     try {
@@ -78,6 +79,11 @@ export default function SellerPackagePage() {
         setLoadError(getApiErrorMessage(e, "Không tải được danh sách gói.")),
       );
   }, []);
+
+  /** Khi có gói active → chọn VIP: Basic hiển thị giá nâng cấp 100k; VIP hiển thị gói đang dùng */
+  useEffect(() => {
+    if (subscription?.active) setPlan("VIP");
+  }, [subscription?.active, subscription?.plan]);
 
   /** Return từ URL demo sau “gateway” — deps dùng string để tránh effect chạy lại vô hạn (URLSearchParams đổi tham chiếu) */
   useEffect(() => {
@@ -139,13 +145,7 @@ export default function SellerPackagePage() {
     return () => {
       cancelled = true;
     };
-  }, [
-    vnpayReturnGate,
-    vnpayReturnOk,
-    setSearchParams,
-    refreshSubscription,
-    t,
-  ]);
+  }, [vnpayReturnGate, vnpayReturnOk, setSearchParams, refreshSubscription, t]);
 
   async function onDemoPayComplete() {
     if (!payOrderIdFromUrl) return;
@@ -173,22 +173,29 @@ export default function SellerPackagePage() {
     setCheckoutBusy(true);
     try {
       const res = await packagesApi.checkout({ plan, provider: "VNPAY" });
-      const apiMsg = res.message?.trim();
       const openUrl = resolveCheckoutOpenUrl(res);
-      const w = window.open(openUrl, "_blank", "noopener,noreferrer");
-      if (!w) {
-        setMessage(`${t("seller.packagePopupBlocked")} ${openUrl}`);
-      } else {
-        setMessage(
-          [apiMsg, t("seller.packageCheckoutCreated"), t("seller.packageOpenedSameOriginHint")]
-            .filter(Boolean)
-            .join(" — "),
-        );
-      }
+      /** Cùng tab — tránh popup bị chặn (window.open thường fail). Giống Checkout / VnpayDemo. */
+      window.location.assign(openUrl);
     } catch (e: unknown) {
       setMessage(getApiErrorMessage(e, "Không tạo được đơn thanh toán."));
     } finally {
       setCheckoutBusy(false);
+    }
+  }
+
+  async function onRevokeForDemo() {
+    setMessage(null);
+    setRevokeBusy(true);
+    try {
+      const res = await packagesApi.revokeSelf();
+      setSubscription(res.subscription);
+      await refreshSubscription();
+      setPlan("BASIC");
+      setMessage(res.revoked ? t("seller.packageRevokedForDemo") : t("seller.packageNoPackageToRevoke"));
+    } catch (e: unknown) {
+      setMessage(getApiErrorMessage(e, t("seller.packageRevokeError")));
+    } finally {
+      setRevokeBusy(false);
     }
   }
 
@@ -230,6 +237,23 @@ export default function SellerPackagePage() {
       dateStyle: "medium",
     });
 
+  /** VIP không cho chọn Basic (downgrade). Basic active + chọn Basic = không mua (stack). VIP active = không mua gì. */
+  const hasActiveSub = Boolean(subscription?.active);
+  const currentPlan = subscription?.plan ?? null;
+  const canSelectBasic = !(hasActiveSub && currentPlan === "VIP");
+  const canBuy =
+    !hasActiveSub ||
+    (currentPlan === "BASIC" && plan === "VIP"); // upgrade only
+  const isUpgradePrice =
+    hasActiveSub && currentPlan === "BASIC" && plan === "VIP";
+  const upgradeAmountVnd = 100_000; // 199k - 99k
+
+  function getDisplayPrice(p: { id: string; priceVnd: number }): number {
+    if (p.id === "VIP" && hasActiveSub && currentPlan === "BASIC")
+      return upgradeAmountVnd;
+    return p.priceVnd;
+  }
+
   return (
     <div className="mx-auto w-full max-w-4xl py-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -265,6 +289,21 @@ export default function SellerPackagePage() {
               limit: subscription.publishedSlotsLimit,
             })}
           </div>
+          {currentPlan === "VIP" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t("seller.packageNoBuyUntilExpired")}
+            </p>
+          )}
+          <div className="mt-3">
+            <button
+              type="button"
+              disabled={revokeBusy}
+              onClick={() => void onRevokeForDemo()}
+              className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-400 dark:hover:bg-amber-500/20"
+            >
+              {revokeBusy ? "..." : t("seller.packageDemoRevoke")}
+            </button>
+          </div>
         </div>
       )}
 
@@ -279,7 +318,9 @@ export default function SellerPackagePage() {
           <div className="font-semibold text-foreground">
             {t("seller.packageDemoPayTitle")}
           </div>
-          <p className="mt-1 text-muted-foreground">{t("seller.packageDemoPayBody")}</p>
+          <p className="mt-1 text-muted-foreground">
+            {t("seller.packageDemoPayBody")}
+          </p>
           <p className="mt-2 font-mono text-xs text-muted-foreground">
             orderId: {payOrderIdFromUrl}
           </p>
@@ -290,7 +331,9 @@ export default function SellerPackagePage() {
               onClick={onDemoPayComplete}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
-              {demoPayBusy ? t("seller.packageDemoCompleting") : t("seller.packageDemoComplete")}
+              {demoPayBusy
+                ? t("seller.packageDemoCompleting")
+                : t("seller.packageDemoComplete")}
             </button>
             <button
               type="button"
@@ -318,31 +361,48 @@ export default function SellerPackagePage() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {catalog.plans.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => setPlan(p.id)}
-            className={`rounded-2xl border p-5 text-left transition ${
-              plan === p.id
-                ? "border-primary ring-2 ring-primary/20"
-                : "border-border hover:border-primary/40"
-            }`}
-          >
-            <div className="text-lg font-bold text-foreground">{p.name}</div>
-            <div className="mt-2 text-2xl font-semibold text-primary">
-              {formatVnd(p.priceVnd)}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">{p.description}</p>
-            <p className="mt-2 text-xs font-medium text-foreground">
-              {t("seller.packageSlots", {
-                count: p.maxConcurrentListings,
-                days: catalog.listingDurationDays,
-              })}
-            </p>
-          </button>
-        ))}
+      <div className="grid min-w-0 gap-4 sm:grid-cols-1 md:grid-cols-2">
+        {catalog.plans.map((p) => {
+          const disabled =
+            p.id === "BASIC" && !canSelectBasic;
+          const displayPrice = getDisplayPrice(p);
+          const showUpgradeLabel =
+            p.id === "VIP" && isUpgradePrice;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => !disabled && setPlan(p.id)}
+              disabled={disabled}
+              className={`rounded-2xl border p-5 text-left transition ${
+                disabled
+                  ? "cursor-not-allowed border-border bg-muted/30 opacity-70"
+                  : plan === p.id
+                    ? "border-primary ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/40"
+              }`}
+            >
+              <div className="text-lg font-bold text-foreground">{p.name}</div>
+              {showUpgradeLabel && (
+                <p className="mt-1 text-xs text-primary">
+                  {t("seller.packageUpgradePrice")}
+                </p>
+              )}
+              <div className="mt-2 text-2xl font-semibold text-primary">
+                {formatVnd(displayPrice)}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {p.description}
+              </p>
+              <p className="mt-2 text-xs font-medium text-foreground">
+                {t("seller.packageSlots", {
+                  count: p.maxConcurrentListings,
+                  days: catalog.listingDurationDays,
+                })}
+              </p>
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-6 space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
@@ -359,7 +419,11 @@ export default function SellerPackagePage() {
       <div className="mt-6 flex flex-wrap gap-3">
         <button
           type="button"
-          disabled={checkoutBusy || VNPAY_UI_MAINTENANCE}
+          disabled={
+            checkoutBusy ||
+            VNPAY_UI_MAINTENANCE ||
+            !canBuy
+          }
           onClick={onCheckout}
           className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
@@ -367,14 +431,18 @@ export default function SellerPackagePage() {
         </button>
         <button
           type="button"
-          disabled={checkoutBusy}
+          disabled={checkoutBusy || !canBuy}
           onClick={onSimulatePaid}
           className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold disabled:opacity-50"
         >
           {t("seller.packageSimulatePaid")}
         </button>
       </div>
-
+      {hasActiveSub && !canBuy && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t("seller.packageNoBuyUntilExpired")}
+        </p>
+      )}
     </div>
   );
 }

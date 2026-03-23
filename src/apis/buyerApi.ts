@@ -78,15 +78,3 @@ export const paymentApi = {
       .then((r) => r.data?.data ?? r.data),
 };
 
-export type BuyerProfile = {
-  id?: string;
-  username?: string;
-  email?: string;
-  displayName?: string;
-  phone?: string;
-};
-
-export const buyerProfileApi = {
-  get: (): Promise<BuyerProfile> =>
-    apiClient.get(API_PATHS.BUYER.PROFILE).then((r) => r.data?.data ?? r.data),
-};

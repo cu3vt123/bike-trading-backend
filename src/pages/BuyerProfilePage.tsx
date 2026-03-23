@@ -63,9 +63,9 @@ export default function BuyerProfilePage() {
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
-      <div className="grid gap-6 lg:grid-cols-12">
-        <aside className="lg:col-span-3">
+    <div className="mx-auto min-w-0 w-full max-w-6xl">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-12">
+        <aside className="min-w-0 lg:col-span-3">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">

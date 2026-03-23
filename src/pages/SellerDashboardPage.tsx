@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Package, Star } from "lucide-react";
+import { Bike, Package, Star } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -88,6 +88,36 @@ function getOrderForListing(orders: Order[], listingId: string): Order | undefin
     (o) =>
       o.listingId === listingId ||
       (o.listing as { id?: string } | undefined)?.id === listingId,
+  );
+}
+
+/** Ảnh tin: fallback khi URL lỗi / trống (tránh icon vỡ + alt chồng lên nhau). */
+function ListingThumb({ listing }: { listing: Listing }) {
+  const [failed, setFailed] = useState(false);
+  const src = (listing.thumbnailUrl ?? listing.imageUrls?.[0] ?? "").trim();
+
+  if (!src || failed) {
+    return (
+      <div
+        className="flex h-11 w-[4.5rem] shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted"
+        aria-hidden
+      >
+        <Bike className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-11 w-[4.5rem] shrink-0 overflow-hidden rounded-lg border border-border/60 bg-muted">
+      <img
+        src={src}
+        alt=""
+        className="h-full w-full object-cover"
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+      />
+    </div>
   );
 }
 
@@ -201,7 +231,7 @@ export default function SellerDashboardPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto min-w-0 w-full max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-2xl font-bold text-foreground">
@@ -256,9 +286,9 @@ export default function SellerDashboardPage() {
         <StatCard label={t("seller.needUpdate")} value={needUpdate} />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-12">
+      <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-12">
         {/* Inventory table */}
-        <div className="lg:col-span-8 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="min-w-0 overflow-x-auto rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5 lg:col-span-8">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-foreground">
               {t("seller.yourInventory")}
@@ -268,15 +298,15 @@ export default function SellerDashboardPage() {
             </Link>
           </div>
 
-          <div className="mt-4 overflow-hidden rounded-xl border border-border">
-            <div className="grid grid-cols-12 bg-muted px-4 py-3 text-xs font-semibold text-muted-foreground">
-              <div className="col-span-6">{t("seller.listing")}</div>
+          <div className="mt-4 overflow-x-auto rounded-xl border border-border">
+            <div className="grid min-w-[720px] grid-cols-12 gap-x-3 bg-muted px-3 py-3 text-xs font-semibold text-muted-foreground sm:px-4">
+              <div className="col-span-5">{t("seller.listing")}</div>
               <div className="col-span-2 text-right">{t("seller.price")}</div>
-              <div className="col-span-2 text-center">{t("seller.status")}</div>
+              <div className="col-span-3 text-left">{t("seller.status")}</div>
               <div className="col-span-2 text-right">{t("seller.action")}</div>
             </div>
 
-            <div className="divide-y divide-border">
+            <div className="min-w-[720px] divide-y divide-border">
               {listings.map((x) => {
                 const orderForListing = getOrderForListing(orders, x.id);
                 const needUpdateReason =
@@ -312,7 +342,10 @@ export default function SellerDashboardPage() {
                   } else if (isWarehouse && (o.status === "RESERVED" || o.status === "AT_WAREHOUSE_PENDING_ADMIN")) {
                     badge = { text: t("seller.stateAwaitWarehouseShip"), cls: "bg-warning/15 text-warning border-warning/30" };
                     actionNode = (
-                      <span className="inline-flex cursor-default rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                      <span
+                        className="inline-flex max-w-[10rem] cursor-default justify-end rounded-md border border-border bg-muted px-2 py-1.5 text-right text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs"
+                        title={t("seller.actionAwaitWarehouseShip")}
+                      >
                         {t("seller.actionAwaitWarehouseShip")}
                       </span>
                     );
@@ -405,18 +438,11 @@ export default function SellerDashboardPage() {
                 return (
                   <div
                     key={x.id}
-                    className="grid grid-cols-12 items-center px-4 py-3"
+                    className="grid grid-cols-12 items-center gap-x-3 px-3 py-3 sm:px-4"
                   >
-                    <div className="col-span-6 flex items-center gap-3">
-                      <div className="h-10 w-14 overflow-hidden rounded-lg bg-muted">
-                        <img
-                          src={x.thumbnailUrl ?? x.imageUrls?.[0] ?? ""}
-                          alt={x.title}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="min-w-0">
+                    <div className="col-span-5 flex min-w-0 items-center gap-3">
+                      <ListingThumb listing={x} />
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold text-foreground">
                           {x.title || `${x.brand} ${x.model ?? ""}`}
                         </div>
@@ -432,19 +458,19 @@ export default function SellerDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="col-span-2 text-right text-sm font-semibold text-foreground">
+                    <div className="col-span-2 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
                       {formatMoney(x.price, "VND")}
                     </div>
 
-                    <div className="col-span-2 text-center">
+                    <div className="col-span-3 min-w-0">
                       <span
-                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${badge.cls}`}
+                        className={`inline-flex max-w-full rounded-md border px-2 py-1.5 text-left text-[11px] font-semibold leading-snug text-foreground sm:text-xs ${badge.cls}`}
                       >
                         {badge.text}
                       </span>
                     </div>
 
-                    <div className="col-span-2 flex flex-col items-end gap-2 text-right">
+                    <div className="col-span-2 flex min-w-0 flex-col items-end justify-center gap-2 text-right">
                       {actionNode}
                     </div>
                   </div>

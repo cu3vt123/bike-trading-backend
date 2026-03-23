@@ -263,7 +263,7 @@ Profile (/profile) hoặc /inspector → Inspector Dashboard → Duyệt/Từ ch
 |------------------|------------------------------------------------------|
 | `apiClient.ts`   | Axios instance, Bearer token, 401 → logout           |
 | `authApi.ts`     | login, signup, getProfile (scaffold)                  |
-| `buyerApi.ts`    | bikes, orders, payments (scaffold)                   |
+| `buyerApi.ts`    | bikes, orders (orderApi, paymentApi.initiate)      |
 | `buyerService.ts`| Facade + fallback mock khi API lỗi                  |
 | `sellerApi.ts`   | dashboard, orders, ratings, listings, create, update, submit |
 | `sellerService.ts`| Facade + fallback mock cho Seller; `syncSellerOrderNotifications`; ratings |
@@ -336,7 +336,8 @@ Chi tiết: `docs/STRUCTURE.md`
 | File | Nội dung |
 |------|----------|
 | `docs/README.md` | Mục lục toàn bộ tài liệu |
-| `docs/BE-FE-API-AUDIT.md` | Rà soát API BE–FE — so sánh endpoint, logic, dead code, khuyến nghị |
+| `docs/BE-FE-API-AUDIT.md` | Rà soát API BE–FE theo khu vực — endpoint, logic, dead code đã xóa |
+| `docs/BE-FE-API-AUDIT-BY-PAGE.md` | Rà soát API theo từng trang/actor — mapping Page → API → BE route |
 | `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
 | `docs/ERD-MYSQL.md` | Thiết kế MySQL 17 bảng — ERD Mermaid, SQL schema |
 | `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen flow theo Guest/Buyer/Seller/Inspector/Admin |
@@ -389,4 +390,4 @@ Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
-*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands, gói đăng tin, `fulfillmentType` kho/direct, `sellerOrderNotificationFlow`, doc Spring Boot (`BACKEND-NODE-TO-SPRING-BOOT.md`), nhánh **follow thầy Lâm**.*
+*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands, gói đăng tin, `fulfillmentType` kho/direct, `sellerOrderNotificationFlow`, doc Spring Boot, rà soát API BE–FE theo trang (`BE-FE-API-AUDIT-BY-PAGE.md`), xóa dead code `BUYER.PROFILE`/`buyerProfileApi`.*

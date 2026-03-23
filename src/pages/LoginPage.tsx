@@ -187,21 +187,41 @@ export default function LoginPage() {
         ))}
       </div>
 
-      {/* Top bar */}
+      {/* Top bar — đổi màu theo theme */}
       <header
-        className="relative z-10 bg-black/30 backdrop-blur-md"
+        className={
+          theme === "dark"
+            ? "relative z-10 bg-black/30 backdrop-blur-md"
+            : "relative z-10 bg-white/80 backdrop-blur-md border-b border-black/10"
+        }
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
-            <Logo variant="auth" showLabel alwaysWhite />
+            <Logo
+              variant="auth"
+              showLabel
+              alwaysWhite={theme === "dark"}
+            />
           </Link>
 
           <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-4 text-sm text-white/90">
-              <Link to="/#listings" className="transition-colors hover:text-white">
+            <nav
+              className={
+                theme === "dark"
+                  ? "flex items-center gap-4 text-sm text-white/90"
+                  : "flex items-center gap-4 text-sm text-slate-700"
+              }
+            >
+              <Link
+                to="/#listings"
+                className={theme === "dark" ? "transition-colors hover:text-white" : "transition-colors hover:text-slate-900"}
+              >
                 {t("common.explore")}
               </Link>
-              <Link to="/support" className="transition-colors hover:text-white">
+              <Link
+                to="/support"
+                className={theme === "dark" ? "transition-colors hover:text-white" : "transition-colors hover:text-slate-900"}
+              >
                 {t("common.support")}
               </Link>
             </nav>
@@ -209,7 +229,11 @@ export default function LoginPage() {
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full border border-white/15 bg-white/10 text-white/90 hover:bg-white/20 hover:text-white"
+              className={
+                theme === "dark"
+                  ? "h-8 w-8 rounded-full border border-white/15 bg-white/10 text-white/90 hover:bg-white/20 hover:text-white"
+                  : "h-8 w-8 rounded-full border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+              }
               onClick={toggleTheme}
               aria-label={theme === "dark" ? t("header.themeLight") : t("header.themeDark")}
             >
@@ -247,9 +271,7 @@ export default function LoginPage() {
               <span className="font-bold tracking-wide text-primary">ShopBike</span>
             </h2>
             {error && (
-              <div className={theme === "dark"
-                ? "mb-4 rounded-lg border border-red-400/50 bg-red-500/20 px-3 py-2 text-sm text-red-300"
-                : "mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"}>
+              <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
               </div>
             )}

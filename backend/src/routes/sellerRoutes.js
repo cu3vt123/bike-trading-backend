@@ -17,6 +17,7 @@ import {
 import {
   checkoutSubscription,
   mockCompletePackageOrder,
+  revokeSelfSubscription,
 } from "../controllers/packageController.js";
 import { wrapAsync } from "../utils/handler.js";
 
@@ -44,6 +45,7 @@ sellerRoutes.post(
   "/subscription/orders/:orderId/mock-complete",
   wrapAsync(mockCompletePackageOrder),
 );
+sellerRoutes.put("/subscription/revoke-self", wrapAsync(revokeSelfSubscription));
 
 export { sellerRoutes };
 

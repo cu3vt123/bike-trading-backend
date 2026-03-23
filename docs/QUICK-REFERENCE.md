@@ -206,7 +206,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 | Nhiệm vụ | Tài liệu |
 |----------|----------|
-| Kiểm tra khớp API BE–FE | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) |
+| Kiểm tra khớp API BE–FE (theo khu vực) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) |
+| Kiểm tra khớp API BE–FE (theo trang/actor) | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |
 | Port sang Spring Boot | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |
 | Tạo/sửa schema MySQL | [ERD-SPEC.md](ERD-SPEC.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) |
@@ -217,4 +218,4 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 ---
 
-*Đồng bộ với codebase và docs. Cập nhật: 2026-03.*
+*Đồng bộ với codebase và docs. Cập nhật: 2026-03 — thêm BE-FE-API-AUDIT-BY-PAGE.*

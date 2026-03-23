@@ -261,6 +261,9 @@ export default function AdminDashboardPage() {
             : row,
         ),
       );
+      setAdminUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, ...out.user } : u)),
+      );
     } finally {
       setRevokingSellerId(null);
     }
@@ -358,7 +361,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto min-w-0 w-full max-w-6xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{t("admin.title")}</h1>
@@ -402,8 +405,8 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <nav className="flex shrink-0 flex-wrap gap-1 lg:w-56 lg:flex-col">
+      <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:gap-6">
+        <nav className="flex shrink-0 flex-wrap gap-1 self-start lg:w-52 lg:flex-col lg:flex-nowrap">
           {TABS.map(({ id, key, icon: Icon }) => (
             <button
               key={id}
@@ -688,28 +691,48 @@ export default function AdminDashboardPage() {
                         <div className="min-w-0">
                           <div className="font-semibold text-foreground">{u.displayName || u.email}</div>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            {u.email} · {u.role} · {u.isHidden ? t("admin.hidden") : t("admin.active")}
+                            {u.email} · {u.role}
+                            {(u.subscriptionPlan || u.subscriptionExpiresAt) && (
+                              <> · {u.subscriptionPlan ?? "—"} {t("admin.sellerPackagesActive")}</>
+                            )}
+                            {" · "}
+                            {u.isHidden ? t("admin.hidden") : t("admin.active")}
                           </div>
                         </div>
-                        {u.isHidden ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleUnhideUser(u.id)}
-                            disabled={unhidingUserId === u.id}
-                          >
-                            {unhidingUserId === u.id ? t("admin.unhiding") : t("admin.unhideUser")}
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleHideUser(u.id)}
-                            disabled={hidingUserId === u.id}
-                          >
-                            {hidingUserId === u.id ? t("admin.hiding") : t("admin.hideUser")}
-                          </Button>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {u.role === "SELLER" && (u.subscriptionPlan || u.subscriptionExpiresAt) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-amber-500/50 text-amber-700 hover:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20"
+                              disabled={revokingSellerId === u.id}
+                              onClick={() => void handleRevokeSellerPackage(u.id)}
+                            >
+                              {revokingSellerId === u.id
+                                ? t("admin.sellerPackagesRevoking")
+                                : t("admin.sellerPackagesRevoke")}
+                            </Button>
+                          )}
+                          {u.isHidden ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUnhideUser(u.id)}
+                              disabled={unhidingUserId === u.id}
+                            >
+                              {unhidingUserId === u.id ? t("admin.unhiding") : t("admin.unhideUser")}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleHideUser(u.id)}
+                              disabled={hidingUserId === u.id}
+                            >
+                              {hidingUserId === u.id ? t("admin.hiding") : t("admin.hideUser")}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1316,9 +1339,9 @@ export default function AdminDashboardPage() {
                         <table className="min-w-full text-xs sm:text-sm">
                           <thead className="bg-muted">
                             <tr>
-                              <th className="px-3 py-2 text-left font-semibold">{t("admin.transactionsOrder")}</th>
-                              <th className="px-3 py-2 text-left font-semibold">{t("admin.transactionsBuyer")}</th>
-                              <th className="px-3 py-2 text-left font-semibold">{t("admin.transactionsSeller")}</th>
+                              <th className="max-w-[6rem] truncate px-3 py-2 text-left font-semibold sm:max-w-[8rem]">{t("admin.transactionsOrder")}</th>
+                              <th className="max-w-[5rem] truncate px-3 py-2 text-left font-semibold sm:max-w-[7rem]">{t("admin.transactionsBuyer")}</th>
+                              <th className="max-w-[5rem] truncate px-3 py-2 text-left font-semibold sm:max-w-[7rem]">{t("admin.transactionsSeller")}</th>
                               <th className="px-3 py-2 text-right font-semibold">{t("admin.transactionsAmount")}</th>
                               <th className="px-3 py-2 text-right font-semibold">{t("admin.transactionsFee")}</th>
                               <th className="px-3 py-2 text-center font-semibold">{t("admin.transactionsStatus")}</th>
@@ -1328,14 +1351,14 @@ export default function AdminDashboardPage() {
                           <tbody>
                             {transactions.map((tx) => (
                               <tr key={tx.id} className="border-t border-border">
-                                <td className="px-3 py-2 align-middle">
-                                  <div className="font-medium text-foreground">{tx.orderId}</div>
-                                  <div className="text-[11px] text-muted-foreground">{tx.id}</div>
+                                <td className="max-w-[6rem] px-3 py-2 align-middle sm:max-w-[8rem]">
+                                  <div className="truncate font-medium text-foreground">{tx.orderId}</div>
+                                  <div className="truncate text-[11px] text-muted-foreground">{tx.id}</div>
                                 </td>
-                                <td className="px-3 py-2 align-middle text-xs text-muted-foreground">
+                                <td className="max-w-[5rem] truncate px-3 py-2 align-middle text-xs text-muted-foreground sm:max-w-[7rem]">
                                   {tx.buyer}
                                 </td>
-                                <td className="px-3 py-2 align-middle text-xs text-muted-foreground">
+                                <td className="max-w-[5rem] truncate px-3 py-2 align-middle text-xs text-muted-foreground sm:max-w-[7rem]">
                                   {tx.seller}
                                 </td>
                                 <td className="px-3 py-2 align-middle text-right">

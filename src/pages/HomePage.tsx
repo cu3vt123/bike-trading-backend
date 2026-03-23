@@ -96,28 +96,21 @@ export default function HomePage() {
     });
   }, [listings, q, brand, condition, frameSize, priceMin, priceMax]);
 
+  // Hash #listings — scroll khi load (MainLayout xử lý scrollTo từ state)
   useEffect(() => {
     if (window.location.hash === `#${SECTION_LISTINGS_ID}`) {
-      setTimeout(scrollToListings, 0);
+      setTimeout(scrollToListings, 100);
     }
   }, []);
 
+  // searchQuery từ state — chỉ set form, không navigate (MainLayout clear state)
   useEffect(() => {
-    const state = location.state as { scrollTo?: string } | null;
-    if (state?.scrollTo === "listings") {
-      setTimeout(scrollToListings, 100);
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state, location.pathname, navigate]);
-
-  useEffect(() => {
-    const state = location.state as { searchQuery?: string; scrollTo?: string } | null;
+    const state = location.state as { searchQuery?: string } | null;
     if (state?.searchQuery != null && state.searchQuery.trim() !== "") {
       setQ(state.searchQuery.trim());
-      setTimeout(scrollToListings, 100);
-      navigate(location.pathname, { replace: true, state: state.scrollTo ? { scrollTo: state.scrollTo } : {} });
+      setTimeout(scrollToListings, 150);
     }
-  }, [location.state, location.pathname, navigate]);
+  }, [location.state]);
 
   // Hero slider: auto-advance
   useEffect(() => {
@@ -388,7 +381,7 @@ export default function HomePage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((x) => (
               <ListingCard key={x.id} listing={x} />
             ))}

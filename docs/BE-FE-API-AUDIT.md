@@ -82,9 +82,9 @@
 
 | FE Path | BE Route | Method | Trạng thái |
 |---------|----------|--------|------------|
-| `/inspector/listings/:id/approve` | Có | POST | ✅ |
-| `/inspector/listings/:id/reject` | Có | POST | ✅ |
-| `/inspector/listings/:id/need-update` | Có | POST | ✅ |
+| `/inspector/listings/:id/approve` | Có | PUT | ✅ |
+| `/inspector/listings/:id/reject` | Có | PUT | ✅ |
+| `/inspector/listings/:id/need-update` | Có | PUT | ✅ |
 
 - **approve:** FE gửi `{ inspectionReport }` với các trường điểm – BE dùng `inspectionReport`.
 - **need-update:** FE gửi `{ reason }` (min 5 ký tự), FE đã validate trước khi gọi – khớp.
@@ -106,19 +106,13 @@
 
 ## 3. Các vấn đề cần xử lý
 
-### 3.1 Dead code – PAYMENTS_CONFIRM và TRANSACTIONS
+### 3.1 Dead code – ĐÃ XỬ LÝ
 
-**Hiện trạng:**
+**Đã xóa (trước đây):**
 
-- FE có `apiConfig.BUYER.PAYMENTS_CONFIRM(orderId)` và `TRANSACTIONS(orderId)`.
-- FE có `paymentApi.confirm()` và `transactionApi.getStatus()` trong `buyerApi.ts`.
-- **Không có code nào gọi** `paymentApi.confirm` hoặc `transactionApi.getStatus` trong toàn bộ FE.
-- Backend **không có** route tương ứng.
-
-**Khuyến nghị:**
-
-- **Cách 1:** Xóa `PAYMENTS_CONFIRM`, `TRANSACTIONS` khỏi `apiConfig.ts` và xóa `paymentApi.confirm`, `transactionApi.getStatus` khỏi `buyerApi.ts` (dead code).
-- **Cách 2:** Nếu tương lai cần endpoint confirm / transaction status, thêm route trên BE và dùng lại các hàm này.
+- `PAYMENTS_CONFIRM`, `TRANSACTIONS` – BE không có route. Đã xóa khỏi `apiConfig` và `buyerApi.ts`.
+- `BUYER.PROFILE` (`/buyer/profile`) – BE không có route. Đã xóa khỏi `apiConfig`, `buyerApi.ts`, `shared/constants`.
+- `buyerProfileApi.get()` – không được gọi; BuyerProfilePage dùng `authApi.getProfile()` (GET `/auth/me`).
 
 ### 3.2 PAYMENTS_INITIATE
 

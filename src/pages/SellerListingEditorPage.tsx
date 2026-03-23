@@ -8,6 +8,7 @@ import {
   fetchListingById,
 } from "@/services/sellerService";
 import { isAxiosError } from "axios";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { brandsApi } from "@/apis/brandsApi";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { authApi } from "@/apis/authApi";
@@ -99,25 +100,32 @@ export default function SellerListingEditorPage() {
 
   useEffect(() => {
     if (!listingId) return;
-    fetchListingById(listingId).then((listing) => {
-      if (listing) {
-        setTitle(listing.title ?? "");
-        setBrand(listing.brand ?? "");
-        setModel(listing.model ?? "");
-        setYear(listing.year ? String(listing.year) : "");
-        setFrameSize(listing.frameSize ?? "");
-        setPrice(String(listing.price ?? ""));
-        setLocation(listing.location ?? "");
-        setCondition((listing.condition as Condition) ?? "MINT_USED");
-        if (listing.state === "PENDING_INSPECTION") setStep("PENDING_INSPECTION");
-        else setStep("DRAFT");
-        const reason = (listing as any).inspectionNeedUpdateReason;
-        if (typeof reason === "string" && reason.trim()) {
-          setNeedUpdateReason(reason.trim());
+    setError(null);
+    fetchListingById(listingId)
+      .then((listing) => {
+        if (listing) {
+          setTitle(listing.title ?? "");
+          setBrand(listing.brand ?? "");
+          setModel(listing.model ?? "");
+          setYear(listing.year ? String(listing.year) : "");
+          setFrameSize(listing.frameSize ?? "");
+          setPrice(String(listing.price ?? ""));
+          setLocation(listing.location ?? "");
+          setCondition((listing.condition as Condition) ?? "MINT_USED");
+          if (listing.state === "PENDING_INSPECTION") setStep("PENDING_INSPECTION");
+          else setStep("DRAFT");
+          const reason = (listing as { inspectionNeedUpdateReason?: string }).inspectionNeedUpdateReason;
+          if (typeof reason === "string" && reason.trim()) {
+            setNeedUpdateReason(reason.trim());
+          }
+        } else if (id) {
+          setError(t("seller.loadError"));
         }
-      }
-    });
-  }, [listingId]);
+      })
+      .catch((err: unknown) => {
+        setError(getApiErrorMessage(err, t("seller.loadError")));
+      });
+  }, [listingId, id, t]);
 
   function buildPayload() {
     const priceNum = parseFloat(price) || 0;

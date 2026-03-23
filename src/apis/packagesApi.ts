@@ -45,4 +45,12 @@ export const packagesApi = {
     apiClient
       .post(API_PATHS.SELLER.SUBSCRIPTION_MOCK_COMPLETE(orderId))
       .then((r) => r.data?.data ?? r.data),
+
+  revokeSelf: (): Promise<{
+    subscription: import("@/stores/useSellerSubscriptionStore").SellerSubscriptionSummary;
+    revoked: boolean;
+  }> =>
+    apiClient
+      .put(API_PATHS.SELLER.SUBSCRIPTION_REVOKE_SELF)
+      .then((r) => r.data?.data ?? r.data),
 };

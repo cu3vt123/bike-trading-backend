@@ -19,6 +19,14 @@ Tài liệu này áp dụng tinh thần **[BÀI 09: Production Hardening & FE Th
 
 ---
 
+## Dev: trang tự load lại / mất flow
+
+- **React Strict Mode** (dev): `main.tsx` dùng `<React.StrictMode>` → component mount 2 lần → effect chạy 2 lần. Có thể gây cảm giác "nhảy" hoặc mất state. Build production (`npm run build`) tắt StrictMode tự động.
+- **Scroll/navigate loop**: Đã xử lý trong `MainLayout` + `HomePage` — dùng `processedScrollRef` tránh xử lý scrollTo 2 lần, delay 150ms trước khi clear state.
+- **401 từ API**: Khi token hết hạn, interceptor `clearTokens` → mất session. Cần refresh token khi BE hỗ trợ.
+
+---
+
 ## Việc nên làm thêm trước khi ship
 
 - [ ] **Silent refresh token**: Backend cần refresh endpoint; Axios interceptor gọi refresh rồi retry request (Bài 09 — Auth hardening). Hiện demo chỉ JWT access, hết hạn → 401 → login lại.

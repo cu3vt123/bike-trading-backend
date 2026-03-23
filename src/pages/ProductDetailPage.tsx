@@ -194,14 +194,14 @@ export default function ProductDetailPage() {
         </span>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-12">
         {/* LEFT: Gallery + content */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="min-w-0 space-y-6 lg:col-span-8">
           {/* Gallery */}
           <Card className="border-border shadow-sm">
             <CardContent className="p-4">
-              <div className="grid gap-4 md:grid-cols-12">
-                <div className="md:col-span-8">
+              <div className="grid min-w-0 gap-4 sm:grid-cols-1 md:grid-cols-12">
+                <div className="min-w-0 md:col-span-8">
                   <div className="overflow-hidden rounded-xl border border-border bg-muted">
                     <div className="aspect-[4/3] w-full">
                       <img
@@ -213,8 +213,8 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <div className="md:col-span-4">
-                  <div className="grid grid-cols-4 gap-3 md:grid-cols-2">
+                <div className="min-w-0 md:col-span-4">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3 md:grid-cols-2">
                     {images.slice(0, 4).map((src, idx) => (
                       <button
                         key={`${src}-${idx}`}
@@ -274,7 +274,7 @@ export default function ProductDetailPage() {
             <h1 className="text-2xl font-bold text-foreground">
               {listing.brand} {listing.model}
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">{listing.title}</p>
+            <p className="mt-2 break-words text-sm text-muted-foreground">{listing.title}</p>
             {isUnverifiedPublished && (
               <p className="mt-2 text-xs text-orange-800 dark:text-orange-200/90">{t("seller.listingUnverifiedHint")}</p>
             )}
@@ -406,8 +406,8 @@ export default function ProductDetailPage() {
         </div>
 
         {/* RIGHT: Price / actions */}
-        <div className="lg:col-span-4">
-          <div className="sticky top-24 space-y-4">
+        <div className="min-w-0 lg:col-span-4">
+          <div className="sticky top-20 space-y-4 sm:top-24">
             <Card className="border-border shadow-md">
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">

@@ -4,6 +4,7 @@ import { connectDb, disconnectDb } from "./config/db.js";
 import { User } from "./models/User.js";
 import { Listing } from "./models/Listing.js";
 import { Brand } from "./models/Brand.js";
+import { Order } from "./models/Order.js";
 import { PackageOrder } from "./models/PackageOrder.js";
 
 const DEFAULT_BRANDS = [
@@ -17,6 +18,7 @@ export async function runSeed() {
   await User.deleteMany({});
   await Listing.deleteMany({});
   await Brand.deleteMany({});
+  await Order.deleteMany({});
   await PackageOrder.deleteMany({});
 
   await Brand.insertMany(
@@ -307,6 +309,43 @@ export async function runSeed() {
       ],
       seller: { id: seller._id, name: seller.displayName, email: seller.email },
     },
+    /** Tin chờ kiểm định — để Inspector test (PENDING_INSPECTION) */
+    {
+      title: "Scott Scale — submitted for inspection",
+      brand: "Scott",
+      model: "Scale 970",
+      year: 2020,
+      frameSize: "L",
+      condition: "GOOD_USED",
+      location: "Da Lat",
+      price: 35_000_000,
+      currency: "VND",
+      state: "PENDING_INSPECTION",
+      inspectionResult: null,
+      certificationStatus: "PENDING_CERTIFICATION",
+      imageUrls: [
+        "https://images.unsplash.com/photo-1571333250630-f0230e7152f3?auto=format&fit=crop&w=1600&q=60",
+      ],
+      seller: { id: seller._id, name: seller.displayName, email: seller.email },
+    },
+    {
+      title: "Canyon Endurace — awaiting inspector review",
+      brand: "Canyon",
+      model: "Endurace CF SL",
+      year: 2021,
+      frameSize: "M",
+      condition: "MINT_USED",
+      location: "Nha Trang",
+      price: 82_000_000,
+      currency: "VND",
+      state: "PENDING_INSPECTION",
+      inspectionResult: null,
+      certificationStatus: "PENDING_CERTIFICATION",
+      imageUrls: [
+        "https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1600&q=60",
+      ],
+      seller: { id: seller._id, name: seller.displayName, email: seller.email },
+    },
     /** Tin lên sàn chưa kiểm định — để test disclaimer buyer */
     {
       title: "Entry road bike — chưa kiểm định (demo)",
@@ -348,8 +387,79 @@ export async function runSeed() {
     },
   );
 
+  // === Đơn hàng cho Admin/Inspector testing (chờ xác nhận kho, chờ kiểm định lại) ===
+  const certifiedListings = await Listing.find({
+    state: "PUBLISHED",
+    inspectionResult: "APPROVE",
+    certificationStatus: "CERTIFIED",
+  })
+    .limit(6)
+    .lean();
+
+  const now = new Date();
+  const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const oneDayAgo = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+
+  const ordersToCreate = [];
+  certifiedListings.forEach((listing, i) => {
+    const listingSnap = { id: String(listing._id), brand: listing.brand, model: listing.model, price: listing.price, certificationStatus: listing.certificationStatus };
+    if (i < 3) {
+      // 3 đơn RE_INSPECTION — chờ Inspector kiểm định lại
+      ordersToCreate.push({
+        buyerId: buyer._id,
+        listingId: listing._id,
+        status: "RE_INSPECTION",
+        plan: "DEPOSIT",
+        totalPrice: listing.price,
+        depositAmount: Math.round(listing.price * 0.08),
+        depositPaid: true,
+        fulfillmentType: "WAREHOUSE",
+        shippingAddress: { street: "123 Test St", city: "Ho Chi Minh City", postalCode: "700000" },
+        shippedAt: twoDaysAgo,
+        warehouseConfirmedAt: oneDayAgo,
+        listing: listingSnap,
+      });
+    } else if (i < 5) {
+      // 2 đơn AT_WAREHOUSE_PENDING_ADMIN — chờ Admin xác nhận xe tới
+      ordersToCreate.push({
+        buyerId: buyer._id,
+        listingId: listing._id,
+        status: "AT_WAREHOUSE_PENDING_ADMIN",
+        plan: "DEPOSIT",
+        totalPrice: listing.price,
+        depositAmount: Math.round(listing.price * 0.08),
+        depositPaid: true,
+        fulfillmentType: "WAREHOUSE",
+        shippingAddress: { street: "456 Demo Ave", city: "Da Nang", postalCode: "550000" },
+        shippedAt: oneDayAgo,
+        listing: listingSnap,
+      });
+    } else {
+      // 1 đơn SELLER_SHIPPED — seller đã gửi, chưa tới kho
+      ordersToCreate.push({
+        buyerId: buyer._id,
+        listingId: listing._id,
+        status: "SELLER_SHIPPED",
+        plan: "DEPOSIT",
+        totalPrice: listing.price,
+        depositAmount: Math.round(listing.price * 0.08),
+        depositPaid: true,
+        fulfillmentType: "WAREHOUSE",
+        shippingAddress: { street: "789 Sample Rd", city: "Ha Noi", postalCode: "100000" },
+        shippedAt: now,
+        listing: listingSnap,
+      });
+    }
+  });
+
+  if (ordersToCreate.length > 0) {
+    await Order.insertMany(ordersToCreate);
+  }
+
   // eslint-disable-next-line no-console
   console.log("[seed] done");
+  // eslint-disable-next-line no-console
+  console.log(`[seed] Đã tạo ${ordersToCreate.length} đơn (RE_INSPECTION, AT_WAREHOUSE, SELLER_SHIPPED) để test Admin/Inspector`);
   // eslint-disable-next-line no-console
   console.log("Demo accounts:");
   // eslint-disable-next-line no-console

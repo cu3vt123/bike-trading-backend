@@ -55,7 +55,6 @@ export const API_PATHS = {
     ORDERS_VNPAY_CHECKOUT: "/buyer/orders/vnpay-checkout",
     ORDER_VNPAY_RESUME: (id: string) => `/buyer/orders/${id}/vnpay-resume`,
     ORDER_VNPAY_PAY_BALANCE: (id: string) => `/buyer/orders/${id}/vnpay-pay-balance`,
-    PROFILE: "/buyer/profile",
   },
 
   // Seller (requires SELLER role)
@@ -73,6 +72,7 @@ export const API_PATHS = {
     SUBSCRIPTION_CHECKOUT: "/seller/subscription/checkout",
     SUBSCRIPTION_MOCK_COMPLETE: (orderId: string) =>
       `/seller/subscription/orders/${orderId}/mock-complete`,
+    SUBSCRIPTION_REVOKE_SELF: "/seller/subscription/revoke-self",
   },
 
   // Inspector (requires INSPECTOR/ADMIN role)

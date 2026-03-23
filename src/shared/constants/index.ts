@@ -16,7 +16,6 @@ export const API_ENDPOINTS = {
   BUYER: {
     ORDERS: "/buyer/orders",
     ORDER_BY_ID: (id: string) => `/buyer/orders/${id}`,
-    PROFILE: "/buyer/profile",
   },
   SELLER: {
     DASHBOARD: "/seller/dashboard",

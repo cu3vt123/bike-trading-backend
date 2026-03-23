@@ -2,6 +2,8 @@
 
 A **state transition diagram** shows the possible states of an entity (e.g. Order, Listing, Review) and the **allowed changes** between them. Each state is a node; each allowed change is an arrow labeled with the action/trigger.
 
+> **Hướng dẫn vẽ từng bước:** [STATE-CHART-HUONG-DAN.md](STATE-CHART-HUONG-DAN.md) — tutorial chi tiết 9 bước cho dự án ShopBike.
+
 ---
 
 ## ShopBike — canonical Mermaid (aligned with this repo)
