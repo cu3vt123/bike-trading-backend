@@ -1,13 +1,21 @@
-import React from 'react'
-import { Container } from 'react-bootstrap'
+import { Navbar, Container, Nav } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
-
-function NavBars() {
+const NavBars = () => {
     return (
-        <Container>
+        <Navbar bg="light" variant="lightblue">
+            <Container>
+                <Navbar.Brand as={Link} to="/">
+                    ShopBike
+                </Navbar.Brand>
 
-        </Container>
-    )
-}
+                <Nav>
+                    <Nav.Link as={Link} to="/">Home</Nav.Link>
+                    <Nav.Link as={Link} to="/login">Login</Nav.Link>
+                </Nav>
+            </Container>
+        </Navbar>
+    );
+};
 
-export default NavBars
+export default NavBars;

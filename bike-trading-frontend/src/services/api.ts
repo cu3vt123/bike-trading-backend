@@ -1,5 +1,21 @@
-// src/services/api.js
+// src/services/api.ts
 import axios from "axios";
+
+// ------------------------------
+// TYPES
+// ------------------------------
+type LoginData = {
+    username: string;
+    password: string;
+};
+
+type SignupData = {
+    email?: string;
+    username?: string;
+    password: string;
+};
+
+type OrderData = any; // tạm thời (sau này có thể define rõ)
 
 // ------------------------------
 // BASE URL từ .env
@@ -8,22 +24,26 @@ const API = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
 });
 
-// Nếu backend trả JWT, có thể set interceptor
+// ------------------------------
+// INTERCEPTOR (JWT)
+// ------------------------------
 API.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token"); // lưu token khi login
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    const token = localStorage.getItem("token");
+    if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
 });
 
 // ------------------------------
 // AUTH
 // ------------------------------
-export const login = async ({ username, password }) => {
+export const login = async ({ username, password }: LoginData) => {
     const res = await API.post("/auth/login", { username, password });
     return res.data; // { token, user }
 };
 
-export const signup = async (data) => {
+export const signup = async (data: SignupData) => {
     const res = await API.post("/auth/signup", data);
     return res.data;
 };
@@ -41,7 +61,7 @@ export const getBikes = async () => {
     return res.data;
 };
 
-export const getBikeById = async (id) => {
+export const getBikeById = async (id: string) => {
     const res = await API.get(`/bikes/${id}`);
     return res.data;
 };
@@ -54,22 +74,22 @@ export const getOrders = async () => {
     return res.data;
 };
 
-export const getOrderById = async (id) => {
+export const getOrderById = async (id: string) => {
     const res = await API.get(`/buyer/orders/${id}`);
     return res.data;
 };
 
-export const createOrderVNPAY = async (orderData) => {
+export const createOrderVNPAY = async (orderData: OrderData) => {
     const res = await API.post("/buyer/orders/vnpay-checkout", orderData);
-    return res.data; // trả về paymentUrl
+    return res.data;
 };
 
-export const completeOrder = async (orderId) => {
+export const completeOrder = async (orderId: string) => {
     const res = await API.put(`/buyer/orders/${orderId}/complete`);
     return res.data;
 };
 
-export const cancelOrder = async (orderId) => {
+export const cancelOrder = async (orderId: string) => {
     const res = await API.put(`/buyer/orders/${orderId}/cancel`);
     return res.data;
 };
