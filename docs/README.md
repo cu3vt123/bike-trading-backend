@@ -9,6 +9,7 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 | Bạn cần… | Mở file |
 |----------|---------|
 | Monorepo BE2: chạy Spring + Vite, cấu trúc `src/` | [README.md](../README.md), [STRUCTURE.md](STRUCTURE.md) |
+| **Chuyển giao công nghệ BE: Node → Spring Boot** | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) (mục 0 = bối cảnh BE2) |
 | Tra cứu nhanh: API, thuật ngữ, routes, env | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
 | Kiểm tra khớp API BE–FE | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md), [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |
@@ -40,7 +41,7 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | **Business Rules** đầy đủ — Listing, Order, Payment, Finalize, VietQR, … |
 | [business-rules/README.md](business-rules/README.md) | Hướng dẫn Business Rules, Excel, script append |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready: Error Boundary, lazy route, API errors, checklist (theo Bài 09 kat-minh) |
-| [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | **Backend:** chuyển Node→Spring Boot — JWT, endpoint map, JPA entities (ERD-SPEC), `fulfillmentType` kho vs direct |
+| [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | **Chuyển giao công nghệ:** Node→Spring Boot — bối cảnh monorepo BE2, JWT, endpoint map, JPA (ERD-SPEC), `fulfillmentType` kho vs direct |
 | [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | CREATE TABLE MySQL 17 bảng |
 | [sql/vietqr_mysql.sql](sql/vietqr_mysql.sql) | VietQR module (đồ án) |
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | **Tham chiếu nhanh** — API, thuật ngữ, routes, env, vị trí file |

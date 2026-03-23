@@ -4,12 +4,22 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-15] BACKEND-NODE-TO-SPRING-BOOT — bản chi tiết (chuyển giao BE)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/BACKEND-NODE-TO-SPRING-BOOT.md** | Viết lại thành tài liệu dài: mục lục, lộ trình onboard, monorepo, env/secrets, mapping thư mục Node↔Spring, **danh mục endpoint đầy đủ** theo `backend/src/routes`, class Spring tương ứng, JSON contract, enum, business rules, VNPay, CORS, checklist, kịch bản test, curl, **bảng lệch Security (ADMIN/INSPECTOR vs Node)**. |
+
+---
+
 ## [2026-03-15] Tài liệu monorepo BE2 + Git hygiene
 
 | Thay đổi | Chi tiết |
 |----------|----------|
 | **README.md (root)** | Ghi rõ monorepo: `src/` vừa FE (Vite) vừa Spring (`src/main/java`, `src/main/resources`); entry Spring đúng tên `BikeTradingBackendApplication.java`. |
 | **docs/README.md, STRUCTURE.md, PROJECT-SUMMARY.md** | Bổ sung / làm rõ cấu trúc nhánh BE2, tránh nhầm lẫn khi sửa `src/`. |
+| **docs/BACKEND-NODE-TO-SPRING-BOOT.md** | Tiêu đề + **§0 Bối cảnh BE2 (monorepo)** — hướng dẫn chuyển giao công nghệ thực tế (Spring đã trong repo, Node ở `backend/` đối chiếu); checklist bước 1 điều chỉnh cho BE2. |
+| **README.md, docs/README.md** | Dòng “Chuyển giao công nghệ” trỏ rõ vào BACKEND-NODE-TO-SPRING-BOOT. |
 | **.gitignore** | Đã có `.cursor/` — thư mục Cursor local không đưa lên Git. |
 | **Lịch sử Git (repo)** | Rewrite message: xóa dòng `Co-authored-by: Cursor <cursoragent@cursor.com>` trên các commit liên quan để GitHub Contributors không tính user `cursoragent`. Đã force-push toàn bộ nhánh trên remote — máy clone cũ cần `git fetch` + `git reset --hard origin/<nhánh>`. |
 
