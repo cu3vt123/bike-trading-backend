@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+    /* LIGHT mode (nền sáng, chữ tối) */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 168 72% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 168 55% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 168 72% 42%;
+    --radius: 0.625rem;
+    --chart-1: 168 72% 48%;
+    --chart-2: 168 65% 55%;
+    --chart-3: 168 60% 42%;
+    --chart-4: 168 50% 30%;
+    --chart-5: 168 45% 22%;
+    --brand: 168 72% 48%;
+    --brand-soft: 168 55% 18%;
+    --brand-dark: 168 65% 35%;
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 168 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 168 55% 18%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --warning: 38 85% 55%;
+    --warning-foreground: 0 0% 98%;
+    --border: 0 0% 17%;
+    --input: 0 0% 17%;
+    --ring: 168 70% 50%;
+    --chart-1: 168 70% 50%;
+    --chart-2: 168 65% 55%;
+    --chart-3: 168 60% 42%;
+    --chart-4: 168 50% 30%;
+    --chart-5: 168 45% 22%;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html {
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground antialiased font-sans;
+    font-size: 1rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    min-height: 100%;
+    /* Tránh chữ dài (i18n, URL) tràn khỏi ô */
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* UI/UX Pro Max: smooth transitions 150–300ms, cursor on clickables */
+  button,
+  a,
+  [role="button"] {
+    @apply cursor-pointer transition-colors duration-normal;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply transition-colors duration-normal;
+  }
+
+  /* Focus ring for accessibility (WCAG) */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
