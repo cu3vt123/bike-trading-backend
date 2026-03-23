@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import com.biketrading.backend.enums.OrderFulfillmentType;
-import java.util.LinkedHashMap;
 
 @RestController
 @RequestMapping("/api/seller")
@@ -123,42 +121,23 @@ public class SellerController {
 
     // 🔥 Hàm phụ trợ: Bẻ gãy vòng lặp vô tận của JSON 🔥
     private Map<String, Object> mapOrderToSafeMap(Order order) {
-        Map<String, Object> map = new LinkedHashMap<>();
-
-        map.put("id", String.valueOf(order.getId()));
-        map.put("status", order.getStatus() != null ? order.getStatus().name() : null);
-        map.put("fulfillmentType",
-                order.getFulfillmentType() != null ? order.getFulfillmentType().name() : null);
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", order.getId());
+        map.put("status", order.getStatus());
         map.put("totalPrice", order.getTotalPrice());
-        map.put("plan", order.getPaymentPlan());
-        map.put("depositAmount", order.getDepositAmount());
+        map.put("paymentPlan", order.getPaymentPlan());
         map.put("depositPaid", order.getDepositPaid());
-        map.put("vnpayPaymentStatus", order.getVnpayPaymentStatus());
-        map.put("vnpayAmountVnd", order.getVnpayAmountVnd());
-        map.put("paymentMethod", order.getPaymentMethod());
-        map.put("createdAt", order.getCreatedAt() != null ? order.getCreatedAt().toString() : null);
-        map.put("updatedAt", order.getUpdatedAt() != null ? order.getUpdatedAt().toString() : null);
-        map.put("shippedAt", order.getShippedAt() != null ? order.getShippedAt().toString() : null);
-        map.put("expiresAt", order.getExpiresAt() != null ? order.getExpiresAt().toString() : null);
-
-        Map<String, Object> shipping = new LinkedHashMap<>();
-        shipping.put("street", order.getShippingStreet());
-        shipping.put("city", order.getShippingCity());
-        shipping.put("postalCode", order.getShippingPostalCode());
-        map.put("shippingAddress", shipping);
+        map.put("createdAt", order.getCreatedAt());
 
         if (order.getBuyer() != null) {
             map.put("buyer", Map.of(
-                    "id", String.valueOf(order.getBuyer().getId()),
+                    "id", order.getBuyer().getId(),
                     "username", order.getBuyer().getUsername()
             ));
         }
-
         if (order.getListing() != null) {
             map.put("listing", ListingDTO.fromEntity(order.getListing()));
-            map.put("listingId", String.valueOf(order.getListing().getId()));
         }
-
         return map;
     }
 
@@ -172,47 +151,15 @@ public class SellerController {
         return ResponseEntity.ok(orders);
     }
 
-    @GetMapping("/ratings")
-    public ResponseEntity<?> getRatings() {
-        return ResponseEntity.ok(Map.of(
-                "averageRating", 0,
-                "totalReviews", 0,
-                "positivePercent", 0,
-                "breakdown", Map.of(
-                        "1", 0,
-                        "2", 0,
-                        "3", 0,
-                        "4", 0,
-                        "5", 0
-                )
-        ));
-    }
-
-    @PutMapping("/orders/{orderId}/ship-to-buyer")
-    public ResponseEntity<?> shipToBuyer(@PathVariable Long orderId) {
-        User seller = getCurrentSeller();
-
+    @PutMapping("/orders/{orderId}/ship-to-warehouse")
+    public ResponseEntity<?> shipToWarehouse(@PathVariable Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow();
-
-        if (order.getListing() == null
-                || order.getListing().getSeller() == null
-                || !order.getListing().getSeller().getId().equals(seller.getId())) {
-            return ResponseEntity.status(403).body(Map.of("message", "Bạn không có quyền xử lý đơn này"));
+        if (order.getStatus() == OrderStatus.RESERVED || order.getStatus() == OrderStatus.PENDING_SELLER_SHIP) {
+            order.setStatus(OrderStatus.SELLER_SHIPPED);
+            order.setShippedAt(LocalDateTime.now());
+            orderRepository.save(order);
+            return ResponseEntity.ok(mapOrderToSafeMap(order));
         }
-
-        if (order.getFulfillmentType() != OrderFulfillmentType.DIRECT) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Chỉ đơn DIRECT mới giao thẳng cho buyer"));
-        }
-
-        if (order.getStatus() != OrderStatus.PENDING_SELLER_SHIP) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Trạng thái đơn hàng không hợp lệ"));
-        }
-
-        order.setStatus(OrderStatus.SHIPPING);
-        order.setShippedAt(LocalDateTime.now());
-        order.setExpiresAt(LocalDateTime.now().plusHours(24));
-        orderRepository.save(order);
-
-        return ResponseEntity.ok(mapOrderToSafeMap(order));
+        return ResponseEntity.badRequest().body(Map.of("message", "Trạng thái đơn hàng không hợp lệ."));
     }
 }

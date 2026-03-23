@@ -1,6 +1,5 @@
 package com.biketrading.backend.entity;
 
-import com.biketrading.backend.enums.OrderFulfillmentType;
 import com.biketrading.backend.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 @Table(name = "orders")
 @Data
 public class Order {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,45 +27,31 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
 
-    @Enumerated(EnumType.STRING)
-    private OrderFulfillmentType fulfillmentType;
-
+    // --- TIỀN BẠC & THANH TOÁN ---
     private BigDecimal totalPrice;
     private BigDecimal depositAmount;
     private Boolean depositPaid = false;
-
-    private String paymentMethod; // VNPAY_SANDBOX
+    private String paymentMethod; // CARD hoặc BANK_TRANSFER
     private String paymentPlan;   // DEPOSIT hoặc FULL
 
-    private String vnpayTxnRef;
-    private String vnpayPaymentStatus; // PENDING_PAYMENT, PAID, FAILED
-    private Long vnpayAmountVnd;
-
+    // --- ĐỊA CHỈ GIAO HÀNG ---
     private String shippingStreet;
     private String shippingCity;
     private String shippingPostalCode;
 
-    private LocalDateTime shippedAt;
-    private LocalDateTime warehouseConfirmedAt;
-    private LocalDateTime reInspectionDoneAt;
-    private LocalDateTime expiresAt;
+    // --- TRACKING THỜI GIAN LUỒNG KHO ---
+    private LocalDateTime shippedAt;              // Lúc Seller gửi xe
+    private LocalDateTime warehouseConfirmedAt;   // Lúc Kho (Admin) nhận xe
+    private LocalDateTime reInspectionDoneAt;     // Lúc Inspector kiểm định xong
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-
-        if (depositPaid == null) {
-            depositPaid = false;
-        }
-        if (vnpayPaymentStatus == null || vnpayPaymentStatus.isBlank()) {
-            vnpayPaymentStatus = "PENDING_PAYMENT";
-        }
     }
 
     @PreUpdate

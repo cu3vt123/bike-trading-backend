@@ -7,7 +7,6 @@ public class CreateOrderRequest {
     private Long listingId;
     private String plan; // DEPOSIT hoặc FULL
     private ShippingAddress shippingAddress;
-    private Boolean acceptedUnverifiedDisclaimer;
 
     @Data
     public static class ShippingAddress {
