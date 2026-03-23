@@ -1,0 +1,13 @@
+package com.biketrading.backend;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class BikeTradingBackendApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}

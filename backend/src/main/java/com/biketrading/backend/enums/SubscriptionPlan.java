@@ -1,3 +1,6 @@
 package com.biketrading.backend.enums;
 
-public enum SubscriptionPlan { FREE, BASIC, VIP }
+public enum SubscriptionPlan {
+    BASIC,
+    VIP
+}
