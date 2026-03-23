@@ -2,7 +2,16 @@
 
 > Tái cấu trúc theo mẫu feature-based, dễ mở rộng.
 
-## Thư mục chính
+## Nhánh BE2 (monorepo)
+
+Cùng thư mục gốc `src/` còn chứa **Spring Boot**:
+
+- `src/main/java/` — mã Java (`com.biketrading.backend`, …)
+- `src/main/resources/` — `application.properties`, static template, …
+
+Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/resources`. Backend entry: `BikeTradingBackendApplication.java`.
+
+## Thư mục chính (phần Frontend trong `src/`)
 
 ```
 src/

@@ -4,6 +4,17 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-15] Tài liệu monorepo BE2 + Git hygiene
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **README.md (root)** | Ghi rõ monorepo: `src/` vừa FE (Vite) vừa Spring (`src/main/java`, `src/main/resources`); entry Spring đúng tên `BikeTradingBackendApplication.java`. |
+| **docs/README.md, STRUCTURE.md, PROJECT-SUMMARY.md** | Bổ sung / làm rõ cấu trúc nhánh BE2, tránh nhầm lẫn khi sửa `src/`. |
+| **.gitignore** | Đã có `.cursor/` — thư mục Cursor local không đưa lên Git. |
+| **Lịch sử Git (repo)** | Rewrite message: xóa dòng `Co-authored-by: Cursor <cursoragent@cursor.com>` trên các commit liên quan để GitHub Contributors không tính user `cursoragent`. Đã force-push toàn bộ nhánh trên remote — máy clone cũ cần `git fetch` + `git reset --hard origin/<nhánh>`. |
+
+---
+
 ## [2026-03] Rà soát API BE–FE theo actor/page, xóa dead code, cập nhật docs
 
 ### BE–FE API Audit

@@ -34,6 +34,8 @@
 - **Axios** (HTTP client)
 - **react-i18next** (i18n – Tiếng Việt / English)
 
+**Repo nhánh BE2:** cùng project có **Spring Boot** (Java) dưới `src/main/java` — marketplace chạy API qua Spring hoặc mock/Node tùy cấu hình; xem [README.md](../README.md).
+
 ### Roles
 
 | Role     | Mô tả                                      |

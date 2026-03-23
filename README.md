@@ -2,6 +2,8 @@
 
 Repo **nhánh mặc định BE2** gồm backend **Spring Boot** (Java) và frontend **React + Vite** (đồng bộ từ nhánh `demo`).
 
+**Cấu trúc monorepo:** cùng thư mục `src/` — phía **Vite/React** (`src/app/`, `src/features/`, …) và phía **Spring** (`src/main/java/`, `src/main/resources/`). Maven/IDE dùng `src/main/java`; Vite bundle phần TS/TSX ở `src/` (không đụng Java).
+
 ---
 
 ## Phần A — Backend Spring Boot (BE2)
@@ -16,7 +18,7 @@ Mã nguồn backend cho Sàn Giao Dịch Xe Đạp Thể Thao.
 ### 2. Cách chạy
 1. Bật MySQL Server (Start MySQL trên XAMPP).
 2. Tạo database trắng tên `bike_trading_db`.
-3. Mở IntelliJ, tìm file `ShopBikeApplication.java` (hoặc tương tự) chứa `main`.
+3. Mở IntelliJ, tìm `src/main/java/com/biketrading/backend/BikeTradingBackendApplication.java` (class chứa `main`).
 4. Bấm **Run**.
 5. Thấy `Started Application in ... seconds` là thành công.
 
@@ -86,4 +88,6 @@ Checklist ship: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md).
 
 | Ngày | Nội dung |
 |------|----------|
+| **2026-03-15** | Docs: monorepo `src/` (FE + Spring), sửa tên entry Spring; `.gitignore` thêm `.cursor/` (file local Cursor không commit). |
+| **2026-03** | Chuẩn hóa lịch sử Git: bỏ trailer `Co-authored-by: Cursor <cursoragent@cursor.com>` khỏi message commit (GitHub Contributors). **Clone cũ:** `git fetch` + `git reset --hard origin/<nhánh>`. |
 | **2026-03** | Merge nhánh `demo` vào `BE2`: đồng bộ frontend + docs + `backend/` Node demo; gộp `.gitignore` / README. |

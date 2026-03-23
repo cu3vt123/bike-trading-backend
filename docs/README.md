@@ -2,10 +2,13 @@
 
 Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có bảng tóm tắt.
 
+**Nhánh BE2 (monorepo):** frontend React/Vite và backend Spring Boot cùng repo — xem [README.md](../README.md) (Phần A + B) và [STRUCTURE.md](STRUCTURE.md) (ghi chú `src/main/java`).
+
 ## Bắt đầu nhanh
 
 | Bạn cần… | Mở file |
 |----------|---------|
+| Monorepo BE2: chạy Spring + Vite, cấu trúc `src/` | [README.md](../README.md), [STRUCTURE.md](STRUCTURE.md) |
 | Tra cứu nhanh: API, thuật ngữ, routes, env | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
 | Kiểm tra khớp API BE–FE | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md), [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |

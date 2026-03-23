@@ -4,6 +4,8 @@
 
 **Nguồn chi tiết:** [README.md](README.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
 
+**Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A.
+
 ---
 
 ## 1. Thuật ngữ chính
