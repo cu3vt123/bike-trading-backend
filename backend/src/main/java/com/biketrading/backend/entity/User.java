@@ -1,64 +1,62 @@
 package com.biketrading.backend.entity;
 
+import com.biketrading.backend.enums.Role;
 import com.biketrading.backend.enums.SubscriptionPlan;
-import com.biketrading.backend.enums.UserRole;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String username;
-
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 120)
     private String email;
 
-    @JsonIgnore
-    @Column(nullable = false)
-    private String password;
+    @Column(unique = true, length = 50)
+    private String username;
 
+    @Column(nullable = false, length = 255)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
+
+    @Column(nullable = false, length = 100)
     private String displayName;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
-
     private Boolean isHidden = false;
+
     private LocalDateTime hiddenAt;
 
+    @Column(length = 120)
+    private String resetPasswordToken;
+
+    private LocalDateTime resetPasswordExpiresAt;
+
     @Enumerated(EnumType.STRING)
-    private SubscriptionPlan subscriptionPlan = SubscriptionPlan.FREE;
+    @Column(length = 20)
+    private SubscriptionPlan subscriptionPlan;
 
     private LocalDateTime subscriptionExpiresAt;
 
-    @Column(nullable = false)
-    private Integer publishedSlotsLimit = 0;
-
-    @Column(nullable = false)
-    private Integer inspectionCredits = 0;
-
-    @Column(updatable = false)
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

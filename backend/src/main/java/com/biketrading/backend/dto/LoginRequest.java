@@ -1,13 +1,16 @@
 package com.biketrading.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class LoginRequest {
-    @NotBlank
+
+    @NotBlank(message = "Vui lòng nhập email hoặc tên đăng nhập.")
     private String emailOrUsername;
 
-    @NotBlank
+    @NotBlank(message = "Vui lòng nhập mật khẩu.")
     private String password;
 }
