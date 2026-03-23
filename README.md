@@ -107,7 +107,8 @@ npm run build
 | Nhóm | File |
 |------|------|
 | Tra cứu | [QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md), [BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md) |
-| Backend Node (demo) | [BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) |
+| **Chuyển giao công nghệ (Node → Spring)** | [BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) — endpoint map, JWT, business rules, checklist |
+| Backend Node (demo / đối chiếu) | [BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md) |
 | ERD / SQL | [ERD-MYSQL.md](docs/ERD-MYSQL.md), [sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) |
 
 Checklist ship: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md).
