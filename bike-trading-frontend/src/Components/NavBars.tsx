@@ -1,6 +1,7 @@
 import { Navbar, Container, Nav } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import "../App.css";
+import { FaSearch, FaShoppingCart } from "react-icons/fa";
 
 function NavBars() {
     return (
@@ -20,6 +21,12 @@ function NavBars() {
                         <Nav.Link as={Link} to="/contact">Contact</Nav.Link>
                         <Nav.Link as={Link} to="/login">Login</Nav.Link>
                     </Nav>
+
+                    <div className="navbar-custom-search">
+                        <input type="text" placeholder="Search..." />
+                        <FaSearch className="icon" />
+                        <FaShoppingCart className="icon" />
+                    </div>
                 </Navbar.Collapse>
             </Container>
         </Navbar>
