@@ -1,103 +1,77 @@
-// src/services/api.ts
 import axios from "axios";
 
-// ------------------------------
-// TYPES
-// ------------------------------
-type LoginData = {
-    username: string;
-    password: string;
-};
+// Kiểu dữ liệu Bike
+export interface Bike {
+    id?: number;
+    name: string;
+    type: string;
+    weight: number;
+    material: string;
+    brake: string;
+    price: number;
+    image: string;
+    featured?: boolean;
+    bestseller?: boolean;
+}
 
-type SignupData = {
-    email?: string;
-    username?: string;
-    password: string;
-};
-
-type OrderData = any; // tạm thời (sau này có thể define rõ)
-
-// ------------------------------
-// BASE URL từ .env
-// ------------------------------
-const API = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
+const API_URL = import.meta.env.VITE_API_URL;
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
-// ------------------------------
-// INTERCEPTOR (JWT)
-// ------------------------------
-API.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+// Gọi API lấy danh sách tất cả xe
+export const getBikes = async (): Promise<Bike[]> => {
+    try {
+        const { data } = await api.get<Bike[]>("/");
+        return data;
+    } catch (error) {
+        console.error(error);
+        throw error;
     }
-    return config;
-});
-
-// ------------------------------
-// AUTH
-// ------------------------------
-export const login = async ({ username, password }: LoginData) => {
-    const res = await API.post("/auth/login", { username, password });
-    return res.data; // { token, user }
 };
 
-export const signup = async (data: SignupData) => {
-    const res = await API.post("/auth/signup", data);
-    return res.data;
+// Lấy chi tiết 1 xe theo id
+export const getBikeById = async (id: number): Promise<Bike> => {
+    try {
+        const { data } = await api.get<Bike>(`/${id}`);
+        return data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 };
 
-export const getMe = async () => {
-    const res = await API.get("/auth/me");
-    return res.data;
+// Tạo mới 1 xe
+export const createBike = async (bikeData: Bike): Promise<Bike> => {
+    try {
+        const { data } = await api.post<Bike>("/", bikeData);
+        return data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 };
 
-// ------------------------------
-// BIKES (Marketplace)
-// ------------------------------
-export const getBikes = async () => {
-    const res = await API.get("/bikes");
-    return res.data;
+// Cập nhật 1 xe
+export const updateBike = async (id: number, bikeData: Bike): Promise<Bike> => {
+    try {
+        const { data } = await api.put<Bike>(`/${id}`, bikeData);
+        return data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 };
 
-export const getBikeById = async (id: string) => {
-    const res = await API.get(`/bikes/${id}`);
-    return res.data;
-};
-
-// ------------------------------
-// ORDERS (Buyer)
-// ------------------------------
-export const getOrders = async () => {
-    const res = await API.get("/buyer/orders");
-    return res.data;
-};
-
-export const getOrderById = async (id: string) => {
-    const res = await API.get(`/buyer/orders/${id}`);
-    return res.data;
-};
-
-export const createOrderVNPAY = async (orderData: OrderData) => {
-    const res = await API.post("/buyer/orders/vnpay-checkout", orderData);
-    return res.data;
-};
-
-export const completeOrder = async (orderId: string) => {
-    const res = await API.put(`/buyer/orders/${orderId}/complete`);
-    return res.data;
-};
-
-export const cancelOrder = async (orderId: string) => {
-    const res = await API.put(`/buyer/orders/${orderId}/cancel`);
-    return res.data;
-};
-
-// ------------------------------
-// BRANDS
-// ------------------------------
-export const getBrands = async () => {
-    const res = await API.get("/brands");
-    return res.data;
+// Xoá 1 xe
+export const deleteBike = async (id: number): Promise<void> => {
+    try {
+        await api.delete(`/${id}`);
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 };
