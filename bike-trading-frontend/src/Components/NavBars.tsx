@@ -1,7 +1,7 @@
-// import { Navbar, Nav, Container } from "react-bootstrap";
-// import { Link } from "react-router-dom";
-// import "../App.css";
-// import { FaSearch, FaShoppingCart } from "react-icons/fa";
+import { Navbar, Nav, Container } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import "../App.css";
+import { FaSearch, FaShoppingCart } from "react-icons/fa";
 
 // function MyNavbar() {
 //     return (
