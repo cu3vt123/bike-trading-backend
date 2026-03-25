@@ -1,10 +1,16 @@
 package com.biketrading.backend.dto;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class LoginRequest {
-    private String role; // BUYER, SELLER, INSPECTOR, ADMIN
-    private String emailOrUsername; // Frontend sẽ gửi trường này thay vì chỉ username
+
+    @NotBlank(message = "Vui lòng nhập email hoặc tên đăng nhập.")
+    private String emailOrUsername;
+
+    @NotBlank(message = "Vui lòng nhập mật khẩu.")
     private String password;
 }

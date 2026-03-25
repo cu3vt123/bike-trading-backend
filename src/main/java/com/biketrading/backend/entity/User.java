@@ -1,56 +1,62 @@
 package com.biketrading.backend.entity;
 
+import com.biketrading.backend.enums.Role;
 import com.biketrading.backend.enums.SubscriptionPlan;
-import com.biketrading.backend.enums.UserRole;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String username;
-
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 120)
     private String email;
 
-    @JsonIgnore // Ẩn mật khẩu khi trả về API
-    @Column(nullable = false)
-    private String password;
+    @Column(unique = true, length = 50)
+    private String username;
 
+    @Column(nullable = false, length = 255)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role;
+
+    @Column(nullable = false, length = 100)
     private String displayName;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private Boolean isHidden = false;
 
-    // --- QUẢN LÝ GÓI CƯỚC (SUBSCRIPTION) ---
+    private LocalDateTime hiddenAt;
+
+    @Column(length = 120)
+    private String resetPasswordToken;
+
+    private LocalDateTime resetPasswordExpiresAt;
+
     @Enumerated(EnumType.STRING)
-    private SubscriptionPlan currentPlan = SubscriptionPlan.FREE;
+    @Column(length = 20)
+    private SubscriptionPlan subscriptionPlan;
 
-    @Column(nullable = false, columnDefinition = "int default 0")
-    private int remainingListings = 0;
+    private LocalDateTime subscriptionExpiresAt;
 
-    // 🔥 ĐÃ THÊM LẠI: Số lượt gọi Inspector kiểm định 🔥
-    @Column(nullable = false, columnDefinition = "int default 0")
-    private int inspectionCredits = 0;
-
-    // 🔥 ĐÃ THÊM LẠI: Ngày hết hạn gói cước (1 tuần) 🔥
-    private LocalDateTime packageExpiryDate;
-
-    @Column(updatable = false)
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

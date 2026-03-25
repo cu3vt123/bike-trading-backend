@@ -4,10 +4,31 @@ import com.biketrading.backend.entity.Listing;
 import com.biketrading.backend.enums.InspectionResult;
 import com.biketrading.backend.enums.ListingState;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
-@Repository
 public interface ListingRepository extends JpaRepository<Listing, Long> {
-    List<Listing> findByStateAndInspectionResult(ListingState state, InspectionResult inspectionResult);
+
+    List<Listing> findByStateAndInspectionResultAndIsHiddenFalseOrderByIdDesc(
+            ListingState state,
+            InspectionResult inspectionResult
+    );
+
+    @Query("""
+        select count(l)
+        from Listing l
+        where l.seller.id = :sellerId
+          and l.isHidden = false
+          and l.state in :states
+          and (l.listingExpiresAt is null or l.listingExpiresAt > :now)
+    """)
+    long countActiveSlots(
+            @Param("sellerId") Long sellerId,
+            @Param("states") Collection<ListingState> states,
+            @Param("now") LocalDateTime now
+    );
 }
