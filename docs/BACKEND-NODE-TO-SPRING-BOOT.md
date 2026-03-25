@@ -103,7 +103,9 @@ cp .env.example .env
 
 ### 4.3 Node (`backend/`)
 
-- `PORT`, `MONGODB_URI`, `CLIENT_ORIGIN` (CORS), v.v. — xem [backend/README.md](../backend/README.md).
+- **`PORT`**, **`MONGODB_URI`**, **`JWT_SECRET`**, **`CLIENT_ORIGIN`** (CORS), **`CORS_EXTRA_ORIGINS`** (danh sách origin thêm, cách nhau bằng dấu phẩy) — xem [backend/README.md](../backend/README.md) và `backend/.env.example`.
+- **`PUBLIC_ORIGIN`** (tùy chọn): base URL công khai của API (vd `http://localhost:8081` hoặc `https://api.example.com`). Dùng khi **`POST /api/seller/listings/upload-images`** trả về mảng URL **tuyệt đối** lưu vào `listing.imageUrls`. Nếu để trống, Node lấy `scheme://Host` từ request (phù hợp dev local).
+- **Ảnh tin seller:** file lưu trên disk tại **`backend/uploads/listings/`** (tự tạo khi upload; thư mục **`backend/uploads/`** đã nằm trong `.gitignore` — không commit ảnh). Phục vụ tĩnh qua **`GET /uploads/listings/<tên-file>`** — **không** có prefix `/api` (khai báo trong `backend/src/server.js`).
 
 ---
 
@@ -117,7 +119,7 @@ backend/src/
 ├── routes/*.js            # khai báo path + middleware
 ├── controllers/*.js     # logic xử lý
 ├── models/*.js            # Mongoose
-├── middlewares/           # auth, error
+├── middlewares/           # auth, error, upload (multer — ảnh listing)
 └── config/, utils/
 ```
 
@@ -158,6 +160,8 @@ src/main/java/com/biketrading/backend/
 | `requireAuth`, `requireRole([...])` | `SecurityFilterChain` + `@PreAuthorize` / `requestMatchers(...).hasRole(...)` |
 | Mongoose `Schema` | `@Entity` + JPA (MySQL) hoặc `@Document` MongoDB |
 | `zod.safeParse` | `@Valid` + Bean Validation + validator tùy biến |
+| `multer` (`multipart/form-data`) | `MultipartFile` / `MultipartHttpServletRequest` + `spring.servlet.multipart.*` |
+| `express.static` (`/uploads`) | `ResourceHandlerRegistry` (`WebMvcConfigurer`), hoặc reverse proxy / object storage (S3, …) trả URL công khai |
 | `res.json({ data })` | `ResponseEntity.ok(Map.of("data", x))` hoặc `ok(x)` tùy chuẩn đã chọn |
 
 **Persistence:** dự án Spring hiện tại dùng **MySQL + JPA** (`spring.jpa.hibernate.ddl-auto`, …). Tham chiếu schema: [ERD-SPEC.md](ERD-SPEC.md), [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql).
@@ -211,7 +215,7 @@ Dưới đây là **chuẩn tham chiếu từ Node** (`backend/src/routes/*.js` 
 
 | Method | Path | Ghi chú |
 |--------|------|---------|
-| POST | `/orders/vnpay-checkout` | Tạo order + `paymentUrl` VNPay; `plan`, `fulfillmentType`, `shippingAddress` |
+| POST | `/orders/vnpay-checkout` | Tạo order + `paymentUrl` VNPay; `plan`, `shippingAddress`, `acceptedUnverifiedDisclaimer` nếu tin chưa CERTIFIED; **`fulfillmentType` do BE suy ra** từ listing |
 | POST | `/orders/:id/vnpay-resume` | Tiếp tục thanh toán cọc khi pending |
 | POST | `/orders/:id/vnpay-pay-balance` | Plan DEPOSIT — thanh toán phần còn lại |
 | POST | `/orders` | Legacy/mock COD — FE ưu tiên VNPAY |
@@ -225,20 +229,24 @@ Dưới đây là **chuẩn tham chiếu từ Node** (`backend/src/routes/*.js` 
 
 ### 9.4 Seller — `/api/seller` (SELLER)
 
-| Method | Path |
-|--------|------|
-| GET | `/dashboard` |
-| GET | `/ratings` |
-| GET | `/orders` |
-| PUT | `/orders/:orderId/ship-to-buyer` |
-| PUT | `/orders/:orderId/ship-to-warehouse` |
-| PUT | `/listings/:id/mark-shipped-to-warehouse` |
-| GET | `/listings`, GET `/listings/:id` |
-| POST | `/listings`, PUT `/listings/:id` |
-| PUT | `/listings/:id/publish`, PUT `/listings/:id/submit` |
-| POST | `/subscription/checkout` |
-| POST | `/subscription/orders/:orderId/mock-complete` |
-| PUT | `/subscription/revoke-self` |
+| Method | Path | Ghi chú |
+|--------|------|---------|
+| GET | `/dashboard` | |
+| GET | `/ratings` | |
+| GET | `/orders` | |
+| PUT | `/orders/:orderId/ship-to-buyer` | |
+| PUT | `/orders/:orderId/ship-to-warehouse` | |
+| PUT | `/listings/:id/mark-shipped-to-warehouse` | |
+| GET | `/listings` | |
+| GET | `/listings/:id` | |
+| POST | `/listings/upload-images` | `multipart/form-data`, field **`images`** (lặp, tối đa **10** file), MIME jpeg/png/webp/gif, **≤ 5MB**/file; response `{ data: { urls: string[] } }` — URL tuyệt đối `/uploads/listings/...` (xem §11.6) |
+| POST | `/listings` | |
+| PUT | `/listings/:id` | |
+| PUT | `/listings/:id/publish` | |
+| PUT | `/listings/:id/submit` | |
+| POST | `/subscription/checkout` | |
+| POST | `/subscription/orders/:orderId/mock-complete` | |
+| PUT | `/subscription/revoke-self` | |
 
 ### 9.5 Inspector — `/api/inspector` (INSPECTOR [+ ADMIN trên Node])
 
@@ -280,6 +288,16 @@ Dưới đây là **chuẩn tham chiếu từ Node** (`backend/src/routes/*.js` 
 
 Trên Node, một số route demo nằm ngoài `/api`: `server.js` mount **`/payment`** (`vnpayDemoPaymentRoutes`). Spring thường gom **`/api/vnpay/**`** — **Return URL** trong `application.properties` phải khớp controller thực tế.
 
+### 9.9 File tĩnh — ảnh tin đăng (ngoài `/api`)
+
+| Method | Path | Ghi chú |
+|--------|------|---------|
+| GET | `/uploads/listings/*` | Ảnh đã upload qua §9.4; URL đầy đủ lưu trong `Listing.imageUrls` (và snapshot order). **Spring:** cần tương đương (static resource, CDN, hoặc controller `Resource`) + **cùng convention path** nếu muốn giữ URL trong DB không đổi. |
+
+**FE:** form seller gọi upload trước, sau đó gửi `imageUrls` trong `POST/PUT /api/seller/listings` — xem `SellerListingEditorPage`, `sellerApi.uploadListingImages`.
+
+**Tham chiếu Node:** `backend/src/middlewares/listingImageUpload.middleware.js`, `backend/src/controllers/sellerUploadController.js`.
+
 ---
 
 ## 10. Class Spring hiện có trong repo
@@ -294,6 +312,8 @@ Trên Node, một số route demo nằm ngoài `/api`: `server.js` mount **`/pay
 | `AdminController` | `/api/admin` |
 | `PackageController` | (packages / subscription — kiểm tra annotation trong file) |
 | `PaymentController` | VNPay return/IPN nếu được cấu hình |
+
+**Upload ảnh listing:** trên Node tách file `sellerUploadController.js` + middleware multer; trên Spring có thể gộp vào `SellerController` hoặc tách `SellerListingImageController` — giữ nguyên path **`POST /api/seller/listings/upload-images`** và shape response §11.6.
 
 Khi bổ sung endpoint: **ưu tiên cùng path với §9**; cập nhật Swagger annotation (`@Operation`, …) nếu project đã bật springdoc.
 
@@ -322,17 +342,20 @@ Trả các field tương thích `MeResponse` trong `authApi.ts`: `id`, `email`, 
 
 ### 11.3 `POST /api/buyer/orders/vnpay-checkout`
 
+**Request** — khớp Node (`buyerController.js`, schema `createOrderSchema`): `listingId` là **string** (Mongo ObjectId khi dùng Node); **`fulfillmentType` không gửi từ FE** — BE suy ra từ listing (`listingUsesWarehouseFlow` / `certificationStatus`).
+
 ```json
 {
-  "listingId": 1,
+  "listingId": "674a1b2c3d4e5f6789012345",
   "plan": "DEPOSIT",
-  "fulfillmentType": "WAREHOUSE",
-  "shippingAddress": { "street": "", "city": "", "postalCode": "" }
+  "shippingAddress": { "street": "", "city": "", "postalCode": "" },
+  "acceptedUnverifiedDisclaimer": true
 }
 ```
 
-**Response:** `{ "orderId": "...", "paymentUrl": "https://..." }` (hoặc bọc `data`).  
-**Nghiệp vụ:** set `status` ban đầu + `fulfillmentType` theo listing (CERTIFIED/UNVERIFIED, warehouse intake, …) — đối chiếu `buyerController.js` (`listingUsesWarehouseFlow`) và §13.
+- **`acceptedUnverifiedDisclaimer`:** bắt buộc **`true`** nếu tin **chưa** `CERTIFIED` (buyer chấp nhận mua xe chưa kiểm định).  
+**Response:** `{ "orderId": "...", "paymentUrl": "https://...", "txnRef": "...", ... }` (hoặc bọc `data`).  
+**Nghiệp vụ:** set `status` ban đầu + `fulfillmentType` (`WAREHOUSE` | `DIRECT`) theo listing — đối chiếu `buyerController.js` và §13.
 
 ### 11.4 `GET /api/buyer/orders/:id`
 
@@ -345,6 +368,38 @@ Bắt buộc đủ field FE dùng trên Transaction / Finalize / Success:
 ### 11.5 Seller ship direct
 
 `PUT /api/seller/orders/:orderId/ship-to-buyer` — chỉ khi **DIRECT** + trạng thái chờ seller giao (xem §13).
+
+### 11.6 Upload ảnh tin đăng (seller)
+
+**`POST /api/seller/listings/upload-images`** — Bearer JWT, role **`SELLER`**.
+
+| Hạng mục | Giá trị (Node tham chiếu) |
+|----------|---------------------------|
+| Content-Type | `multipart/form-data` (để client tự set boundary — không gửi kèm `application/json`) |
+| Field | **`images`** — cùng tên, lặp cho nhiều file (tối đa **10** file / request) |
+| MIME | `image/jpeg`, `image/png`, `image/webp`, `image/gif` |
+| Kích thước | Tối đa **5 MB** / file |
+
+**Response** (cùng convention bọc `data` như các API khác):
+
+```json
+{
+  "data": {
+    "urls": [
+      "http://localhost:8081/uploads/listings/550e8400-e29b-41d4-a716-446655440000.jpg"
+    ]
+  }
+}
+```
+
+Thứ tự phần tử trong **`urls`** khớp thứ tự file gửi lên. FE gán mảng này vào **`imageUrls`** khi tạo/cập nhật tin (`POST` / `PUT /api/seller/listings`).
+
+**Port sang Spring Boot (gợi ý):**
+
+- Controller nhận `@RequestParam("images") MultipartFile[] images` (hoặc `List<MultipartFile>`), validate type/size giống trên.
+- Lưu file (local `uploads/listings/` hoặc object storage); sinh URL công khai — nên có biến env tương đương **`PUBLIC_ORIGIN`** khi build URL tuyệt đối.
+- `application.properties`: `spring.servlet.multipart.max-file-size`, `max-request-size`.
+- Expose file: `addResourceHandlers` cho `/uploads/**` hoặc chỉ trả URL CDN — **quan trọng:** URL trong DB phải mở được từ trình duyệt (trang marketplace, `<img src="...">`).
 
 ---
 
@@ -415,6 +470,7 @@ Chi tiết biến, hash, thẻ test: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 
 - **Node:** `CLIENT_ORIGIN` + `CORS_EXTRA_ORIGINS` trong `server.js`.  
 - **Spring:** `CorsConfig.java` — đảm bảo cho phép `http://localhost:5173` và credentials nếu FE dùng `withCredentials: true`.  
+- **Ảnh `/uploads/...`:** trình duyệt tải qua thẻ `<img src>` thường **không** cần CORS; nếu FE `fetch` cross-origin file thì cần header CORS phù hợp trên static handler.  
 - **Health:** FE không bắt buộc; DevOps có thể cần `GET /api/health` — thêm `RestController` một dòng nếu chưa có.
 
 ---
@@ -427,7 +483,8 @@ Chi tiết biến, hash, thẻ test: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 | 2 | Auth: login, signup, me — shape JSON | §11 |
 | 3 | GET `/bikes`, GET `/bikes/:id` — chỉ PUBLISHED; 404 khi không bán | §9.2 |
 | 4 | Buyer: vnpay-checkout, resume, pay-balance, get order, cancel, complete, review | §9.3 |
-| 5 | Seller: dashboard, orders, listings CRUD, publish, submit, ship, subscription | §9.4 |
+| 5 | Seller: dashboard, orders, listings CRUD, **upload ảnh** (`POST .../upload-images`), publish, submit, ship, subscription | §9.4, §11.6 |
+| 5b | Static **`/uploads/listings/**`** (hoặc URL CDN tương đương) khớp link lưu DB | §9.9 |
 | 6 | Inspector: pending, approve/reject/need-update | §9.5 |
 | 7 | Admin: warehouse, re-inspection, users, listings, reviews, brands, stats | §9.6 |
 | 8 | Packages & brands public | §9.7 |
@@ -444,7 +501,7 @@ Chi tiết biến, hash, thẻ test: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 | 1 | Guest | Home → xem listing → `/bikes/:id` |
 | 2 | Buyer | Đăng ký/login → checkout DIRECT → VNPay (sandbox) → transaction → finalize → success → review |
 | 3 | Buyer | Checkout WAREHOUSE (listing certified) → các bước kho/admin tùy scenario |
-| 4 | Seller | Dashboard → tạo tin → submit inspection → publish → xem orders → ship |
+| 4 | Seller | Dashboard → tạo tin → **chọn ảnh → upload (multipart) → lưu/publish** → submit inspection nếu có → xem orders → ship |
 | 5 | Inspector | Pending listings → approve/reject |
 | 6 | Admin | Warehouse pending → confirm → re-inspection flow; quản lý users/listings/brands |
 | 7 | Admin | Đăng nhập admin, thử các URL **buyer** (giỏ hàng/checkout) — phải hoạt động nếu đã sửa §8 |
@@ -469,10 +526,15 @@ curl -s http://localhost:8081/api/auth/me -H "Authorization: Bearer TOKEN"
 # Danh sách xe public
 curl -s http://localhost:8081/api/bikes
 
-# Tạo checkout VNPay (buyer)
+# Tạo checkout VNPay (buyer) — listingId string; disclaimer nếu tin chưa CERTIFIED
 curl -s -X POST http://localhost:8081/api/buyer/orders/vnpay-checkout \
   -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
-  -d '{"listingId":1,"plan":"DEPOSIT","fulfillmentType":"DIRECT","shippingAddress":{"street":"A","city":"HN"}}'
+  -d '{"listingId":"YOUR_LISTING_OBJECT_ID","plan":"DEPOSIT","shippingAddress":{"street":"A","city":"HN"},"acceptedUnverifiedDisclaimer":true}'
+
+# Upload ảnh tin (seller) — field lặp "images"
+curl -s -X POST http://localhost:8081/api/seller/listings/upload-images \
+  -H "Authorization: Bearer TOKEN" \
+  -F "images=@/path/to/photo1.jpg" -F "images=@/path/to/photo2.jpg"
 ```
 
 ---
@@ -524,7 +586,8 @@ curl -s -X POST http://localhost:8081/api/buyer/orders/vnpay-checkout \
 | `/api/health` | Thêm nếu CI cần |
 | Re-inspection trên `/api/admin` | Đảm bảo INSPECTOR được phép giống Node |
 | ID user prefix `U` | Đồng bộ `/me` và các API trả `sellerId` / `userId` |
+| **Upload ảnh listing** | Node: `POST /api/seller/listings/upload-images` + static `/uploads/listings/*` + env `PUBLIC_ORIGIN`. Spring: multipart + lưu file + URL công khai tương đương (§11.6, §9.9). |
 
 ---
 
-*Tài liệu này được mở rộng để phục vụ chuyển giao chi tiết (monorepo BE2). Cập nhật khi contract API hoặc `SecurityConfig` thay đổi — đồng thời ghi [CHANGELOG.md](CHANGELOG.md).*
+*Tài liệu này được mở rộng để phục vụ chuyển giao chi tiết (monorepo BE2). Đã bổ sung **upload ảnh seller**, **file tĩnh `/uploads`**, **`PUBLIC_ORIGIN`**, và chỉnh **body `vnpay-checkout`** khớp Node. Cập nhật khi contract API hoặc `SecurityConfig` thay đổi — đồng thời ghi [CHANGELOG.md](CHANGELOG.md).*

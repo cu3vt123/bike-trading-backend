@@ -903,6 +903,7 @@
     "listingUnverifiedHint": "Hệ thống chưa xác thực tình trạng xe. Người mua nên tự kiểm tra kỹ.",
     "slotLimitReached": "Bạn đã dùng hết slot tin trên sàn theo gói. Gỡ bớt tin hoặc nâng gói VIP.",
     "saveDraftError": "Không lưu được nháp. Vui lòng thử lại.",
+    "uploadImagesError": "Không tải ảnh lên được. Kiểm tra kết nối và định dạng ảnh (JPEG, PNG, WebP, GIF, tối đa 5MB mỗi ảnh).",
     "submitError": "Không gửi được kiểm định. Vui lòng thử lại.",
     "photoCountError": "Vui lòng tải đủ 5 ảnh theo checklist (hiện có {{current}}/5).",
     "submitSuccessTitle": "Đã gửi tin đăng kiểm định",

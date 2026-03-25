@@ -6,6 +6,7 @@ import {
   updateListing,
   publishListing,
   fetchListingById,
+  uploadListingImages,
 } from "@/services/sellerService";
 import { isAxiosError } from "axios";
 import { getApiErrorMessage } from "@/lib/apiErrors";
@@ -40,6 +41,8 @@ const PHOTO_SLOT_KEYS = ["seller.photo1", "seller.photo2", "seller.photo3", "sel
 
 const REQUIRED_PHOTO_COUNT = 5;
 
+type PhotoSlot = { file?: File; url: string } | null;
+
 export default function SellerListingEditorPage() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -55,9 +58,9 @@ export default function SellerListingEditorPage() {
   const [condition, setCondition] = useState<Condition>("MINT_USED");
   const [step, setStep] = useState<Step>("DRAFT");
   const [savedId, setSavedId] = useState<string | null>(id ?? null);
-  const [photoSlots, setPhotoSlots] = useState<
-    Array<{ file: File; url: string } | null>
-  >(() => Array.from({ length: REQUIRED_PHOTO_COUNT }, () => null));
+  const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(() =>
+    Array.from({ length: REQUIRED_PHOTO_COUNT }, () => null),
+  );
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +121,21 @@ export default function SellerListingEditorPage() {
           if (typeof reason === "string" && reason.trim()) {
             setNeedUpdateReason(reason.trim());
           }
+          const urls = Array.isArray(listing.imageUrls) ? listing.imageUrls : [];
+          setPhotoSlots((prev) => {
+            for (const p of prev) {
+              if (p?.url.startsWith("blob:")) URL.revokeObjectURL(p.url);
+            }
+            const next: PhotoSlot[] = Array.from(
+              { length: REQUIRED_PHOTO_COUNT },
+              () => null,
+            );
+            for (let i = 0; i < Math.min(REQUIRED_PHOTO_COUNT, urls.length); i++) {
+              const u = urls[i];
+              if (typeof u === "string" && u.trim()) next[i] = { url: u.trim() };
+            }
+            return next;
+          });
         } else if (id) {
           setError(t("seller.loadError"));
         }
@@ -127,9 +145,14 @@ export default function SellerListingEditorPage() {
       });
   }, [listingId, id, t]);
 
-  function buildPayload() {
+  function buildPayload(overrideImageUrls?: string[]) {
     const priceNum = parseFloat(price) || 0;
     const yearNum = parseInt(year, 10);
+    const imageUrls =
+      overrideImageUrls ??
+      photoSlots
+        .filter((p): p is NonNullable<PhotoSlot> => p != null)
+        .map((p) => p.url);
     return {
       title: title || "Untitled",
       brand: brand || "Unknown",
@@ -139,22 +162,76 @@ export default function SellerListingEditorPage() {
       price: priceNum,
       location,
       condition,
-      // Demo: gửi object URLs để BE nhận được ảnh list (chưa upload thật)
-      imageUrls: photoSlots
-        .filter((p): p is { file: File; url: string } => p != null)
-        .map((p) => p.url),
+      imageUrls,
     };
+  }
+
+  /** Ảnh chọn từ máy (blob:) được upload lên BE; trả về mảng URL theo thứ tự slot đã chọn. */
+  async function resolveImageUrlsForSave(): Promise<string[] | null> {
+    const files: File[] = [];
+    const blobIndices: number[] = [];
+    for (let i = 0; i < photoSlots.length; i++) {
+      const p = photoSlots[i];
+      if (!p) continue;
+      if (p.file && p.url.startsWith("blob:")) {
+        blobIndices.push(i);
+        files.push(p.file);
+      }
+    }
+
+    let uploaded: string[] = [];
+    if (files.length > 0) {
+      try {
+        uploaded = await uploadListingImages(files);
+      } catch {
+        setError(t("seller.uploadImagesError"));
+        return null;
+      }
+      if (uploaded.length !== files.length) {
+        setError(t("seller.uploadImagesError"));
+        return null;
+      }
+    }
+
+    const imageUrls: string[] = [];
+    let uploadPtr = 0;
+    for (let i = 0; i < photoSlots.length; i++) {
+      const p = photoSlots[i];
+      if (!p) continue;
+      if (p.file && p.url.startsWith("blob:")) {
+        imageUrls.push(uploaded[uploadPtr++]);
+      } else {
+        imageUrls.push(p.url);
+      }
+    }
+
+    if (blobIndices.length > 0) {
+      setPhotoSlots((prev) => {
+        const next = [...prev];
+        let j = 0;
+        for (const idx of blobIndices) {
+          const old = next[idx];
+          if (old?.url.startsWith("blob:")) URL.revokeObjectURL(old.url);
+          next[idx] = { url: uploaded[j++] };
+        }
+        return next;
+      });
+    }
+
+    return imageUrls;
   }
 
   async function onSaveDraft() {
     setError(null);
     setSubmitting(true);
     try {
+      const resolvedUrls = await resolveImageUrlsForSave();
+      if (resolvedUrls === null) return;
       if (isEdit && listingId) {
-        await updateListing(listingId, buildPayload());
+        await updateListing(listingId, buildPayload(resolvedUrls));
         setStep("DRAFT");
       } else {
-        const created = await createListing(buildPayload());
+        const created = await createListing(buildPayload(resolvedUrls));
         setSavedId(created.id);
         setStep("DRAFT");
         navigate(`/seller/listings/${created.id}/edit`, { replace: true });
@@ -176,14 +253,16 @@ export default function SellerListingEditorPage() {
       setPhotoError(t("seller.photoCountError", { current: filled }));
       return null;
     }
+    const resolvedUrls = await resolveImageUrlsForSave();
+    if (resolvedUrls === null) return null;
     let targetId = listingId;
     if (!targetId) {
-      const created = await createListing(buildPayload());
+      const created = await createListing(buildPayload(resolvedUrls));
       targetId = created.id;
       setSavedId(created.id);
       navigate(`/seller/listings/${created.id}/edit`, { replace: true });
     } else {
-      await updateListing(targetId, buildPayload());
+      await updateListing(targetId, buildPayload(resolvedUrls));
     }
     return targetId;
   }

@@ -4,6 +4,14 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-25] BACKEND-NODE-TO-SPRING-BOOT — upload ảnh & contract checkout
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/BACKEND-NODE-TO-SPRING-BOOT.md** | Bổ sung **`POST /api/seller/listings/upload-images`**, static **`/uploads/listings/*`**, env **`PUBLIC_ORIGIN`** / `CORS_EXTRA_ORIGINS`; **§9.9** file tĩnh; **§11.6** hợp đồng multipart; **§7** ánh xạ multer/static; chỉnh **§11.3** + bảng buyer **`vnpay-checkout`** khớp Node (`listingId` string, `acceptedUnverifiedDisclaimer`, không gửi `fulfillmentType`); checklist §16, curl §18, bảng lệch §22; kịch bản seller §17. |
+
+---
+
 ## [2026-03-15] BACKEND-NODE-TO-SPRING-BOOT — bản chi tiết (chuyển giao BE)
 
 | Thay đổi | Chi tiết |
