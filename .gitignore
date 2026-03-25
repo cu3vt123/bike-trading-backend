@@ -51,3 +51,6 @@ scripts/e2e-api-test.mjs
 # Backup files
 *.backup.xlsx
 *.backup.*
+
+# --- Java build ---
+target/
