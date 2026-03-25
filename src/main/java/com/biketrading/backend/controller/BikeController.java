@@ -1,45 +1,42 @@
 package com.biketrading.backend.controller;
 
+import com.biketrading.backend.dto.ApiResponse;
 import com.biketrading.backend.dto.ListingDTO;
-import com.biketrading.backend.entity.Listing;
 import com.biketrading.backend.enums.InspectionResult;
 import com.biketrading.backend.enums.ListingState;
 import com.biketrading.backend.repository.ListingRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bikes")
+@RequiredArgsConstructor
 public class BikeController {
 
-    @Autowired
-    private ListingRepository listingRepository;
+    private final ListingRepository listingRepository;
 
     @GetMapping
-    public ResponseEntity<List<ListingDTO>> getPublicBikes() {
-        // Chỉ lấy xe đã PUBLISHED và được APPROVE
-        List<Listing> bikes = listingRepository.findByStateAndInspectionResult(
-                ListingState.PUBLISHED,
-                InspectionResult.APPROVE
-        );
-
-        // Chuyển sang DTO để FE đọc được
-        List<ListingDTO> response = bikes.stream()
+    public Object getPublicBikes() {
+        List<ListingDTO> data = listingRepository
+                .findByStateAndInspectionResultAndIsHiddenFalseOrderByIdDesc(
+                        ListingState.PUBLISHED,
+                        InspectionResult.APPROVE
+                )
+                .stream()
                 .map(ListingDTO::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
 
-        return ResponseEntity.ok(response);
+        return data;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getBikeDetail(@PathVariable Long id) {
+    public ApiResponse<ListingDTO> getBikeDetail(@PathVariable Long id) {
         return listingRepository.findById(id)
+                .filter(l -> !Boolean.TRUE.equals(l.getIsHidden()))
                 .map(ListingDTO::fromEntity)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(404).build());
+                .map(ApiResponse::of)
+                .orElseThrow(() -> new RuntimeException("Bike not found"));
     }
 }

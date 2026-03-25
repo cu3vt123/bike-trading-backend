@@ -1,65 +1,59 @@
 package com.biketrading.backend.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
 
-    // Lấy secret key từ file application.properties, nếu không có thì dùng mặc định
-    @Value("${app.jwtSecret:BiketradingSecretKeyForJwtGenerationDoNotShareIt1234567890}")
+    @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${app.jwtExpirationInMs:604800000}") // Mặc định 7 ngày
-    private int jwtExpirationInMs;
+    @Value("${app.jwtExpirationInMs}")
+    private long jwtExpirationInMs;
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // Tạo token từ username
-    public String generateToken(String username) {
+    public String generateToken(Long userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
+        Date expiry = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(expiry)
+                .signWith(secretKey)
                 .compact();
     }
 
-    // Lấy username từ token
-    public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+    public Long getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return Long.valueOf(claims.getSubject());
+    }
+
+    public boolean validateToken(String token) {
+        parseClaims(token);
+        return true;
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
-        return claims.getSubject();
-    }
-
-    // Kiểm tra token có hợp lệ không
-    public boolean validateToken(String authToken) {
-        try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
-            return true;
-        } catch (MalformedJwtException ex) {
-            System.err.println("Invalid JWT token");
-        } catch (ExpiredJwtException ex) {
-            System.err.println("Expired JWT token");
-        } catch (UnsupportedJwtException ex) {
-            System.err.println("Unsupported JWT token");
-        } catch (IllegalArgumentException ex) {
-            System.err.println("JWT claims string is empty.");
-        }
-        return false;
     }
 }

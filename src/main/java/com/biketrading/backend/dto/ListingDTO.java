@@ -1,67 +1,82 @@
 package com.biketrading.backend.dto;
 
 import com.biketrading.backend.entity.Listing;
-import com.biketrading.backend.enums.Condition;
-import com.biketrading.backend.enums.InspectionResult;
-import com.biketrading.backend.enums.ListingState;
-import lombok.Data;
+import com.biketrading.backend.entity.Spec;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Builder
 public class ListingDTO {
-    private Long id;
+    private String id;
     private String title;
     private String brand;
     private String model;
-    private Integer year;
     private BigDecimal price;
+    private BigDecimal msrp;
     private String currency;
-    private Condition condition;
-    private String frameSize;
     private String location;
-    private String description;
+    private Integer year;
+    private String frameSize;
+    private Object condition;
     private String thumbnailUrl;
     private List<String> imageUrls;
-    private ListingState state;
-    private InspectionResult inspectionResult;
+    private Object state;
+    private Object inspectionResult;
     private Double inspectionScore;
+    private String inspectionSummary;
+    private String publishedAt;
+    private String listingExpiresAt;
+    private Map<String, String> specs;
+    private Map<String, Object> seller;
+    private String description;
 
-    // 🔥 TRƯỜNG ĐÁNH DẤU TÍCH XANH ĐÃ ĐƯỢC ĐỔI TÊN KHỚP VỚI FRONTEND 🔥
-    private String certificationStatus;
-
-    private String sellerUsername;
-
-    public static ListingDTO fromEntity(Listing listing) {
-        ListingDTO dto = new ListingDTO();
-        dto.setId(listing.getId());
-        dto.setTitle(listing.getTitle());
-        dto.setBrand(listing.getBrand());
-        dto.setModel(listing.getModel());
-        dto.setYear(listing.getYear());
-        dto.setPrice(listing.getPrice());
-        dto.setCurrency(listing.getCurrency());
-        dto.setCondition(listing.getCondition());
-        dto.setFrameSize(listing.getFrameSize());
-        dto.setLocation(listing.getLocation());
-        dto.setDescription(listing.getDescription());
-        dto.setThumbnailUrl(listing.getThumbnailUrl());
-        dto.setImageUrls(listing.getImageUrls());
-        dto.setState(listing.getState());
-        dto.setInspectionResult(listing.getInspectionResult());
-        dto.setInspectionScore(listing.getInspectionScore());
-
-        // Gán giá trị tích xanh
-        if (listing.getIsVerified() != null && listing.getIsVerified()) {
-            dto.setCertificationStatus("CERTIFIED");
-        } else {
-            dto.setCertificationStatus("UNVERIFIED");
+    public static ListingDTO fromEntity(Listing l) {
+        Map<String, String> specsMap = new LinkedHashMap<>();
+        if (l.getSpecs() != null) {
+            for (Spec s : l.getSpecs()) {
+                specsMap.put(s.getKey(), s.getValue());
+            }
         }
 
-        if (listing.getSeller() != null) {
-            dto.setSellerUsername(listing.getSeller().getUsername());
+        Map<String, Object> sellerMap = null;
+        if (l.getSeller() != null) {
+            sellerMap = Map.of(
+                    "id", String.valueOf(l.getSeller().getId()),
+                    "name", l.getSeller().getDisplayName() == null ? "" : l.getSeller().getDisplayName(),
+                    "email", l.getSeller().getEmail() == null ? "" : l.getSeller().getEmail()
+            );
         }
-        return dto;
+
+        return ListingDTO.builder()
+                .id(String.valueOf(l.getId()))
+                .title(l.getTitle())
+                .brand(l.getBrand())
+                .model(l.getModel())
+                .price(l.getPrice())
+                .msrp(l.getMsrp())
+                .currency(l.getCurrency())
+                .location(l.getLocation())
+                .year(l.getYear())
+                .frameSize(l.getFrameSize())
+                .condition(l.getCondition())
+                .thumbnailUrl(l.getThumbnailUrl())
+                .imageUrls(l.getImageUrls())
+                .state(l.getState())
+                .inspectionResult(l.getInspectionResult())
+                .inspectionScore(l.getInspectionScore())
+                .inspectionSummary(l.getInspectionSummary())
+                .publishedAt(l.getPublishedAt() != null ? l.getPublishedAt().toString() : null)
+                .listingExpiresAt(l.getListingExpiresAt() != null ? l.getListingExpiresAt().toString() : null)
+                .specs(specsMap)
+                .seller(sellerMap)
+                .description(l.getDescription())
+                .build();
     }
 }

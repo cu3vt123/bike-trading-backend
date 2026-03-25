@@ -1,2 +1,7 @@
 package com.biketrading.backend.enums;
-public enum InspectionResult { APPROVE, REJECT, NEED_UPDATE }
+
+public enum InspectionResult {
+    APPROVE,
+    REJECT,
+    NEED_UPDATE
+}

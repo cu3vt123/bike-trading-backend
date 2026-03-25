@@ -1,19 +1,22 @@
 package com.biketrading.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Table(name = "specs")
-@Data
+@Table(name = "listing_specs")
+@Getter
+@Setter
 public class Spec {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "spec_key", nullable = false)
-    private String key;   // Ví dụ: "Chất liệu khung", "Trọng lượng"
+    @Column(name = "spec_key", nullable = false, length = 120)
+    private String key;
 
-    @Column(name = "spec_value", nullable = false)
-    private String value; // Ví dụ: "Carbon", "8kg"
+    @Column(name = "spec_value", nullable = false, length = 255)
+    private String value;
 }

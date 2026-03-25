@@ -1,147 +1,216 @@
 package com.biketrading.backend.controller;
 
-import com.biketrading.backend.config.VNPayConfig;
+import com.biketrading.backend.dto.ApiResponse;
+import com.biketrading.backend.dto.SellerSubscriptionSummary;
 import com.biketrading.backend.entity.PackageOrder;
 import com.biketrading.backend.entity.User;
 import com.biketrading.backend.enums.PaymentStatus;
+import com.biketrading.backend.enums.Role;
 import com.biketrading.backend.enums.SubscriptionPlan;
+import com.biketrading.backend.exception.BadRequestException;
+import com.biketrading.backend.exception.UnauthorizedException;
 import com.biketrading.backend.repository.PackageOrderRepository;
 import com.biketrading.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.biketrading.backend.security.UserPrincipal;
+import com.biketrading.backend.service.SubscriptionService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class PackageController {
 
-    @Autowired private VNPayConfig vnPayConfig;
-    @Autowired private UserRepository userRepository;
-    @Autowired private PackageOrderRepository packageOrderRepository;
+    private final PackageOrderRepository packageOrderRepository;
+    private final UserRepository userRepository;
+    private final SubscriptionService subscriptionService;
 
-    private User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username).orElseThrow();
-    }
+    @Value("${app.frontendBaseUrl}")
+    private String frontendBaseUrl;
 
-    // 1. API GET Catalog các gói cước (FE: packagesApi.getCatalog)
     @GetMapping("/packages")
-    public ResponseEntity<?> getPackages() {
+    public ApiResponse<Map<String, Object>> getCatalog(HttpServletRequest request) {
+        String origin = resolveOrigin(request);
+
         List<Map<String, Object>> plans = List.of(
-                Map.of("id", "BASIC", "name", "Gói Cơ Bản", "maxConcurrentListings", 7, "priceVnd", 50000, "description", "Đăng 7 tin / tuần"),
-                Map.of("id", "VIP", "name", "Gói VIP", "maxConcurrentListings", 15, "priceVnd", 150000, "description", "Đăng 15 tin / tuần"),
-                Map.of("id", "INSPECTION", "name", "Gói Kiểm Định", "maxConcurrentListings", 0, "priceVnd", 200000, "description", "1 Lượt kiểm định xe")
+                Map.of(
+                        "id", "BASIC",
+                        "name", "Basic",
+                        "maxConcurrentListings", 7,
+                        "priceVnd", 99000,
+                        "description", "Đăng tối đa 7 tin hoạt động cùng lúc trong 30 ngày"
+                ),
+                Map.of(
+                        "id", "VIP",
+                        "name", "VIP",
+                        "maxConcurrentListings", 15,
+                        "priceVnd", 199000,
+                        "description", "Đăng tối đa 15 tin hoạt động cùng lúc trong 30 ngày"
+                )
         );
 
-        return ResponseEntity.ok(Map.of(
-                "listingDurationDays", 7,
-                "paymentProviders", List.of(Map.of("id", "VNPAY", "name", "VNPay", "docsUrl", "", "note", "Thanh toán QR")),
-                "plans", plans
+        return ApiResponse.of(Map.of(
+                "listingDurationDays", 30,
+                "paymentProviders", List.of(
+                        Map.of(
+                                "id", "VNPAY",
+                                "name", "VNPay",
+                                "docsUrl", "",
+                                "note", "Demo mock payment trước khi nối VNPay thật"
+                        )
+                ),
+                "plans", plans,
+                "demoCallbackHint", origin + "/seller/packages?mockPay="
         ));
     }
 
-    // 2. API Checkout mua gói (FE: packagesApi.checkout)
-    @PostMapping({"/seller/subscription/checkout", "/seller/buy-package"})
-    public ResponseEntity<?> checkout(@RequestBody Map<String, String> request) throws Exception {
-        User seller = getCurrentUser();
-        SubscriptionPlan plan = SubscriptionPlan.valueOf(request.get("plan").toUpperCase());
+    @PostMapping("/seller/subscription/checkout")
+    public ApiResponse<Map<String, Object>> checkout(@RequestBody Map<String, String> body,
+                                                     Authentication authentication,
+                                                     HttpServletRequest request) {
+        User seller = getCurrentSeller(authentication);
 
-        long amount = plan == SubscriptionPlan.BASIC ? 50000 : (plan == SubscriptionPlan.VIP ? 150000 : 200000);
+        String planRaw = body.get("plan");
+        String provider = body.getOrDefault("provider", "VNPAY");
 
-        String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
+        if (planRaw == null || planRaw.isBlank()) {
+            throw new BadRequestException("Plan is required");
+        }
+
+        SubscriptionPlan plan = SubscriptionPlan.valueOf(planRaw.toUpperCase());
+
+        boolean hasActive = subscriptionService.isActive(seller);
+        SubscriptionPlan currentPlan = seller.getSubscriptionPlan();
+
+        if (hasActive && currentPlan == SubscriptionPlan.VIP && plan == SubscriptionPlan.BASIC) {
+            throw new BadRequestException("Không thể hạ từ VIP xuống BASIC.");
+        }
+
+        if (hasActive && currentPlan == plan) {
+            throw new BadRequestException("Gói hiện tại vẫn còn hạn.");
+        }
+
+        long amountVnd;
+        boolean isUpgrade = false;
+
+        if (hasActive && currentPlan == SubscriptionPlan.BASIC && plan == SubscriptionPlan.VIP) {
+            amountVnd = 100000;
+            isUpgrade = true;
+        } else {
+            amountVnd = (plan == SubscriptionPlan.VIP) ? 199000 : 99000;
+        }
+
+        String origin = resolveOrigin(request);
+
         PackageOrder order = new PackageOrder();
-        order.setUser(seller);
+        order.setSeller(seller);
         order.setPlan(plan);
-        order.setAmount(BigDecimal.valueOf(amount));
-        order.setTxnRef(vnp_TxnRef);
+        order.setProvider(provider);
+        order.setAmountVnd(BigDecimal.valueOf(amountVnd));
+        order.setStatus(PaymentStatus.PENDING);
+
         packageOrderRepository.save(order);
 
-        // Tạo URL VNPay
-        Map<String, String> vnp_Params = new HashMap<>();
-        vnp_Params.put("vnp_Version", "2.1.0");
-        vnp_Params.put("vnp_Command", "pay");
-        vnp_Params.put("vnp_TmnCode", vnPayConfig.vnp_TmnCode);
-        vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
-        vnp_Params.put("vnp_CurrCode", "VND");
-        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan goi " + plan);
-        vnp_Params.put("vnp_OrderType", "other");
-        vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnPayConfig.vnp_ReturnUrl);
-        vnp_Params.put("vnp_IpAddr", "127.0.0.1");
+        String paymentUrl = origin + "/seller/packages?orderId=" + order.getId() + "&provider=" + provider + "&step=pay";
+        String demoReturnUrl = origin + "/seller/packages?orderId=" + order.getId() + "&status=success";
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        vnp_Params.put("vnp_CreateDate", formatter.format(cld.getTime()));
-        cld.add(Calendar.MINUTE, 15);
-        vnp_Params.put("vnp_ExpireDate", formatter.format(cld.getTime()));
+        order.setPaymentUrl(paymentUrl);
+        packageOrderRepository.save(order);
 
-        List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
-        Collections.sort(fieldNames);
-        StringBuilder hashData = new StringBuilder();
-        StringBuilder query = new StringBuilder();
-        for (String fieldName : fieldNames) {
-            String fieldValue = vnp_Params.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString())).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString())).append('&');
-                hashData.append('&');
-            }
-        }
-        hashData.setLength(hashData.length() - 1);
-        query.setLength(query.length() - 1);
-
-        String vnp_SecureHash = vnPayConfig.hmacSHA512(vnPayConfig.secretKey, hashData.toString());
-        query.append("&vnp_SecureHash=").append(vnp_SecureHash);
-        String paymentUrl = vnPayConfig.vnp_PayUrl + "?" + query.toString();
-
-        // Trả đúng format SubscriptionCheckoutResponse FE cần
-        return ResponseEntity.ok(Map.of(
+        return ApiResponse.of(Map.of(
                 "orderId", String.valueOf(order.getId()),
-                "plan", plan.toString(),
-                "provider", "VNPAY",
-                "amountVnd", amount,
+                "plan", plan.name(),
+                "provider", provider,
+                "amountVnd", amountVnd,
+                "isUpgrade", isUpgrade,
                 "paymentUrl", paymentUrl,
-                "demoReturnUrl", vnPayConfig.vnp_ReturnUrl,
-                "paymentKind", "VNPAY_SANDBOX"
+                "qrContent", paymentUrl,
+                "demoReturnUrl", demoReturnUrl,
+                "paymentKind", "MOCK",
+                "message", "Demo mock payment trên cùng origin"
         ));
     }
 
-    @GetMapping("/vnpay/return")
-    public ResponseEntity<?> vnpayReturn(@RequestParam Map<String, String> params) {
-        String vnp_ResponseCode = params.get("vnp_ResponseCode");
-        String txnRef = params.get("vnp_TxnRef");
-        Optional<PackageOrder> orderOpt = packageOrderRepository.findByTxnRef(txnRef);
-        if (orderOpt.isEmpty()) return ResponseEntity.badRequest().body("Không tìm thấy giao dịch!");
+    @PostMapping("/seller/subscription/orders/{orderId}/mock-complete")
+    public ApiResponse<Map<String, Object>> mockComplete(@PathVariable Long orderId,
+                                                         Authentication authentication) {
+        User seller = getCurrentSeller(authentication);
 
-        PackageOrder order = orderOpt.get();
-        if ("00".equals(vnp_ResponseCode) && order.getStatus() == PaymentStatus.PENDING) {
-            order.setStatus(PaymentStatus.SUCCESS);
-            order.setPaidAt(LocalDateTime.now());
+        PackageOrder order = packageOrderRepository.findById(orderId)
+                .orElseThrow(() -> new BadRequestException("Order not found"));
+
+        if (!order.getSeller().getId().equals(seller.getId())) {
+            throw new UnauthorizedException("Not your order");
+        }
+
+        if (order.getStatus() != PaymentStatus.COMPLETED) {
+            order.setStatus(PaymentStatus.COMPLETED);
             packageOrderRepository.save(order);
 
-            User seller = order.getUser();
-            if (order.getPlan() == SubscriptionPlan.BASIC) {
-                seller.setRemainingListings(seller.getRemainingListings() + 7);
-                seller.setCurrentPlan(SubscriptionPlan.BASIC);
-                seller.setPackageExpiryDate(LocalDateTime.now().plusWeeks(1));
-            } else if (order.getPlan() == SubscriptionPlan.VIP) {
-                seller.setRemainingListings(seller.getRemainingListings() + 15);
-                seller.setCurrentPlan(SubscriptionPlan.VIP);
-                seller.setPackageExpiryDate(LocalDateTime.now().plusWeeks(1));
-            } else if (order.getPlan() == SubscriptionPlan.INSPECTION) {
-                seller.setInspectionCredits(seller.getInspectionCredits() + 1);
-            }
+            subscriptionService.activateSubscription(seller, order.getPlan());
             userRepository.save(seller);
         }
-        return ResponseEntity.status(302).header("Location", "http://localhost:5173/seller-dashboard").build();
+
+        SellerSubscriptionSummary summary = subscriptionService.buildSummary(seller);
+
+        return ApiResponse.of(Map.of(
+                "orderId", String.valueOf(order.getId()),
+                "subscription", summary
+        ));
+    }
+
+    @PutMapping("/seller/subscription/revoke-self")
+    public ApiResponse<Map<String, Object>> revokeSelf(Authentication authentication) {
+        User seller = getCurrentSeller(authentication);
+        boolean hadPlan = seller.getSubscriptionPlan() != null || seller.getSubscriptionExpiresAt() != null;
+
+        if (hadPlan) {
+            subscriptionService.clearSubscription(seller);
+            userRepository.save(seller);
+        }
+
+        SellerSubscriptionSummary summary = subscriptionService.buildSummary(seller);
+
+        return ApiResponse.of(Map.of(
+                "subscription", summary,
+                "revoked", hadPlan
+        ));
+    }
+
+    private User getCurrentSeller(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+        if (user.getRole() != Role.SELLER) {
+            throw new UnauthorizedException("Seller only");
+        }
+
+        return user;
+    }
+
+    private String resolveOrigin(HttpServletRequest request) {
+        String origin = request.getHeader("Origin");
+        if (origin != null && !origin.isBlank()) {
+            return origin.replaceAll("/$", "");
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.startsWith("http")) {
+            int idx = referer.indexOf("/", referer.indexOf("//") + 2);
+            return idx > 0 ? referer.substring(0, idx) : referer;
+        }
+
+        return frontendBaseUrl;
     }
 }

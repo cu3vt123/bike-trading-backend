@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class BikeTradingBackendApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(BikeTradingBackendApplication.class, args);
     }
