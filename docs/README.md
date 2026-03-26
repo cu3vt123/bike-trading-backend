@@ -10,12 +10,13 @@
 
 1. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
 2. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
-3. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
-4. [Kiến trúc & tích hợp BE](#kiến-trúc--tích-hợp-be)
-5. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
-6. [Lịch sử & testing](#lịch-sử--testing)
-7. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
-8. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
+3. [AI: gợi ý tài liệu cho Backend](#ai-gợi-ý-tài-liệu-cho-backend)
+4. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
+5. [Kiến trúc & tích hợp BE](#kiến-trúc--tích-hợp-be)
+6. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
+7. [Lịch sử & testing](#lịch-sử--testing)
+8. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
+9. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
 
 ---
 
@@ -48,6 +49,20 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 | **Làm việc với PM/QA/FE** | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket. |
 | **Backend Node (demo)** | [BACKEND-GUIDE.md](BACKEND-GUIDE.md), [../backend/README.md](../backend/README.md) | Không chạy cùng cổng với Spring. |
 | **Tra cứu nhanh env, auth, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Hỗ trợ cả FE và khi đối chiếu API. |
+
+---
+
+## AI: gợi ý tài liệu cho Backend
+
+*(Áp dụng khi đính kèm tài liệu cho Gemini, ChatGPT, Claude, …)*
+
+Khi dev backend **đính kèm file `.md` vào chat AI** (Gemini, ChatGPT, Claude, …) để hỏi về Spring, API, DB, VNPay — dùng **một bài hướng dẫn thống nhất** thay vì tự chọn lẻ từng file.
+
+| Nhu cầu | Tài liệu | Ghi chú |
+|---------|----------|---------|
+| **Gói tài liệu tối thiểu, thứ tự, bảng theo loại việc, mẫu prompt** | **[AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md)** | Trỏ tới README, `BACKEND-LOCAL-SETUP`, `BACKEND-NODE-TO-SPRING-BOOT`, `QUICK-REFERENCE`, audit, BR, ERD, VNPay khi cần. |
+
+Root [README.md](../README.md) có mục **[Gợi ý tài liệu cho AI (Backend)](../README.md#gợi-ý-tài-liệu-cho-ai-backend)** — tóm tắt + link vào file trên.
 
 ---
 
@@ -136,6 +151,7 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | PM/QA/FE hỗ trợ BE, thuật ngữ, mẫu ticket |
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node backend |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Port Spring |
+| [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Gói `.md` đính kèm cho AI (backend) |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready checklist |
 | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | VNPay |
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tham chiếu nhanh |

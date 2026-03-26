@@ -19,6 +19,7 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 | **`docs/README` + kiến trúc FE** | Lộ trình 3 cấp; `FE-ARCHITECTURE-V1-VS-V2`; `PRODUCTION-HARDENING`; bảng auth refresh. |
 | **`.gitignore` + testing** | `docs/testing/`; mục tài liệu local trong `docs/README`; `HELP` trợ giúp ShopBike. |
 | **Spring + Inspector + FE** | `GET /api/inspector/listings/{id}`; `SecurityConfig` INSPECTOR+ADMIN; `ProductDetailPage` fallback inspector; `QUICK-REFERENCE`, `BE-FE-API-AUDIT-BY-PAGE`, `FRONTEND-API-FLOWS`. |
+| **`AI-CONTEXT-for-BACKEND.md`** | Gợi ý gói tài liệu đính kèm cho AI (Gemini, …); mục lục `README` + `docs/README`. |
 
 ---
 
