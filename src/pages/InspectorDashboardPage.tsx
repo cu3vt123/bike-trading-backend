@@ -275,7 +275,7 @@ export default function InspectorDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Bước 6: Tin tại kho chờ inspector xác nhận lại */}
+          {/* Tin tại kho chờ inspector xác nhận lại */}
           <Card className="mt-6">
             <CardHeader className="flex flex-row items-center justify-between">
               <span className="flex items-center gap-2 text-sm font-semibold">

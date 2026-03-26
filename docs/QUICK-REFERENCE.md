@@ -2,7 +2,7 @@
 
 > Tài liệu tra cứu nhanh: thuật ngữ, API, routes, biến môi trường, vị trí file. Dùng khi onboard, port BE, hoặc tra cứu thông tin.
 
-**Nguồn chi tiết:** [README.md](README.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
+**Nguồn chi tiết:** [README.md](README.md) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
 
 **Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A. **Chuyển giao Node→Spring:** [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) §0.
 
@@ -55,7 +55,7 @@
 
 | Method | Path | Mô tả |
 |--------|------|-------|
-| POST | /buyer/orders/vnpay-checkout | Tạo đơn + `paymentUrl` VNPay. Body: `listingId`, `plan`, `fulfillmentType`, `shippingAddress` |
+| POST | /buyer/orders/vnpay-checkout | Tạo đơn + `paymentUrl` VNPay. Body: `listingId`, `plan`, `shippingAddress`, `acceptedUnverifiedDisclaimer` (bắt buộc `true` nếu tin chưa CERTIFIED). **`fulfillmentType` do BE gán** — FE không gửi |
 | GET | /buyer/orders | Đơn của buyer |
 | GET | /buyer/orders/:id | Chi tiết đơn (trả `sellerId`, `listing.seller` cho Success) |
 | PUT | /buyer/orders/:id/complete | Hoàn tất (chỉ khi status SHIPPING) |
@@ -72,7 +72,8 @@
 | GET | /seller/orders | Đơn của seller (filter kho/direct) |
 | PUT | /seller/orders/:id/ship-to-buyer | Chỉ DIRECT + PENDING_SELLER_SHIP |
 | GET | /seller/ratings | Aggregate reviews |
-| CRUD | /seller/listings | Tạo/sửa tin |
+| POST | /seller/listings/upload-images | Multipart field `images` (≤10, 5MB/file) → `{ data: { urls } }` — URL `/uploads/listings/...` |
+| CRUD | /seller/listings | Tạo/sửa tin (`imageUrls` sau khi upload) |
 | PUT | /seller/listings/:id/mark-shipped-to-warehouse | Xe gửi kho |
 | POST | /seller/subscription/checkout | Mua gói `{ plan, provider }` |
 
@@ -129,6 +130,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | VNP_HASHSECRET | Hash secret | từ sandbox |
 | VNP_RETURNURL | Return URL (HTTPS) | https://your-ngrok/payment/vnpay-return |
 | VNP_IPNURL | IPN URL (HTTPS) | https://your-ngrok/payment/vnpay-ipn |
+| PUBLIC_ORIGIN | Base URL công khai BE (link ảnh upload trả về) | http://localhost:8081 |
+| CORS_EXTRA_ORIGINS | Thêm origin CORS (cách nhau dấu phẩy) | (tùy chọn) |
 
 ### Frontend (`frontend/.env`)
 
@@ -157,8 +160,11 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | Mục đích | Đường dẫn |
 |----------|-----------|
 | Router | src/app/router.tsx |
-| API config | src/lib/apiConfig.ts |
-| Services | src/services/buyerService.ts, sellerService.ts |
+| API config & paths | src/lib/apiConfig.ts |
+| HTTP client | src/lib/apiClient.ts |
+| API wrappers | src/apis/*.ts |
+| Luồng FE → API (tài liệu) | docs/FRONTEND-API-FLOWS.md |
+| Services | src/services/buyerService.ts, sellerService.ts, reviewService.ts |
 | Stores | src/stores/useAuthStore.ts, useWishlistStore.ts |
 | Types | src/types/order.ts, shopbike.ts, auth.ts |
 
@@ -177,7 +183,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 | Luồng | Màn hình | API chính |
 |-------|----------|-----------|
-| Mua xe | Checkout | POST /buyer/orders/vnpay-checkout |
+| Mua xe | Checkout | POST /buyer/orders/vnpay-checkout (+ disclaimer nếu UNVERIFIED) |
+| Ảnh tin seller | Seller listing editor | POST /seller/listings/upload-images → rồi POST/PUT /seller/listings |
 | Theo dõi đơn | Transaction | GET /buyer/orders/:id |
 | Hoàn tất | Finalize | PUT /buyer/orders/:id/complete |
 | Thanh toán số dư | Finalize | POST /buyer/orders/:id/vnpay-pay-balance |
@@ -217,7 +224,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | Luồng màn hình | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Cấu trúc FE | [STRUCTURE.md](STRUCTURE.md) |
+| Luồng gọi API trên FE | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 
 ---
 
-*Đồng bộ với codebase và docs. Cập nhật: 2026-03 — thêm BE-FE-API-AUDIT-BY-PAGE.*
+*Đồng bộ với codebase và docs. Cập nhật: 2026-03-25 — FRONTEND-API-FLOWS, vnpay-checkout body, upload ảnh seller, PUBLIC_ORIGIN.*

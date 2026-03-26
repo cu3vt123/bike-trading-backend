@@ -3,6 +3,8 @@
 **Ngày kiểm tra:** 2025-03-15  
 **Mục đích:** Đối chiếu bộ API FE ↔ BE theo từng trang và actor để đảm bảo khớp.
 
+**Luồng xử lý tầng FE (apiClient, services, mock):** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md).
+
 ---
 
 ## 1. Tổng quan
@@ -62,6 +64,7 @@
 | | `fetchSellerRatings()` | `/seller/ratings` | Có | GET | ✅ |
 | | `authApi.getProfile()` | `/auth/me` | Có | GET | ✅ |
 | **SellerListingEditorPage** | `brandsApi.getList()` | `/brands` | Có | GET | ✅ |
+| | `uploadListingImages()` (trước khi lưu/publish) | `/seller/listings/upload-images` | Có | POST multipart | ✅ |
 | | `createListing()`, `updateListing()` | `/seller/listings`, `/seller/listings/:id` | Có | POST, PUT | ✅ |
 | | `submitForInspection()`, `publishListing()` | `/seller/listings/:id/submit`, `/seller/listings/:id/publish` | Có | PUT | ✅ |
 | | `getListingById()` | `/seller/listings/:id` | Có | GET | ✅ |

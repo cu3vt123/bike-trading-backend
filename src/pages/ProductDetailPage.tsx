@@ -5,6 +5,7 @@ import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
 import type { BikeDetail, BikeCondition } from "@/types/shopbike";
 import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { fetchListingById } from "@/services/buyerService";
+import { fetchListingByIdForInspector } from "@/services/inspectorService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
 
   const fromState = (location.state as NavState | null)?.listing;
+  const role = useAuthStore((s) => s.role);
 
   const [listing, setListing] = useState<BikeDetail | null>(
     fromState && String(fromState.id) === String(id) ? fromState : null,
@@ -84,20 +86,28 @@ export default function ProductDetailPage() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchListingById(id)
-      .then((data) => {
-        if (!cancelled) setListing(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message ?? t("listing.loadError"));
-      })
-      .finally(() => {
+    (async () => {
+      try {
+        let data: BikeDetail | null = null;
+        if (role === "INSPECTOR" || role === "ADMIN") {
+          data = await fetchListingByIdForInspector(id);
+        }
+        if (!data) {
+          data = await fetchListingById(id);
+        }
+        if (cancelled) return;
+        if (!data) setError(t("listing.loadError"));
+        else setListing(data);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : t("listing.loadError"));
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, role, t]);
 
   const images = useMemo(() => {
     const arr =
@@ -112,7 +122,6 @@ export default function ProductDetailPage() {
   const [active, setActive] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const role = useAuthStore((s) => s.role);
   const inWishlist = useWishlistStore((s) => s.ids.has(listing?.id ?? ""));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const canWishlist = role === "BUYER";

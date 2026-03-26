@@ -50,4 +50,6 @@ Luồng debug: **FE Request → Network → Server → Response → FE state**.
 | 401 | Token hết hạn / sai header `Authorization`. |
 | 200 nhưng UI sai | Map sai shape (`data` vs `content`). |
 
+**Luồng gọi API & mock trên dự án:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md).
+
 Chi tiết đầy đủ xem file gốc trên GitHub kat-minh/react.

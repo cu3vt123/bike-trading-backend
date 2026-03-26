@@ -11,6 +11,7 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 | Monorepo BE2: chạy Spring + Vite, cấu trúc `src/` | [README.md](../README.md), [STRUCTURE.md](STRUCTURE.md) |
 | **Chuyển giao công nghệ BE: Node → Spring Boot** | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) (mục 0 = bối cảnh BE2) |
 | Tra cứu nhanh: API, thuật ngữ, routes, env | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
+| **Luồng gọi API trên FE** (tầng apiClient → services; **chi tiết** checkout→VNPay→transaction→finalize→success/review; upload ảnh seller) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 | Kiểm tra khớp API BE–FE | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md), [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |
 | Port Node → Spring Boot | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |
@@ -24,6 +25,7 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 | File | Nội dung |
 |------|----------|
 | [STRUCTURE.md](STRUCTURE.md) | Cấu trúc Frontend (feature-based), quy ước import |
+| [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | **Luồng API FE:** mục lục; tầng code; **§5 chi tiết từng bước** + sequence Mermaid; bảng trạng thái đơn → API; mock, upload ảnh |
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | **Hướng dẫn Backend** (Node/Express): cấu trúc, env, Mongo, API, VNPAY Sandbox |
 | [USER-REQUIREMENTS.md](USER-REQUIREMENTS.md) | **User requirements (UR)** — yêu cầu người dùng / stakeholder, ưu tiên Must/Should |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết dự án, business rules, luồng màn hình, flow runtime |

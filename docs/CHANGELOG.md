@@ -4,6 +4,42 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-25] SWT301 — Test case & Lab 4 Defect Management
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/testing/SWT301_TestCase.md** | ~33 test case theo **USER-REQUIREMENTS** (UR-*), bảng TC ID / Req / steps / expected; nhóm Auth, Marketplace, Order/VNPay, Inspector, Admin, Review, upload ảnh; mục **thực thi kiểm thử thủ công** (repo chưa có automated test). |
+| **docs/testing/SWT301_DefectManagement_Lab4.md** | Mô tả **DMS**: quy trình log bug, bảng field (Severity, Priority, Status, trace TC/Req), ví dụ defect; **export DefectList.xlsx** (Excel, Jira/Azure, CSV). |
+| **docs/testing/DefectList_Template.csv** | Template hàng tiêu đề → mở Excel → Save As **DefectList.xlsx**. |
+| **docs/testing/README.md** | Mục lục thư mục testing. |
+| **docs/README.md** | Link nhóm SWT301 / testing. |
+
+---
+
+## [2026-03-25] FRONTEND-API-FLOWS — luồng xử lý API chi tiết
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/FRONTEND-API-FLOWS.md** | Mở rộng: **mục lục**; **§5** từng tính năng (auth, marketplace, checkout+VNPay **sequence Mermaid**, Transaction polling/resume/cancel, Finalize pay-balance/complete, **PurchaseSuccess**+review, **VnpayResult** query-only, seller upload); **§6** bảng trạng thái đơn → API/UI; **§7** bảng trang→file→service; đánh số lại §8. |
+| **docs/README.md** | Mô tả FRONTEND-API-FLOWS cập nhật. |
+
+---
+
+## [2026-03-25] Docs: FRONTEND-API-FLOWS + đồng bộ QUICK-REFERENCE / STRUCTURE / README
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **docs/FRONTEND-API-FLOWS.md** | **Mới:** kiến trúc tầng FE (apiConfig → apiClient → apis → services), mock env, chuẩn JSON/multipart/401, luồng auth / marketplace / VNPay / seller upload / inspector-admin, bảng màn hình → service. |
+| **docs/README.md**, **README.md** (root) | Link tới FRONTEND-API-FLOWS; mục lục docs. |
+| **docs/QUICK-REFERENCE.md** | Sửa body **vnpay-checkout**; thêm **upload-images**, **PUBLIC_ORIGIN** / **CORS_EXTRA_ORIGINS**; §6–§7; footer ngày cập nhật. |
+| **docs/STRUCTURE.md** | Ghi chú `apiErrors`, apis/services + link FRONTEND-API-FLOWS; **mục “Luồng API Order”** (bảng file/path buyer–seller–admin–review), `orderOverrides`, `listingSnapshotFromOrder`, `types/order.ts`. |
+| **docs/BACKEND-GUIDE.md** | Dòng link FE API flows. |
+| **docs/BE-FE-API-AUDIT-BY-PAGE.md** | Link FRONTEND-API-FLOWS; dòng **uploadListingImages** cho SellerListingEditorPage. |
+| **docs/PROJECT-SUMMARY.md** | Link FRONTEND-API-FLOWS ở phần tra cứu. |
+| **docs/PRODUCTION-HARDENING.md** | Link FRONTEND-API-FLOWS trong cheatsheet debug API. |
+
+---
+
 ## [2026-03-25] BACKEND-NODE-TO-SPRING-BOOT — upload ảnh & contract checkout
 
 | Thay đổi | Chi tiết |

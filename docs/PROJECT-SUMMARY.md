@@ -3,6 +3,7 @@
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
 
 **Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, luồng→API.  
+**Luồng gọi API trên FE:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) — `apiClient`, `apis`, `services`, VNPay, upload ảnh.  
 **Tham chiếu:** [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md).
 
 ---

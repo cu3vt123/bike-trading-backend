@@ -133,9 +133,9 @@ export function Header() {
 
   return (
     <header className={headerClass}>
-      <div className="relative mx-auto flex w-full max-w-[100%] items-center py-4 pl-0 pr-0 sm:pl-1 sm:pr-1">
-        {/* Trái sát mép: icon kính lúp + thanh search khi mở */}
-        <div className="flex min-w-0 flex-1 items-center justify-start gap-2">
+      <div className="mx-auto grid w-full max-w-[100%] grid-cols-[1fr_auto_1fr] items-center gap-2 py-4 pl-0 pr-0 sm:pl-1 sm:pr-1">
+        {/* Trái: icon kính lúp + thanh search */}
+        <div className="flex min-w-0 items-center justify-start gap-2">
           <button
             type="button"
             onClick={() => setSearchOpen((o) => !o)}
@@ -165,10 +165,8 @@ export function Header() {
           )}
         </div>
 
-        {/* Giữa: Ngôn ngữ | Hỗ trợ | Logo | Danh sách xe */}
-        <nav
-          className="pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-sm text-muted-foreground"
-        >
+        {/* Giữa: canh giữa thật (grid) — tránh chồng với cột trái/phải */}
+        <nav className="pointer-events-none flex items-center justify-center gap-2 text-sm text-muted-foreground sm:gap-3">
           <div className="pointer-events-auto relative" ref={langRef}>
             <button
               type="button"
@@ -226,8 +224,8 @@ export function Header() {
           </button>
         </nav>
 
-        {/* Phải sát mép: icon hành động + nút đăng nhập/role */}
-        <div className="flex flex-1 items-center justify-end gap-3 text-sm">
+        {/* Phải */}
+        <div className="flex min-w-0 items-center justify-end gap-2 text-sm sm:gap-3">
           <Button
             type="button"
             variant="ghost"

@@ -2,7 +2,8 @@
 
 Tài liệu dành cho dev/backend port (Spring Boot xem thêm [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md)).
 
-**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, env.
+**Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, env.  
+**Frontend gọi API:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) — tầng `apiClient` / `apis` / `services`, luồng checkout & upload ảnh.
 
 ---
 
