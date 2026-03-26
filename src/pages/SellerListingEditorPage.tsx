@@ -41,6 +41,43 @@ const PHOTO_SLOT_KEYS = ["seller.photo1", "seller.photo2", "seller.photo3", "sel
 
 const REQUIRED_PHOTO_COUNT = 5;
 
+/** Năm sản xuất hợp lệ (tránh năm > năm hiện tại hoặc quá xa trong quá khứ). */
+const MIN_BIKE_YEAR = 1900;
+
+type YearValidateMode = "input" | "blur" | "submit";
+
+/** `input`: chỉ báo khi đủ 4 số (không làm phiền lúc gõ từng chữ). `blur`/`submit`: bắt buộc 4 số + không vượt quá năm hiện tại. */
+function validateYearField(
+  yearStr: string,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  mode: YearValidateMode = "submit",
+): string | null {
+  const trimmed = yearStr.trim();
+  if (!trimmed) return null;
+  const y = parseInt(trimmed, 10);
+  if (!Number.isFinite(y)) return t("seller.yearInvalid");
+  const now = new Date().getFullYear();
+  if (mode === "input") {
+    if (trimmed.length !== 4) return null;
+  } else {
+    if (trimmed.length !== 4) return t("seller.yearFourDigits");
+  }
+  if (y > now) return t("seller.yearFuture", { max: now });
+  if (y < MIN_BIKE_YEAR) return t("seller.yearTooOld", { min: MIN_BIKE_YEAR });
+  return null;
+}
+
+/** Chỉ gửi năm lên API khi đủ 4 số và trong [MIN_BIKE_YEAR, năm hiện tại]. */
+function yearStringToApi(yearStr: string): number | undefined {
+  const trimmed = yearStr.trim();
+  if (trimmed.length !== 4) return undefined;
+  const y = parseInt(trimmed, 10);
+  if (!Number.isFinite(y)) return undefined;
+  const now = new Date().getFullYear();
+  if (y > now || y < MIN_BIKE_YEAR) return undefined;
+  return y;
+}
+
 type PhotoSlot = { file?: File; url: string } | null;
 
 export default function SellerListingEditorPage() {
@@ -62,6 +99,7 @@ export default function SellerListingEditorPage() {
     Array.from({ length: REQUIRED_PHOTO_COUNT }, () => null),
   );
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [yearError, setYearError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needUpdateReason, setNeedUpdateReason] = useState<string>("");
@@ -110,7 +148,9 @@ export default function SellerListingEditorPage() {
           setTitle(listing.title ?? "");
           setBrand(listing.brand ?? "");
           setModel(listing.model ?? "");
-          setYear(listing.year ? String(listing.year) : "");
+          const yStr = listing.year != null ? String(listing.year) : "";
+          setYear(yStr);
+          setYearError(yStr ? validateYearField(yStr, t, "submit") : null);
           setFrameSize(listing.frameSize ?? "");
           setPrice(String(listing.price ?? ""));
           setLocation(listing.location ?? "");
@@ -147,7 +187,6 @@ export default function SellerListingEditorPage() {
 
   function buildPayload(overrideImageUrls?: string[]) {
     const priceNum = parseFloat(price) || 0;
-    const yearNum = parseInt(year, 10);
     const imageUrls =
       overrideImageUrls ??
       photoSlots
@@ -157,7 +196,7 @@ export default function SellerListingEditorPage() {
       title: title || "Untitled",
       brand: brand || "Unknown",
       model: model || undefined,
-      year: Number.isFinite(yearNum) ? yearNum : undefined,
+      year: yearStringToApi(year),
       frameSize: frameSize || undefined,
       price: priceNum,
       location,
@@ -223,6 +262,12 @@ export default function SellerListingEditorPage() {
 
   async function onSaveDraft() {
     setError(null);
+    const ye = validateYearField(year, t, "submit");
+    if (ye) {
+      setYearError(ye);
+      return;
+    }
+    setYearError(null);
     setSubmitting(true);
     try {
       const resolvedUrls = await resolveImageUrlsForSave();
@@ -248,6 +293,12 @@ export default function SellerListingEditorPage() {
   }
 
   async function ensureListingId(): Promise<string | null> {
+    const ye = validateYearField(year, t, "submit");
+    if (ye) {
+      setYearError(ye);
+      return null;
+    }
+    setYearError(null);
     const filled = photoSlots.filter(Boolean).length;
     if (filled < REQUIRED_PHOTO_COUNT) {
       setPhotoError(t("seller.photoCountError", { current: filled }));
@@ -504,15 +555,39 @@ export default function SellerListingEditorPage() {
                 <option value="GOOD_USED">{t("listing.conditionGoodUsed")}</option>
                 <option value="FAIR_USED">{t("listing.conditionFairUsed")}</option>
               </select>
-              <input
-                value={year}
-                onChange={(e) => setYear(e.target.value.replace(/[^\d]/g, ""))}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                disabled={locked}
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                placeholder={t("listing.year")}
-              />
+              <div className="flex flex-col gap-1">
+                <input
+                  value={year}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^\d]/g, "").slice(0, 4);
+                    setYear(v);
+                    const err = v.length === 4 ? validateYearField(v, t, "input") : null;
+                    setYearError(err);
+                  }}
+                  onBlur={() => {
+                    if (!year.trim()) {
+                      setYearError(null);
+                      return;
+                    }
+                    setYearError(validateYearField(year, t, "blur"));
+                  }}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  autoComplete="off"
+                  disabled={locked}
+                  aria-invalid={yearError ? true : undefined}
+                  className={`w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 ${
+                    yearError ? "border-destructive ring-1 ring-destructive/30" : "border-input"
+                  }`}
+                  placeholder={t("listing.year")}
+                />
+                {yearError && (
+                  <p className="text-xs text-destructive" role="alert">
+                    {yearError}
+                  </p>
+                )}
+              </div>
               <input
                 value={frameSize}
                 onChange={(e) => setFrameSize(e.target.value)}

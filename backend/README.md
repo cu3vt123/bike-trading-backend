@@ -6,6 +6,7 @@ Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppi
 
 | Tài liệu | Nội dung |
 |----------|----------|
+| **[docs/README.md](../docs/README.md)** | Mục lục toàn bộ tài liệu `docs/` (FE, BE, ERD, UR, …). |
 | **[docs/BACKEND-GUIDE.md](../docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc thư mục, Mongo, env, auth, thêm API, VNPAY Sandbox, kiểm tra nhanh |
 | [docs/USER-REQUIREMENTS.md](../docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR) — đối chiếu chức năng |
 | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port flow Express → Spring Boot |

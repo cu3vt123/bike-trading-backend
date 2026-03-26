@@ -47,3 +47,13 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 | [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | CREATE TABLE MySQL 17 bảng |
 | [sql/vietqr_mysql.sql](sql/vietqr_mysql.sql) | VietQR module (đồ án) |
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | **Tham chiếu nhanh** — API, thuật ngữ, routes, env, vị trí file |
+
+---
+
+## Local-only documentation
+
+Thư mục sau **không** được commit (xem `.gitignore` ở root):
+
+| Path | Mô tả |
+|------|--------|
+| **`docs/testing/`** | SWT301 / DefectList cá nhân. Chi tiết: [testing/README.md](testing/README.md). |

@@ -81,6 +81,8 @@ npm run build
 | Backend Node (demo / đối chiếu) | [BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md) |
 | ERD / SQL | [ERD-MYSQL.md](docs/ERD-MYSQL.md), [sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) |
 
+**Tài liệu local (không Git):** `docs/testing/` — xem [.gitignore](.gitignore) và [docs/README.md § Local-only](docs/README.md#local-only-documentation).
+
 Checklist ship: [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md).
 
 ---

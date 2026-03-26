@@ -35,6 +35,9 @@ backend/data/*.sqlite-*
 # Editor / Cursor (local only — không đưa lên Git)
 .cursor/
 
+# SWT301 / DefectList — chỉ local (không commit, không đẩy lên repo chung)
+docs/testing/
+
 # Editor
 .vscode/*
 !.vscode/extensions.json

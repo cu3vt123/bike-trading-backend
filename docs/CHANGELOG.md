@@ -4,6 +4,18 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-26] Docs — mục lục MD + `docs/testing` local
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`.gitignore`** | Thêm `docs/testing/` — không commit DefectList / file SWT301 cá nhân. |
+| **`docs/README.md`** | Mục **Tài liệu local (không commit)** + anchor cho link từ root README. |
+| **`README.md`** | Dòng trỏ tới `docs/testing` và `.gitignore`. |
+| **`docs/testing/README.md`** | Mô tả rõ: local, script `export-defectlist-xlsx.mjs`. |
+| **`HELP.md`** | Thay nội dung Spring boilerplate bằng trợ giúp ShopBike + link `docs/`. |
+
+---
+
 ## [2026-03-26] Spring BE2 — GET inspector listing + FE chi tiết tin chờ duyệt
 
 | Thay đổi | Chi tiết |
