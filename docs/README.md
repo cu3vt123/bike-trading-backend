@@ -10,13 +10,12 @@
 
 1. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
 2. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
-3. [AI: gợi ý tài liệu cho cả team (BE / FE / QA)](#ai-context-team)
-4. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
-5. [Kiến trúc & tích hợp BE](#kiến-trúc--tích-hợp-be)
-6. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
-7. [Lịch sử & testing](#lịch-sử--testing)
-8. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
-9. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
+3. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
+4. [Team phối hợp BE (BA, Tester, PM / QA / FE)](#team-phối-hợp-be)
+5. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
+6. [Lịch sử & testing](#lịch-sử--testing)
+7. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
+8. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
 
 ---
 
@@ -49,22 +48,7 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 | **Làm việc với PM/QA/FE** | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket. |
 | **Backend Node (demo)** | [BACKEND-GUIDE.md](BACKEND-GUIDE.md), [../backend/README.md](../backend/README.md) | Không chạy cùng cổng với Spring. |
 | **Tra cứu nhanh env, auth, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Hỗ trợ cả FE và khi đối chiếu API. |
-
----
-
-<a id="ai-context-team"></a>
-
-## AI: gợi ý tài liệu cho cả team (BE / FE / QA)
-
-*(Áp dụng khi đính kèm tài liệu cho Gemini, ChatGPT, Claude, … — dev backend, dev frontend, hoặc tester/QA.)*
-
-**Một file đủ dài, phân vai rõ:** **[AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md)** — bối cảnh chung (copy-paste); **Phần A** Backend; **Phần B** Frontend; **Phần C** QA / SWT301; bảng tổng hợp; mẫu prompt; doc thường không cần gửi.
-
-| Nhu cầu | Tài liệu | Ghi chú |
-|---------|----------|---------|
-| **Chỉ cần nhắc backend (link cũ)** | [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | File ngắn — **chuyển hướng** sang `AI-CONTEXT-for-TEAM.md` (mục Phần A). |
-
-Root [README.md](../README.md) có mục **[Gợi ý tài liệu cho AI (Backend, Frontend, QA)](../README.md#readme-ai-context-team)** — tóm tắt + link.
+| **Gợi ý tài liệu đính kèm cho AI (dev backend)** | [AI-CONTEXT-for-TEAM.md — Phần A](AI-CONTEXT-for-TEAM.md#phan-a-backend), [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Gửi Gemini / ChatGPT: gói `.md`, thứ tự, mẫu prompt — file `AI-CONTEXT-for-BACKEND` là alias chuyển hướng (Phần A). |
 
 ---
 
@@ -93,16 +77,18 @@ Root [README.md](../README.md) có mục **[Gợi ý tài liệu cho AI (Backend
 
 ---
 
-## Kiến trúc & tích hợp BE
+<a id="team-phối-hợp-be"></a>
+
+## Team phối hợp BE (BA, Tester, PM / QA / FE)
+
+Các tài liệu dưới đây phục vụ **người không chỉ code Spring** nhưng cần hiểu cách làm việc với BE, viết test case, audit API theo màn hình, hoặc **gợi ý tài liệu cho AI** khi prompt chung cả team (FE + QA + BA).
 
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
-| **Cài đặt sau clone/pull — Node + Spring + FE** | **[BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md)** | Một bài đọc: đủ bước để chạy local. |
 | **PM / QA / FE làm việc với BE** | **[BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md)** | Thuật ngữ, mẫu báo bug, ai đọc file nào — không cần dạy lại BE. |
-| Chuyển giao Node → Spring, map endpoint | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | JWT, business rules, checklist. |
-| Backend Node (demo / đối chiếu) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Cấu trúc code, env, auth, VNPay. |
-| Rà soát API BE–FE (theo khu vực / endpoint) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Bảng method/path. |
-| Rà soát API BE–FE (theo trang / actor) | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Chi tiết UI + API từng page. |
+| **Rà soát API BE–FE (theo khu vực / endpoint)** | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Bảng method/path — dùng khi đối chiếu theo nhóm API. |
+| **Rà soát API BE–FE (theo trang / actor)** | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Chi tiết UI + API từng page — **Tester / BA** thường dùng file này để map TC. |
+| **Gợi ý tài liệu đính kèm cho AI (cả team: BE / FE / QA)** | [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Một file: §0 bối cảnh, Phần A/B/C theo vai, mẫu prompt. Root [README § Gợi ý AI](../README.md#readme-ai-context-team) tóm tắt. |
 
 ---
 
@@ -163,4 +149,4 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 
 ---
 
-*Cập nhật: đồng bộ với kiến trúc FE V2 (TanStack Query, RHF, Zod), README gốc chi tiết, và mục lục có lộ trình học.*
+*Cập nhật: tách bảng **Backend** vs **Team phối hợp BE**; hàng **AI** nằm trong bảng (không tách mục lục riêng cho AI).*
