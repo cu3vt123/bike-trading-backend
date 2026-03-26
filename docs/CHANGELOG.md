@@ -4,6 +4,19 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-26] Spring BE2 — GET inspector listing + FE chi tiết tin chờ duyệt
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`InspectorController.java`** | **Mới:** `GET /api/inspector/listings/{id}` — trả `ListingDTO` theo id (mọi `ListingState`), phục vụ trang **`/bikes/:id`** khi Inspector/Admin mở **Xem chi tiết** tin **PENDING_INSPECTION**. Trước đây endpoint không tồn tại → FE gọi lỗi → màn “Không tìm thấy tin đăng”. |
+| **`SecurityConfig.java`** | `/api/inspector/**` dùng **`hasAnyRole("INSPECTOR", "ADMIN")`** thay vì chỉ `INSPECTOR`, để Admin mở cùng API inspector (khớp FE và `RequireInspector`). |
+| **`ProductDetailPage.tsx`** | Sau `fetchListingById` (public) nếu vẫn không có dữ liệu và còn **`accessToken`**, gọi thêm **`fetchListingByIdForInspector`** — tránh race khi `role` chưa hydrate từ persist; vẫn tải được tin chờ duyệt. |
+| **`docs/QUICK-REFERENCE.md`** | Bảng Inspector: thêm dòng **GET `/inspector/listings/:id`**; ghi chú Spring. |
+| **`docs/BE-FE-API-AUDIT-BY-PAGE.md`** | Mục Inspector: thêm **`ProductDetailPage`** — luồng GET marketplace + fallback inspector. |
+| **`docs/FRONTEND-API-FLOWS.md`** | §5.9 / §7: bổ sung **`fetchListingByIdForInspector`** cho Product detail khi staff. |
+
+---
+
 ## [2026-03-25] SWT301 — Test case & Lab 4 Defect Management
 
 | Thay đổi | Chi tiết |

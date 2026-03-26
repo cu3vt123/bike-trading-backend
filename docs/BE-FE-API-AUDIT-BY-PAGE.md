@@ -82,6 +82,7 @@
 
 | Page | API gọi | FE Path | BE Route | Method | Trạng thái |
 |------|---------|---------|----------|--------|------------|
+| **ProductDetailPage** (`/bikes/:id`) | `fetchListingById` → nếu null thì `fetchListingByIdForInspector` (khi INSPECTOR/ADMIN hoặc có token) | `/bikes/:id` rồi `/inspector/listings/:id` | `GET /bikes/:id` (chỉ published) + **`GET /inspector/listings/:id`** (mọi trạng thái) | GET | ✅ Spring BE2: bắt buộc có GET inspector theo id |
 | **InspectorDashboardPage** | `fetchPendingListings()` | `/inspector/pending-listings` | Có | GET | ✅ |
 | | `inspectorApi.getListingById(id)` | `/inspector/listings/:id` | Có | GET | ✅ |
 | | `approveListing(id, report)` | `/inspector/listings/:id/approve` | Có | PUT | ✅ |

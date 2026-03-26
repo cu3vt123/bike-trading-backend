@@ -95,6 +95,10 @@ export default function ProductDetailPage() {
         if (!data) {
           data = await fetchListingById(id);
         }
+        // Tin chờ duyệt không có trên GET /bikes/:id — thử inspector khi đã đăng nhập (tránh race khi role chưa hydrate)
+        if (!data && useAuthStore.getState().accessToken) {
+          data = await fetchListingByIdForInspector(id);
+        }
         if (cancelled) return;
         if (!data) setError(t("listing.loadError"));
         else setListing(data);

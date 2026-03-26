@@ -82,9 +82,12 @@
 | Method | Path | Mô tả |
 |--------|------|-------|
 | GET | /inspector/pending-listings | Tin chờ kiểm định |
+| GET | /inspector/listings/:id | Chi tiết tin theo id (mọi trạng thái) — FE trang `/bikes/:id` khi duyệt tin chưa lên sàn; **Spring BE2** cần endpoint này (không chỉ Node). |
 | PUT | /inspector/listings/:id/approve | Duyệt + điểm |
 | PUT | /inspector/listings/:id/reject | Từ chối |
 | PUT | /inspector/listings/:id/need-update | Yêu cầu cập nhật + reason |
+
+**Spring Security:** toàn bộ `/api/inspector/**` → `hasAnyRole(INSPECTOR, ADMIN)`.
 
 ### Admin (role ADMIN)
 
@@ -228,4 +231,4 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 ---
 
-*Đồng bộ với codebase và docs. Cập nhật: 2026-03-25 — FRONTEND-API-FLOWS, vnpay-checkout body, upload ảnh seller, PUBLIC_ORIGIN.*
+*Đồng bộ với codebase và docs. Cập nhật: 2026-03-26 — GET `/inspector/listings/:id` (Spring), ProductDetail inspector fallback; trước: 2026-03-25 — FRONTEND-API-FLOWS, vnpay-checkout, upload ảnh.*

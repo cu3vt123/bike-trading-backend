@@ -241,7 +241,7 @@ sequenceDiagram
 | Actor | API chính (FE) |
 |-------|----------------|
 | Seller | `sellerApi.getOrders` → **`GET /seller/orders`**; `shipOrderToBuyer` → **`PUT .../ship-to-buyer`**; mark shipped warehouse qua listing — xem `sellerApi`, `STRUCTURE.md` |
-| Inspector | `inspectorApi` — pending listing, approve / reject / need-update |
+| Inspector | `inspectorApi` — pending listing, **`getListingById`** (GET `/inspector/listings/:id`, tin mọi trạng thái), approve / reject / need-update |
 | Admin | `adminApi` — warehouse pending, confirm warehouse, re-inspection, users, listings, brands, reviews |
 
 Chi tiết từng trang: [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md).
@@ -268,7 +268,7 @@ Luồng nghiệp vụ đầy đủ (kho vs direct): [business-rules/BUSINESS-RUL
 | Khu vực | Trang (file) | Service / API chính |
 |---------|----------------|---------------------|
 | Login, Register, Me | `LoginPage`, `RegisterPage`, … | `authApi` |
-| Home, Product detail | `HomePage`, `ProductDetailPage` | `buyerService` + `bikeApi` |
+| Home, Product detail | `HomePage`, `ProductDetailPage` | `buyerService` + `bikeApi`; **Inspector/Admin** trên `/bikes/:id` thêm **`fetchListingByIdForInspector`** khi tin không có trên `GET /bikes/:id` (pending) hoặc khi có token (fallback hydrate) |
 | Checkout | `CheckoutPage` | `createVnpayCheckoutOrder` |
 | Theo dõi đơn | `TransactionPage` | `fetchOrderById`, `resumeVnpayCheckoutOrder`, `cancelOrder` |
 | Hoàn tất | `FinalizePurchasePage` | `payBalanceVnpayOrder`, `completeOrder` |
@@ -292,4 +292,4 @@ Luồng nghiệp vụ đầy đủ (kho vs direct): [business-rules/BUSINESS-RUL
 
 ---
 
-*Tài liệu đồng bộ với codebase: `CheckoutPage`, `TransactionPage`, `FinalizePurchasePage`, `PurchaseSuccessPage`, `VnpayResultPage`, `SellerListingEditorPage`, `buyerService`, `buyerApi`, `reviewService`. Cập nhật khi thêm luồng API mới.*
+*Tài liệu đồng bộ với codebase: `CheckoutPage`, `TransactionPage`, `FinalizePurchasePage`, `PurchaseSuccessPage`, `VnpayResultPage`, `SellerListingEditorPage`, `ProductDetailPage` (inspector fallback), `buyerService`, `buyerApi`, `reviewService`. Cập nhật khi thêm luồng API mới. Cập nhật: 2026-03-26 — inspector GET listing + Product detail.*

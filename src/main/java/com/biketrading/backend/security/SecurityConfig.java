@@ -52,7 +52,8 @@ public class SecurityConfig {
                         // PHÂN QUYỀN THEO ROLE
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
-                        .requestMatchers("/api/inspector/**").hasRole("INSPECTOR")
+                        // FE: Inspector + Admin đều vào /inspector — xem chi tiết tin chờ duyệt
+                        .requestMatchers("/api/inspector/**").hasAnyRole("INSPECTOR", "ADMIN")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
 
                         .anyRequest().authenticated()
