@@ -10,12 +10,13 @@
 
 1. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
 2. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
-3. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
-4. [Team phối hợp BE (BA, Tester, PM / QA / FE)](#team-phối-hợp-be)
-5. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
-6. [Lịch sử & testing](#lịch-sử--testing)
-7. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
-8. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
+3. [AI: gợi ý tài liệu cho cả team](#ai-context-team-md)
+4. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
+5. [Team phối hợp BE (BA, Tester, PM / QA / FE)](#team-phối-hợp-be)
+6. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
+7. [Lịch sử & testing](#lịch-sử--testing)
+8. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
+9. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
 
 ---
 
@@ -52,6 +53,16 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 
 ---
 
+<a id="ai-context-team-md"></a>
+
+## AI: gợi ý tài liệu cho cả team
+
+**File chính:** **[AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md)** — một bài cho **Backend, Frontend và QA / Tester**: khối bối cảnh copy-paste, Phần A/B/C theo vai, bảng gói tài liệu, mẫu prompt, lỗi thường gặp khi nhờ AI.
+
+Tóm tắt ở root: [README.md — Gợi ý tài liệu cho AI](../README.md#readme-ai-context-team).
+
+---
+
 ## Lộ trình học 3 cấp
 
 ### Cấp 1 — Mới vào repo (ngày 1–2)
@@ -81,14 +92,13 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 
 ## Team phối hợp BE (BA, Tester, PM / QA / FE)
 
-Các tài liệu dưới đây phục vụ **người không chỉ code Spring** nhưng cần hiểu cách làm việc với BE, viết test case, audit API theo màn hình, hoặc **gợi ý tài liệu cho AI** khi prompt chung cả team (FE + QA + BA).
+Các tài liệu dưới đây phục vụ **người không chỉ code Spring** nhưng cần hiểu cách làm việc với BE, viết test case, audit API theo màn hình. *(Gợi ý đính kèm tài liệu cho AI cả team: xem mục [AI: gợi ý tài liệu cho cả team](#ai-context-team-md) và file [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md).)*
 
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
 | **PM / QA / FE làm việc với BE** | **[BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md)** | Thuật ngữ, mẫu báo bug, ai đọc file nào — không cần dạy lại BE. |
 | **Rà soát API BE–FE (theo khu vực / endpoint)** | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Bảng method/path — dùng khi đối chiếu theo nhóm API. |
 | **Rà soát API BE–FE (theo trang / actor)** | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Chi tiết UI + API từng page — **Tester / BA** thường dùng file này để map TC. |
-| **Gợi ý tài liệu đính kèm cho AI (cả team: BE / FE / QA)** | [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Một file: §0 bối cảnh, Phần A/B/C theo vai, mẫu prompt. Root [README § Gợi ý AI](../README.md#readme-ai-context-team) tóm tắt. |
 
 ---
 
@@ -149,4 +159,4 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 
 ---
 
-*Cập nhật: tách bảng **Backend** vs **Team phối hợp BE**; hàng **AI** nằm trong bảng (không tách mục lục riêng cho AI).*
+*Cập nhật: mục lục có **[AI: gợi ý tài liệu cho cả team](#ai-context-team-md)** → `AI-CONTEXT-for-TEAM.md`; bảng Backend vẫn có hàng AI cho dev backend.*
