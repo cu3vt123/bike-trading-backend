@@ -52,8 +52,8 @@ Toàn bộ tài liệu nằm trong `docs/`. Root [README.md](../README.md) có b
 
 ## Local-only documentation
 
-Thư mục sau **không** được commit (xem `.gitignore` ở root):
+Một số **artifact** trong `docs/testing/` (`.xlsx`, `.csv`, ảnh, …) **không** commit — xem `.gitignore` ở root. **Hướng dẫn Markdown** trong `docs/testing/` được track.
 
 | Path | Mô tả |
 |------|--------|
-| **`docs/testing/`** | SWT301 / DefectList cá nhân. Chi tiết: [testing/README.md](testing/README.md). |
+| **`docs/testing/`** | [testing/README.md](testing/README.md) (mục lục ngắn) + [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md) (hướng dẫn testing & demo đầy đủ). |

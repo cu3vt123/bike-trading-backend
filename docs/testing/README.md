@@ -1,60 +1,41 @@
-# SWT301 — Mục lục tài liệu demo & testing
+# SWT301 — Testing (`docs/testing/`)
 
-Thư mục này gom **hướng dẫn chạy demo**, **checklist**, **đối chiếu defect** (Lab 4) và ghi chú về file **chỉ dùng local** (Excel nộp bài, screenshot).
+Thư mục dùng cho **file Excel / screenshot nộp bài** (thường **không** commit) và **hướng dẫn** trong repo.
 
-| Tài liệu | Nội dung |
-|----------|----------|
-| **[README.md](./README.md)** (trang này) | Mục lục + luồng đọc gợi ý |
-| **[SWT301_ENVIRONMENT.md](./SWT301_ENVIRONMENT.md)** | Cài đặt, biến môi trường, cổng, mock vs API thật, lỗi thường gặp |
-| **[SWT301_DEMO_WALKTHROUGH.md](./SWT301_DEMO_WALKTHROUGH.md)** | Kịch bản demo theo từng vai (Buyer / Seller / Inspector / Admin) + route thực tế |
-| **[SWT301_DEFECTS_AND_EVIDENCE.md](./SWT301_DEFECTS_AND_EVIDENCE.md)** | Bảng DEF-SWT-001…007: TC, route, API, cách chứng minh, gợi ý file đính kèm |
-| **[SWT301_EXPORT_DEFECTLIST.md](./SWT301_EXPORT_DEFECTLIST.md)** | Sinh `DefectList.xlsx`, cột Excel, chỉnh sửa trước khi nộp |
+**Toàn bộ hướng dẫn demo & testing (1 file):** [**SWT301_TESTING_GUIDE.md**](./SWT301_TESTING_GUIDE.md) — môi trường, walkthrough theo vai, workbook `SWT301_TestCase_Functional_and_Unit_Combined.xlsx` (200 TC), defect DEF-SWT, script `export-defectlist-xlsx.mjs`.
 
-**Nhánh Git:** làm việc trên nhánh dự án (khuyến nghị **`demo`**). Không bắt buộc nhánh tên `testing`.
+**Nhánh làm việc:** khuyến nghị `demo`.
 
 ---
 
-## Đọc theo thứ tự nào?
+## File thường gặp
 
-1. **Lần đầu chạy máy:** [SWT301_ENVIRONMENT.md](./SWT301_ENVIRONMENT.md)  
-2. **Chuẩn bị demo trước giảng viên:** [SWT301_DEMO_WALKTHROUGH.md](./SWT301_DEMO_WALKTHROUGH.md)  
-3. **Nộp Lab defect / đối chiếu slide:** [SWT301_DEFECTS_AND_EVIDENCE.md](./SWT301_DEFECTS_AND_EVIDENCE.md) + [SWT301_EXPORT_DEFECTLIST.md](./SWT301_EXPORT_DEFECTLIST.md)
+| File | Ghi chú |
+|------|---------|
+| `SWT301_TestCase_Functional_and_Unit_Combined.xlsx` | 100 TC chức năng + 100 UTC (4 actor × 25) |
+| `DefectList.xlsx` | Sinh bằng `node scripts/export-defectlist-xlsx.mjs` |
+| `generated/`, `screenshots/`, `evidence/` | Chỉ local, có thể ignore |
 
----
-
-## File local (thường không commit)
-
-Các pattern sau được liệt kê trong **`.gitignore`** ở root repo:
-
-- `DefectList.xlsx`, `*.xlsx` / `*.csv` trong `docs/testing/` (trừ khi dùng `git add -f`)  
-- Thư mục `docs/testing/generated/`, `docs/testing/screenshots/`  
-- Ảnh `.png` / `.jpg` / … trong `docs/testing/`
-
-**Các file `*.md` trong `docs/testing/` được giữ trong Git** để cả nhóm xem cùng hướng dẫn.
+Các **`.xlsx` / `.csv` / `.har` / ảnh** trong `docs/testing/` được liệt kê trong `.gitignore` ở root repo; **file `.md` hướng dẫn** được track.
 
 ---
 
-## Lệnh tóm tắt (tham chiếu nhanh)
+## Lệnh nhanh
 
 ```bash
-# Frontend
-cd <thư-mục-gốc-repo-frontend>
-npm install
-npm run dev
+npm install && npm run dev
 ```
 
 ```bash
-# Sinh DefectList.xlsx (output vào docs/testing/)
 node scripts/export-defectlist-xlsx.mjs
 ```
 
 ---
 
-## Liên kết repo chính
+## Liên kết ngoài thư mục
 
-| File | Mục đích |
-|------|----------|
-| [../CHANGELOG.md](../CHANGELOG.md) | Lịch sử sửa lỗi / tính năng (inspector API, Security, v.v.) |
-| [../QUICK-REFERENCE.md](../QUICK-REFERENCE.md) | Role, API, response chuẩn |
-| [../../README.md](../../README.md) | Chạy monorepo / BE + FE (nếu có hướng dẫn) |
-| `scripts/export-defectlist-xlsx.mjs` | Nguồn dữ liệu 7 dòng defect khi export Excel |
+| Tài liệu | Mục đích |
+|----------|----------|
+| [../QUICK-REFERENCE.md](../QUICK-REFERENCE.md) | API, role, routes |
+| [../CHANGELOG.md](../CHANGELOG.md) | Lịch sử thay đổi |
+| [../../README.md](../../README.md) | Chạy dự án |
