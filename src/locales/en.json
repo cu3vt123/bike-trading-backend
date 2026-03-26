@@ -389,7 +389,7 @@
     "noWarehouseItems": "No listings pending warehouse confirmation.",
     "warehouseMovedToInspector": "{{count}} listing(s) moved to Inspector channel (Step 6). Go to Inspector to approve.",
     "warehouseSectionAdminConfirm": "Step 5: Admin to confirm bike arrived at warehouse",
-    "warehouseSectionInspectorConfirm": "Step 6: Inspector to confirm at warehouse",
+    "warehouseSectionInspectorConfirm": "Inspector to confirm at warehouse",
     "warehouseSectionOrdersPendingConfirm": "Orders at warehouse pending delivery confirmation",
     "warehouseSectionOrdersPendingConfirmDesc": "WAREHOUSE orders (certified bikes at warehouse) — buyer has paid deposit. Confirm to start delivery to buyer.",
     "depositPaid": "Deposit paid",

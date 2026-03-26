@@ -391,7 +391,7 @@
     "noWarehouseItems": "Không có tin đăng nào chờ xác nhận tại kho.",
     "warehouseMovedToInspector": "{{count}} tin đã chuyển sang Kênh Inspector (Bước 6). Vui lòng vào Kiểm định viên để duyệt.",
     "warehouseSectionAdminConfirm": "Bước 5: Chờ admin xác nhận xe đã tới kho",
-    "warehouseSectionInspectorConfirm": "Bước 6: Chờ inspector xác nhận tại kho",
+    "warehouseSectionInspectorConfirm": "Chờ inspector xác nhận tại kho",
     "warehouseSectionOrdersPendingConfirm": "Đơn xe tại kho chờ xác nhận giao",
     "warehouseSectionOrdersPendingConfirmDesc": "Đơn WAREHOUSE (xe đã kiểm định tại kho) — buyer đã cọc. Xác nhận để bắt đầu giao cho buyer.",
     "depositPaid": "Đã cọc",
