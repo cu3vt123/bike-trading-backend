@@ -4,6 +4,14 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-26] Docs — FE-V2-VERIFICATION-GUIDE (kiểm tra luồng & API)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`docs/FE-V2-VERIFICATION-GUIDE.md`** | **Mới:** hướng dẫn lint/build, chạy dev, checklist Guest/Buyer/Seller/Admin/Inspector, kiểm tra TanStack Query invalidate, Swagger/Network, mẫu báo lỗi; liên kết README, docs/README, HELP, QUICK-REFERENCE. |
+
+---
+
 ## [2026-03-26] Docs — BACKEND-COLLABORATION (PM/QA/FE + BE)
 
 | Thay đổi | Chi tiết |

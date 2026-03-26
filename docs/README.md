@@ -28,6 +28,7 @@
 | **So sánh kiến trúc FE cũ / mới** (Query, RHF, refresh, invalidate) | **[FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md)** | Hiểu V2 và cách chỉnh code không lệch cache. |
 | **Cấu trúc thư mục FE, quy ước import** | [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, `queryKeys`, hooks `queries/`. |
 | **Checklist ship / hardening** | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Trước khi deploy production. |
+| **Kiểm tra luồng + API (V2, thủ công)** | **[FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md)** | Lint/build, checklist theo vai, Query invalidate, Network. |
 
 ---
 
@@ -106,6 +107,7 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | [STRUCTURE.md](STRUCTURE.md) | Cây thư mục FE, providers, apis/services |
 | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng API chi tiết, Mermaid |
 | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | So sánh V1/V2 + hướng dẫn thực hành |
+| [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) | Kiểm tra luồng & API (checklist) |
 | [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi docs/code |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết |
 | [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md) | Audit UI |

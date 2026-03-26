@@ -13,6 +13,7 @@
 | **PM / QA / FE làm việc với Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu báo bug, không cần dạy lại BE |
 | **Tra cứu API, role, routes, env** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | Khi code hoặc debug API |
 | **Kiến trúc FE V1 vs V2** (Query, invalidate) | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Sau khi đọc STRUCTURE |
+| **Kiểm tra luồng & API V2** | [docs/FE-V2-VERIFICATION-GUIDE.md](docs/FE-V2-VERIFICATION-GUIDE.md) | Trước merge / sau đổi Query |
 | **Luồng code → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | Tìm đúng chỗ gọi axios/service |
 | **Backend sau clone/pull (Node + Spring)** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Full stack local, cổng 8081 |
 | **Backend Node (tham chiếu)** | [backend/README.md](backend/README.md) | Nếu repo có thư mục `backend/` |

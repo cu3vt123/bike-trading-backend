@@ -245,6 +245,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **Onboard & tra cứu** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | API, role, routes, env, order status |
 | **Luồng code FE → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | axios, services, VNPay, upload |
 | **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, RHF, Zod, refresh, invalidate |
+| **Kiểm tra luồng & API (checklist)** | [docs/FE-V2-VERIFICATION-GUIDE.md](docs/FE-V2-VERIFICATION-GUIDE.md) | Lint/build, thủ công theo vai, Query |
 | **Cấu trúc thư mục** | [docs/STRUCTURE.md](docs/STRUCTURE.md) | Cây `src/`, import, hooks |
 | **Ship / hardening** | [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) | Checklist trước production |
 | **Rà soát API BE–FE** | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Theo endpoint / theo màn hình |

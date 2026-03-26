@@ -230,6 +230,7 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Cấu trúc FE | [STRUCTURE.md](STRUCTURE.md) |
 | So sánh kiến trúc FE V1 vs V2 (Query, RHF, refresh) | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |
+| Kiểm tra luồng & API V2 (lint, checklist, invalidate) | [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) |
 | Luồng gọi API trên FE | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 
 ---
