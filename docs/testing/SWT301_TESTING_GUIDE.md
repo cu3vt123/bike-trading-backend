@@ -9,7 +9,8 @@ Tài liệu **gộp một chỗ**: môi trường chạy demo, walkthrough theo 
 3. [Workbook Excel 200 TC — Functional + Unit](#3-workbook-excel-200-tc--functional--unit)
 4. [Defect DEF-SWT-001 … 007](#4-defect-def-swt-001--007-đối-chiếu--chứng-cứ)
 5. [Xuất DefectList.xlsx (Lab 4)](#5-xuất-defectlistxlsx-lab-4)
-6. [Liên kết repo](#6-liên-kết-repo)
+6. [Gợi ý thuyết trình (thao tác + lời nói)](#6-gợi-ý-thuyết-trình-thao-tác--lời-nói)
+7. [Liên kết repo](#7-liên-kết-repo)
 
 ---
 
@@ -287,7 +288,52 @@ node scripts/export-defectlist-xlsx.mjs
 
 ---
 
-## 6. Liên kết repo
+## 6. Gợi ý thuyết trình (thao tác + lời nói)
+
+Mục này bổ sung **kịch bản nói gợi ý** đi kèm **thao tác** — bạn có thể đọc lại bằng lời của mình, không cần thuộc lòng.
+
+### 6.1. Hai file `docs/testing/` dùng thế nào khi báo cáo?
+
+| File | Vai trò khi thuyết trình |
+|------|---------------------------|
+| **`README.md`** | **Mở đầu 30 giây:** chỉ ra “đây là thư mục testing, có workbook Excel + DefectList local, link sang guide đầy đủ”. Không cần đọc hết. |
+| **`SWT301_TESTING_GUIDE.md`** | **Bài đọc chính:** môi trường, từng bước demo theo vai, bảng TC/UTC, defect — **và mục 6 này** (lời gợi ý). |
+
+**Lưu ý:** Phần trên của guide (mục 1–5) là **chi tiết kỹ thuật**; mục **6** tập trung **cách nói + thứ tự làm** trước lớp.
+
+### 6.2. Mở đầu (~1 phút) — gợi ý lời nói
+
+> “Em xin demo hệ thống ShopBike: frontend React/Vite kết nối backend REST. Đồ án SWT301 em có **bộ test case gộp Functional và Unit** trong file Excel 200 dòng, và **quản lý defect** theo Lab 4 với file DefectList.  
+> Em sẽ chạy app trên trình duyệt, lần lượt thể hiện luồng **Buyer, Seller, Inspector/Admin**, và kết nối với một vài defect đã ghi nhận.  
+> Môi trường: FE chạy cổng 5173, API đã cấu hình trong `VITE_API_BASE_URL`.”
+
+*(Điều chỉnh “em” / “nhóm em” theo quy định lớp.)*
+
+### 6.3. Demo theo khối — thao tác + lời gợi ý
+
+| Khối | Thao tác (màn hình) | Gợi ý lời nói (tóm tắt) |
+|------|---------------------|-------------------------|
+| **Guest / Buyer** | Mở `/`, `/bikes/:id`; đăng nhập Buyer; nếu kịp: vào checkout hoặc transaction | “Đây là **marketplace** — khách xem tin đã publish. Khi đăng nhập **Buyer**, em được vào **checkout**, **transaction**, **finalize**, **success** theo luồng đặt mua và thanh toán đã mô tả trong test case TC-BUY.” |
+| **Seller** | `/seller` → `/seller/listings/new` hoặc sửa tin; nhập **năm sản xuất** sai (tương lai / không đủ 4 số) | “Luồng **Seller** tạo và sửa tin. Em minh họa **validation năm xe**: hệ thống không chấp nhận năm > năm hiện tại — liên quan defect **DEF-SWT-006** và test case **TC-SEL-012** trong Excel.” |
+| **Inspector / Admin** | `/inspector` → chọn tin pending → `/bikes/:id`; có thể F5; bật tab **Network** | “Inspector **duyệt tin chờ**: chi tiết tin **không** chỉ lấy từ API public mà còn **GET /inspector/listings/:id** — defect **DEF-SWT-001**, **003**. **Admin** cũng gọi được API inspector, không bị 403 — **DEF-SWT-002**.” |
+| **Success / đơn hàng** | (Nếu có dữ liệu) `/success/:id` hoặc từ transaction | “Sau khi đơn hoàn tất, trang **success** lấy **snapshot tin từ order** để vẫn hiển thị khi listing không còn public — **DEF-SWT-004**.” |
+| **Admin UI** | Màn kho / transaction (nếu có route) | “Phần nhãn giao diện admin đã bỏ tiền tố “Bước 5/6” gây rối — **DEF-SWT-007**.” |
+| **Unit / Excel** | Chỉ vào sheet `F_Buyer` / `U_Buyer` trên Excel hoặc slide | “Trong workbook **200 test**, **100** là test chức năng trên UI, **100** là unit test map với FE — **Type N/A/B** trong sheet `U_*`. Em đối chiếu **Expected** với kết quả khi chạy.” |
+| **DefectList** | Terminal: `node scripts/export-defectlist-xlsx.mjs` hoặc mở `DefectList.xlsx` | “DefectList em sinh bằng script trong repo, có **Related TC ID** trùng với mã trong Excel — **trace** từ bug về test case.” |
+
+### 6.4. Kết thúc (~30 giây) — gợi ý lời nói
+
+> “Tóm lại em đã demo đúng các luồng chính theo **USER-REQUIREMENTS**, có **bảng test case và defect** để truy vết. Em sẵn sàng trả lời thêm về API hoặc cấu hình. Cảm ơn thầy cô.”
+
+### 6.5. Mẹo
+
+- **Không** cần đọc hết bảng TC trong Excel trước lớp; chỉ cần **chỉ đúng sheet + mã TC** khi giảng viên hỏi.  
+- Giữ **một tab Network** sẵn để chứng minh request **inspector** (200) khi hỏi defect.  
+- Nếu thiếu thời gian: ưu tiên **Seller (năm xe)** + **Inspector (chi tiết tin pending)** + **DefectList**.
+
+---
+
+## 7. Liên kết repo
 
 | File | Mục đích |
 |------|----------|

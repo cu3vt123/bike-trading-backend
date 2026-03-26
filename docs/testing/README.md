@@ -2,7 +2,9 @@
 
 Thư mục dùng cho **file Excel / screenshot nộp bài** (thường **không** commit) và **hướng dẫn** trong repo.
 
-**Toàn bộ hướng dẫn demo & testing (1 file):** [**SWT301_TESTING_GUIDE.md**](./SWT301_TESTING_GUIDE.md) — môi trường, walkthrough theo vai, workbook `SWT301_TestCase_Functional_and_Unit_Combined.xlsx` (200 TC), defect DEF-SWT, script `export-defectlist-xlsx.mjs`.
+**Hướng dẫn chi tiết (1 file):** [**SWT301_TESTING_GUIDE.md**](./SWT301_TESTING_GUIDE.md) — môi trường, walkthrough theo vai, workbook `SWT301_TestCase_Functional_and_Unit_Combined.xlsx` (200 TC), defect DEF-SWT, xuất DefectList, và **mục 6 — gợi ý thuyết trình** (thao tác + lời nói mẫu).
+
+**Trang này (`README.md`):** chỉ **mục lục ngắn** + lệnh nhanh; **không** thay cho kịch bản đầy đủ — mở file guide ở trên khi chuẩn bị báo cáo.
 
 **Nhánh làm việc:** khuyến nghị `demo`.
 
