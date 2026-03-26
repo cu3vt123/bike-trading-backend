@@ -222,10 +222,11 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | Kiểm tra khớp API BE–FE (theo khu vực) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) |
 | Kiểm tra khớp API BE–FE (theo trang/actor) | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |
+| PM / QA / FE hỗ trợ BE (thuật ngữ, mẫu ticket) | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) |
 | Port sang Spring Boot | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |
 | Tạo/sửa schema MySQL | [ERD-SPEC.md](ERD-SPEC.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) |
 | Hiểu business rules | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
-| Luồng màn hình | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) |
+| Tổng quan luồng & BR | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md), [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Cấu trúc FE | [STRUCTURE.md](STRUCTURE.md) |
 | So sánh kiến trúc FE V1 vs V2 (Query, RHF, refresh) | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |

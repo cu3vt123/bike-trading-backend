@@ -37,7 +37,8 @@
 | Câu hỏi | Trả lời |
 |---------|---------|
 | **Tài liệu này để làm gì?** | Chuẩn hóa **chuyển giao công nghệ**: hiểu FE kỳ vọng gì, Node đang làm gì, Spring cần bổ sung / sửa gì cho khớp. |
-| **Ai đọc?** | Dev Backend Java, tech lead, người review PR backend. |
+| **Ai đọc (chính)?** | Dev Backend Java, tech lead, người review PR backend. |
+| **Ai đọc (phụ)?** | **QA** — dùng §17 kịch bản test + [QUICK-REFERENCE.md](QUICK-REFERENCE.md) để biết path; **FE** — §6 tương thích JSON; **PM** — §13 BR + [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md). Tổng quan làm việc chung: [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md). |
 | **Kết quả mong đợi?** | Một API Spring (hoặc Node) duy nhất thỏa: prefix `/api`, JWT, role, JSON giống hoặc tương thích với `apiClient` / `authApi` (xem §6). |
 
 **Tra cứu nhanh API theo path:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md).  
@@ -415,7 +416,7 @@ Các giá trị gồm (tên chính xác xem `OrderStatus.java`):
 
 ### 12.2 Listing
 
-Trạng thái tin: `PUBLISHED`, `PENDING_INSPECTION`, `IN_TRANSACTION`, … — đối chiếu `ListingState.java` và [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md).
+Trạng thái tin: `PUBLISHED`, `PENDING_INSPECTION`, `IN_TRANSACTION`, … — đối chiếu `ListingState.java` và [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) / entity tương ứng.
 
 ### 12.3 `fulfillmentType`
 
@@ -559,8 +560,8 @@ curl -s -X POST http://localhost:8081/api/seller/listings/upload-images \
 |------|----------|
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | API, routes, env |
 | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Page → API |
-| [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) | Luồng màn hình |
-| [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md) | State machine |
+| [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng quan luồng & chức năng |
+| [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | Quy tắc trạng thái đơn / listing |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng quan nghiệp vụ |
 | [STRUCTURE.md](STRUCTURE.md) | Cấu trúc FE + ghi chú `src/main/java` |
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Chạy & API Node |

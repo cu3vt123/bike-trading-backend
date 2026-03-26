@@ -2,6 +2,8 @@
 
 Tài liệu **một chỗ** để sau khi lấy code về máy bạn **chạy được** API (Node hoặc Spring) kết hợp Frontend. Đọc kèm **[README.md](../README.md)** (mục clone/pull và biến `VITE_*`).
 
+**Không chỉ dev Backend?** PM / QA / FE có thể chỉ cần biết **cổng**, **URL Swagger**, và **cách báo lỗi có endpoint** — xem **[BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md)** (thuật ngữ + mẫu ticket).
+
 ---
 
 ## 1. Bước chung (luôn làm)
@@ -125,6 +127,7 @@ Chi tiết port, CORS, contract: [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE
 | File | Nội dung |
 |------|----------|
 | [README.md](../README.md) | Clone/pull, mục lục, FE chi tiết |
+| [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md) | PM/QA/FE: thuật ngữ, mẫu ticket, hỗ trợ BE |
 | [BACKEND-GUIDE.md](./BACKEND-GUIDE.md) | Node: cấu trúc, env, auth, VNPay |
 | [backend/README.md](../backend/README.md) | Quick start Node, endpoint tóm tắt |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) | Spring vs Node, checklist |
@@ -132,4 +135,4 @@ Chi tiết port, CORS, contract: [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE
 
 ---
 
-*Cập nhật: hướng dẫn full stack local sau clone/pull; đồng bộ README gốc.*
+*Cập nhật: full stack local; liên kết [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md) cho vai trò không chuyên BE.*

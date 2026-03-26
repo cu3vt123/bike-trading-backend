@@ -250,6 +250,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **Rà soát API BE–FE** | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Theo endpoint / theo màn hình |
 | **Spring port** | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Map endpoint Node → Spring |
 | **Cài đặt backend sau clone/pull** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Node vs Spring, cổng, sau `git pull` |
+| **PM / QA / FE + Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ chung, mẫu báo bug, ai đọc gì |
 | **ERD / SQL** | [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | Schema DB |
 | **Business rules** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ |
 | **Testing (SWT301)** | [docs/testing/README.md](docs/testing/README.md) | Báo cáo, test case |
@@ -269,7 +270,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 **Ngày 2 — API & luồng nghiệp vụ**
 
 1. [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md)  
-2. [docs/SCREEN_FLOW_BY_ACTOR.md](docs/SCREEN_FLOW_BY_ACTOR.md) hoặc [docs/PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) (tổng quan).
+2. [docs/PROJECT-SUMMARY.md](docs/PROJECT-SUMMARY.md) (tổng quan nghiệp vụ & luồng).
 
 **Ngày 3 — Kiến trúc V2 & chỉnh sửa an toàn**
 

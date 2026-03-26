@@ -8,6 +8,15 @@ Tài liệu dành cho dev/backend port (Spring Boot xem thêm [BACKEND-NODE-TO-S
 **Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, env.  
 **Frontend gọi API:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) — tầng `apiClient` / `apis` / `services`, luồng checkout & upload ảnh.
 
+### Đối tượng đọc (không chỉ BE)
+
+| Ai | Đọc phần nào | Ghi chú |
+|----|----------------|---------|
+| **Dev Backend (Node)** | Toàn bộ file | Code trong `backend/src/`. |
+| **QA / PM** | §0, §4 env, §5–6 auth, §10 kiểm tra `curl` | Không cần sửa code; cần **path + status** khi báo bug — mẫu: [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md). |
+| **Frontend** | §1 vị trí file + [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Đối chiếu khi BE đổi contract. |
+| **Người onboard nhanh** | [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md) trước, rồi quay lại đây | |
+
 ---
 
 ## 0. Checklist ngay sau khi lấy code về
@@ -218,7 +227,8 @@ Dùng `accessToken` trả về cho các request `/api/buyer/*`, `/api/vietqr/*`,
 | [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md) | Clone/pull, Node vs Spring, xử lý cổng trùng |
 | [README.md](../README.md) | Cài đặt monorepo, bảng kịch bản A/B/C |
 | [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) | Tham chiếu nhanh: API, thuật ngữ, env, vị trí file |
-| [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md) | Yêu cầu người dùng / stakeholder |
+| [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) | Tổng quan dự án, BR tóm tắt |
+| [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md) | PM/QA/FE: làm việc chung với BE |
 | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) | Business rules + luồng FE |
 | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) §2.7 | VietQR (đồ án) |
 | [PAYMENTS-VNPAY.md](./PAYMENTS-VNPAY.md) | VNPay gói & initiate |

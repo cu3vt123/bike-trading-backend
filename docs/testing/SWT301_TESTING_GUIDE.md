@@ -325,7 +325,7 @@ Mục này bổ sung **kịch bản nói gợi ý** đi kèm **thao tác** — b
 
 ### 6.4. Kết thúc (~30 giây) — gợi ý lời nói
 
-> “Tóm lại em đã demo đúng các luồng chính theo **USER-REQUIREMENTS**, có **bảng test case và defect** để truy vết. Em sẵn sàng trả lời thêm về API hoặc cấu hình. Cảm ơn thầy cô.”
+> “Tóm lại em đã demo đúng các luồng chính theo **business rules / test case**, có **bảng test case và defect** để truy vết. Em sẵn sàng trả lời thêm về API hoặc cấu hình. Cảm ơn thầy cô.”
 
 ### 6.5. Mẹo
 

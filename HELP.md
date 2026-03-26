@@ -10,6 +10,7 @@
 |-----|------|------------|
 | **Chạy BE + FE, env, sự cố, bản đồ docs** | [README.md](README.md) | Luôn — điểm vào dự án |
 | **Mục lục `docs/`, lộ trình học 3 cấp** | [docs/README.md](docs/README.md) | Chọn đúng file theo tác vụ |
+| **PM / QA / FE làm việc với Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu báo bug, không cần dạy lại BE |
 | **Tra cứu API, role, routes, env** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | Khi code hoặc debug API |
 | **Kiến trúc FE V1 vs V2** (Query, invalidate) | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Sau khi đọc STRUCTURE |
 | **Luồng code → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | Tìm đúng chỗ gọi axios/service |

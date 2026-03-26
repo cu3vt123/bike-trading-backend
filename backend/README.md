@@ -2,6 +2,8 @@
 
 Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppingCartBE`.
 
+**Bạn không sửa code backend?** Đọc **[docs/BACKEND-COLLABORATION.md](../docs/BACKEND-COLLABORATION.md)** — thuật ngữ chung (API, JWT, CORS), mẫu báo bug, và việc QA/PM/FE có thể giúp BE **mà không cần dạy lại từ đầu**.
+
 ### Tài liệu hướng dẫn (đọc trước khi sửa code)
 
 | Tài liệu | Nội dung |
@@ -9,10 +11,11 @@ Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppi
 | **[README.md](../README.md)** (root repo) | **Monorepo:** chạy Spring + **Frontend** Vite, biến `VITE_*`, mock/API, lint/build — đọc trước khi chỉ làm FE. |
 | **[docs/README.md](../docs/README.md)** | Mục lục toàn bộ tài liệu `docs/` (FE, BE, ERD, UR, …). |
 | **[docs/BACKEND-GUIDE.md](../docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc thư mục, Mongo, env, auth, thêm API, VNPAY Sandbox, kiểm tra nhanh |
-| [docs/USER-REQUIREMENTS.md](../docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR) — đối chiếu chức năng |
+| [docs/PROJECT-SUMMARY.md](../docs/PROJECT-SUMMARY.md) | Tổng quan chức năng & nghiệp vụ |
 | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port flow Express → Spring Boot |
 | **[docs/BACKEND-LOCAL-SETUP.md](../docs/BACKEND-LOCAL-SETUP.md)** | **Sau clone/pull:** chạy FE + Node hoặc FE + Spring, cổng, `git pull` |
-| `docs/ERD-MYSQL.md`, `docs/SCREEN_FLOW_BY_ACTOR.md` | Thiết kế DB MySQL, luồng màn hình |
+| **[docs/BACKEND-COLLABORATION.md](../docs/BACKEND-COLLABORATION.md)** | **PM / QA / FE:** làm việc chung với BE, thuật ngữ, mẫu ticket |
+| `docs/ERD-MYSQL.md`, `docs/PROJECT-SUMMARY.md` | Thiết kế DB MySQL, tổng quan luồng |
 
 ---
 

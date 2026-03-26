@@ -4,6 +4,24 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-26] Docs — BACKEND-COLLABORATION (PM/QA/FE + BE)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`docs/BACKEND-COLLABORATION.md`** | **Mới:** bảng đọc theo vai (PM/QA/FE/BE), thuật ngữ tối thiểu, mẫu ticket, việc không phải BE vẫn giúp được, link cố định; giảm phải “dạy lại” BE. |
+| **Liên kết** | `README.md`, `docs/README.md`, `BACKEND-LOCAL-SETUP.md`, `BACKEND-GUIDE.md`, `BACKEND-NODE-TO-SPRING-BOOT.md` §1, `backend/README.md` — trỏ tới file mới. |
+
+---
+
+## [2026-03-26] Docs — Xóa 4 file spec (UR, screen flow, state diagram)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Đã xóa** | `docs/USER-REQUIREMENTS.md`, `docs/SCREEN_FLOW_BY_ACTOR.md`, `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md`, `docs/STATE-CHART-HUONG-DAN.md` |
+| **Cập nhật link** | `docs/README.md`, `README.md`, `PROJECT-SUMMARY.md`, `QUICK-REFERENCE.md`, `BACKEND-GUIDE.md`, `BACKEND-NODE-TO-SPRING-BOOT.md`, `FRONTEND-API-FLOWS.md`, `backend/README.md`, `UI-UX-AUDIT-BY-ACTOR.md`, `testing/SWT301_TESTING_GUIDE.md` — tham chiếu thay bằng [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md), [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md), audit API/UI. |
+
+---
+
 ## [2026-03-26] Docs — Backend local + README clone/pull
 
 | Thay đổi | Chi tiết |

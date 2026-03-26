@@ -61,6 +61,7 @@
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
 | **Cài đặt sau clone/pull — Node + Spring + FE** | **[BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md)** | Một bài đọc: đủ bước để chạy local. |
+| **PM / QA / FE làm việc với BE** | **[BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md)** | Thuật ngữ, mẫu báo bug, ai đọc file nào — không cần dạy lại BE. |
 | Chuyển giao Node → Spring, map endpoint | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | JWT, business rules, checklist. |
 | Backend Node (demo / đối chiếu) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Cấu trúc code, env, auth, VNPay. |
 | Rà soát API BE–FE (theo khu vực / endpoint) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Bảng method/path. |
@@ -73,11 +74,8 @@
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
 | Business rules đầy đủ | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md), [business-rules/README.md](business-rules/README.md) | Source of truth + script Excel. |
-| Yêu cầu người dùng (UR) | [USER-REQUIREMENTS.md](USER-REQUIREMENTS.md) | Spec người dùng. |
-| Tổng quan dự án | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Chức năng, stack, tóm tắt BR. |
-| Luồng màn hình theo vai | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) | Ai làm gì ở màn nào. |
-| UI/UX audit theo actor | [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md) | Đánh giá UX. |
-| State order/listing (Mermaid) | [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md), [STATE-CHART-HUONG-DAN.md](STATE-CHART-HUONG-DAN.md) | Sơ đồ trạng thái. |
+| Tổng quan dự án | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Chức năng, stack, luồng tóm tắt, BR. |
+| UI/UX audit theo actor | [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md) | Đánh giá UX; bổ sung cho audit API theo page. |
 | ERD / MySQL / đặc tả cột | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md), [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | DB & vẽ ERD. |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | Luồng thanh toán. |
 
@@ -110,14 +108,11 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | So sánh V1/V2 + hướng dẫn thực hành |
 | [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi docs/code |
 | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết |
-| [USER-REQUIREMENTS.md](USER-REQUIREMENTS.md) | UR |
-| [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) | Screen flow |
 | [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md) | Audit UI |
-| [STATE_TRANSITION_DIAGRAM_GUIDE.md](STATE_TRANSITION_DIAGRAM_GUIDE.md) | State diagram |
-| [STATE-CHART-HUONG-DAN.md](STATE-CHART-HUONG-DAN.md) | Hướng dẫn state chart |
 | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Audit theo endpoint |
 | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Audit theo page |
 | [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Clone/pull, chạy Node hoặc Spring + FE |
+| [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | PM/QA/FE hỗ trợ BE, thuật ngữ, mẫu ticket |
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node backend |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Port Spring |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready checklist |
