@@ -1,33 +1,18 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Heart, Bike } from "lucide-react";
 import { useWishlistStore } from "@/stores/useWishlistStore";
-import { fetchListingById } from "@/services/buyerService";
+import { useWishlistListingsQuery } from "@/hooks/queries/useWishlistListingsQuery";
 import ListingCard from "@/components/listing/ListingCard";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { BikeDetail } from "@/types/shopbike";
 
 export default function WishlistPage() {
   const { t } = useTranslation();
   const idsStr = useWishlistStore((s) => Array.from(s.ids).sort().join(","));
   const ids = idsStr ? idsStr.split(",").filter(Boolean) : [];
-  const [listings, setListings] = useState<BikeDetail[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (ids.length === 0) {
-      setListings([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    Promise.all(ids.map((id) => fetchListingById(id)))
-      .then((results) => results.filter((x): x is BikeDetail => x != null))
-      .then(setListings)
-      .finally(() => setLoading(false));
-  }, [idsStr]);
+  const { listings, loading } = useWishlistListingsQuery(ids);
 
   if (ids.length === 0) {
     return (
@@ -60,9 +45,8 @@ export default function WishlistPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">{t("wishlist.loading")}</p>
+        <div className="py-16">
+          <BicycleLoadingBlock message={t("wishlist.loading")} size="md" />
         </div>
       ) : listings.length === 0 ? (
         <Card>

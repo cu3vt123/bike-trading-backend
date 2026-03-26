@@ -4,11 +4,14 @@ import { useTranslation } from "react-i18next";
 const LOGO_SRC = "/logo.png";
 const LOGO_ALT = "ShopBike";
 
-type LogoVariant = "header" | "headerStacked" | "hero" | "heroBar" | "auth";
+type LogoVariant = "header" | "headerCenter" | "headerStacked" | "hero" | "heroBar" | "auth";
 
 const variantClasses: Record<LogoVariant, string> = {
   header:
-    "h-9 w-auto max-w-[140px] object-contain object-left drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] sm:h-10 sm:max-w-[160px]",
+    "h-7 w-auto max-w-[108px] object-contain object-left drop-shadow-[0_1px_4px_rgba(0,0,0,0.2)] sm:h-8 sm:max-w-[128px]",
+  /** Giữa thanh nav: canh giữa — Hỗ trợ | Logo | Danh sách xe (vừa chiều cao header gọn) */
+  headerCenter:
+    "h-9 w-auto max-w-[160px] object-contain object-center drop-shadow-[0_1px_6px_rgba(0,0,0,0.22)] sm:h-11 sm:max-w-[200px] md:h-12 md:max-w-[220px] lg:h-[3.35rem] lg:max-w-[240px]",
   /** Header stacked: chỉ ảnh logo to gấp ~3 lần (không chữ ShopBike), chữ xác minh ở dưới */
   headerStacked:
     "h-16 w-auto max-w-[180px] object-contain object-center dark:mix-blend-screen sm:h-20 sm:max-w-[220px] md:h-24 md:max-w-[280px]",
@@ -19,6 +22,8 @@ const variantClasses: Record<LogoVariant, string> = {
 
 const fallbackClasses: Record<LogoVariant, string> = {
   header: "flex h-10 w-10 min-w-[2.5rem] items-center justify-center rounded-2xl bg-primary text-primary-foreground text-lg font-bold",
+  headerCenter:
+    "flex h-12 w-12 min-w-[3rem] items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold sm:h-14 sm:w-14 sm:min-w-[3.5rem] sm:text-2xl md:h-[3.35rem] md:w-[3.35rem] md:min-w-[3.35rem] md:text-3xl",
   headerStacked: "flex h-16 w-16 min-w-[4rem] items-center justify-center rounded-2xl bg-primary text-primary-foreground text-3xl font-bold sm:h-20 sm:w-20 md:h-24 md:w-24 md:text-4xl",
   hero: "flex h-28 w-28 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-4xl font-bold sm:h-32 sm:w-32 sm:text-5xl md:h-40 md:w-40 md:text-6xl",
   heroBar: "flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-xl bg-primary text-primary-foreground text-sm font-bold md:h-9 md:min-w-[2.25rem]",

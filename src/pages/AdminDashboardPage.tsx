@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   fetchAdminStats,
@@ -44,6 +45,12 @@ import { fetchAdminReviews, adminUpdateReview } from "@/services/reviewService";
 import type { Listing } from "@/types/shopbike";
 import type { Review } from "@/types/review";
 import type { AdminUser } from "@/apis/adminApi";
+import {
+  DEFAULT_PACKAGE_PRICES,
+  loadPackagePriceOverrides,
+  savePackagePriceOverrides,
+} from "@/lib/packagePriceOverrides";
+import { BicycleLoader } from "@/components/common/BicycleLoader";
 
 const TABS = [
   { id: "warehouse" as const, key: "admin.tabWarehouse", icon: Package },
@@ -143,6 +150,10 @@ export default function AdminDashboardPage() {
   const [sellerSubsLoading, setSellerSubsLoading] = useState(false);
   const [sellerSubsSearch, setSellerSubsSearch] = useState("");
   const [revokingSellerId, setRevokingSellerId] = useState<string | null>(null);
+  const [packageBasicVnd, setPackageBasicVnd] = useState(String(DEFAULT_PACKAGE_PRICES.BASIC));
+  const [packageVipVnd, setPackageVipVnd] = useState(String(DEFAULT_PACKAGE_PRICES.VIP));
+  const [packagePricesError, setPackagePricesError] = useState<string | null>(null);
+  const [packagePricesSaved, setPackagePricesSaved] = useState(false);
 
   const loadStats = useCallback(() => {
     fetchAdminStats().then(setStats).catch(() => setStats(null));
@@ -246,6 +257,29 @@ export default function AdminDashboardPage() {
     }, 350);
     return () => window.clearTimeout(timer);
   }, [activeTab, sellerSubsSearch, loadSellerSubs]);
+
+  useEffect(() => {
+    if (activeTab !== "transactions") return;
+    const o = loadPackagePriceOverrides();
+    const d = DEFAULT_PACKAGE_PRICES;
+    setPackageBasicVnd(String(o?.BASIC ?? d.BASIC));
+    setPackageVipVnd(String(o?.VIP ?? d.VIP));
+    setPackagePricesError(null);
+    setPackagePricesSaved(false);
+  }, [activeTab]);
+
+  const handleSavePackagePrices = useCallback(() => {
+    setPackagePricesError(null);
+    const b = Number(String(packageBasicVnd).replace(/\s/g, "").replace(/\D/g, ""));
+    const v = Number(String(packageVipVnd).replace(/\s/g, "").replace(/\D/g, ""));
+    if (!Number.isFinite(b) || b < 0 || !Number.isFinite(v) || v < 0) {
+      setPackagePricesError(t("admin.packagePricesInvalid"));
+      return;
+    }
+    savePackagePriceOverrides({ BASIC: Math.round(b), VIP: Math.round(v) });
+    setPackagePricesSaved(true);
+    window.setTimeout(() => setPackagePricesSaved(false), 2500);
+  }, [packageBasicVnd, packageVipVnd, t]);
 
   async function handleRevokeSellerPackage(userId: string) {
     if (!window.confirm(t("admin.sellerPackagesRevokeConfirm"))) {
@@ -446,7 +480,7 @@ export default function AdminDashboardPage() {
               <CardContent>
                 {loading ? (
                   <div className="flex justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <BicycleLoader size="sm" />
                   </div>
                 ) : intakeListings.length === 0 && warehousePendingOrders.length === 0 && warehouseCertifiedOrders.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
@@ -631,7 +665,7 @@ export default function AdminDashboardPage() {
                 ) : null}
                 {inspectionLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <BicycleLoader size="sm" />
                   </div>
                 ) : inspectionListings.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">{t("admin.inspectionEmpty")}</p>
@@ -677,7 +711,7 @@ export default function AdminDashboardPage() {
               <CardContent>
                 {usersLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <BicycleLoader size="sm" />
                   </div>
                 ) : adminUsers.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">{t("admin.noUsers")}</p>
@@ -771,7 +805,7 @@ export default function AdminDashboardPage() {
               <CardContent>
                 {sellerSubsLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <BicycleLoader size="sm" />
                   </div>
                 ) : sellerSubs.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
@@ -871,7 +905,7 @@ export default function AdminDashboardPage() {
               <CardContent className="space-y-4">
                 {listingsLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <BicycleLoader size="sm" />
                   </div>
                 ) : adminListings.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
@@ -1261,7 +1295,7 @@ export default function AdminDashboardPage() {
                   </div>
                   {brandsLoading ? (
                     <div className="mt-3 flex justify-center py-4">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      <BicycleLoader size="sm" className="scale-90" />
                     </div>
                   ) : brands.length === 0 ? (
                     <p className="mt-3 text-sm text-muted-foreground">{t("admin.brandsEmpty")}</p>
@@ -1321,6 +1355,76 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {t("admin.packagePricesTitle")}
+                    </h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t("admin.packagePricesDesc")}
+                    </p>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="admin-pkg-basic" className="text-xs font-medium">
+                          {t("admin.packagePricesBasic")}
+                        </Label>
+                        <Input
+                          id="admin-pkg-basic"
+                          inputMode="numeric"
+                          value={packageBasicVnd}
+                          onChange={(e) => setPackageBasicVnd(e.target.value)}
+                          className="font-mono text-sm"
+                          placeholder={String(DEFAULT_PACKAGE_PRICES.BASIC)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="admin-pkg-vip" className="text-xs font-medium">
+                          {t("admin.packagePricesVip")}
+                        </Label>
+                        <Input
+                          id="admin-pkg-vip"
+                          inputMode="numeric"
+                          value={packageVipVnd}
+                          onChange={(e) => setPackageVipVnd(e.target.value)}
+                          className="font-mono text-sm"
+                          placeholder={String(DEFAULT_PACKAGE_PRICES.VIP)}
+                        />
+                      </div>
+                    </div>
+                    {packagePricesError ? (
+                      <p className="mt-2 text-xs text-destructive" role="alert">
+                        {packagePricesError}
+                      </p>
+                    ) : null}
+                    {packagePricesSaved ? (
+                      <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        {t("admin.packagePricesSaved")}
+                      </p>
+                    ) : null}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button type="button" size="sm" onClick={handleSavePackagePrices}>
+                        {t("admin.packagePricesSave")}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setPackageBasicVnd(String(DEFAULT_PACKAGE_PRICES.BASIC));
+                          setPackageVipVnd(String(DEFAULT_PACKAGE_PRICES.VIP));
+                          savePackagePriceOverrides({
+                            BASIC: DEFAULT_PACKAGE_PRICES.BASIC,
+                            VIP: DEFAULT_PACKAGE_PRICES.VIP,
+                          });
+                          setPackagePricesError(null);
+                          setPackagePricesSaved(true);
+                          window.setTimeout(() => setPackagePricesSaved(false), 2500);
+                        }}
+                      >
+                        {t("admin.packagePricesReset")}
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="rounded-lg border border-border bg-card p-4">
                     <div className="mb-3 flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-foreground">

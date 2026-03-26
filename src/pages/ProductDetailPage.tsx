@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
 import type { BikeDetail, BikeCondition } from "@/types/shopbike";
 import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
-import { fetchListingById } from "@/services/buyerService";
-import { fetchListingByIdForInspector } from "@/services/inspectorService";
+import { useListingDetailQuery } from "@/hooks/queries/useListingDetailQuery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 const INSPECTION_ROW_KEYS = {
   frameIntegrity: "listing.inspectionFrameIntegrity",
   drivetrainHealth: "listing.inspectionDrivetrain",
@@ -66,52 +66,15 @@ export default function ProductDetailPage() {
   const fromState = (location.state as NavState | null)?.listing;
   const role = useAuthStore((s) => s.role);
 
-  const [listing, setListing] = useState<BikeDetail | null>(
-    fromState && String(fromState.id) === String(id) ? fromState : null,
-  );
-  const [loading, setLoading] = useState(!fromState || String(fromState.id) !== String(id));
-  const [error, setError] = useState<string | null>(null);
+  const {
+    listing: listingFromQuery,
+    loading,
+    error: queryErr,
+  } = useListingDetailQuery(id, role, { fromStateListing: fromState ?? undefined });
 
-  useEffect(() => {
-    const stateMatch = fromState && String(fromState.id) === String(id);
-    if (stateMatch) {
-      setListing(fromState!);
-      setLoading(false);
-      return;
-    }
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    (async () => {
-      try {
-        let data: BikeDetail | null = null;
-        if (role === "INSPECTOR" || role === "ADMIN") {
-          data = await fetchListingByIdForInspector(id);
-        }
-        if (!data) {
-          data = await fetchListingById(id);
-        }
-        // Tin chờ duyệt không có trên GET /bikes/:id — thử inspector khi đã đăng nhập (tránh race khi role chưa hydrate)
-        if (!data && useAuthStore.getState().accessToken) {
-          data = await fetchListingByIdForInspector(id);
-        }
-        if (cancelled) return;
-        if (!data) setError(t("listing.loadError"));
-        else setListing(data);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : t("listing.loadError"));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, role, t]);
+  const listing = listingFromQuery;
+  const error =
+    queryErr || (!loading && !listing ? t("listing.loadError") : null);
 
   const images = useMemo(() => {
     const arr =
@@ -144,9 +107,8 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 py-28">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm font-medium text-muted-foreground">{t("listing.loading")}</p>
+      <div className="mx-auto max-w-6xl py-28">
+        <BicycleLoadingBlock message={t("listing.loading")} size="lg" />
       </div>
     );
   }

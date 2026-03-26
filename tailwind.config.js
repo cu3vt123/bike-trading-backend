@@ -79,7 +79,16 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+  		keyframes: {
+  			'bicycle-glide': {
+  				'0%, 100%': { transform: 'translateX(0)' },
+  				'50%': { transform: 'translateX(0.3rem)' },
+  			},
+  		},
+  		animation: {
+  			'bicycle-glide': 'bicycle-glide 1.35s ease-in-out infinite',
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],

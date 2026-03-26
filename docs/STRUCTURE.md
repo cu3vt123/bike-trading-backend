@@ -21,6 +21,7 @@ src/
 │   └── providers/
 │       ├── index.ts
 │       ├── RouterProvider.tsx
+│       ├── QueryClientProvider.tsx  # TanStack Query
 │       └── ThemeProvider.tsx   # Dark/light mode, class "dark" trên html
 │
 ├── features/              # Theo từng tính năng
@@ -43,8 +44,11 @@ src/
 │
 ├── lib/                   # Utils, config
 │   ├── env.ts             # env.API_URL, env.USE_MOCK_API
-│   ├── apiClient.ts       # Axios + Bearer + 401; FormData → bỏ Content-Type
-│   ├── apiConfig.ts       # API_BASE_URL, API_PATHS (**BUYER.ORDERS_***, **SELLER.ORDERS**, **ADMIN** warehouse / re-inspection), USE_MOCK_API
+│   ├── queryClient.ts     # QueryClient (staleTime, retry)
+│   ├── queryKeys.ts       # queryKeys.* — invalidate thống nhất
+│   ├── authSchemas.ts     # Zod + i18n cho form auth
+│   ├── apiClient.ts       # Axios + Bearer; 401 → refresh /retry hoặc clearTokens; FormData → bỏ Content-Type
+│   ├── apiConfig.ts       # API_BASE_URL, API_PATHS (**AUTH.REFRESH**, **BUYER.ORDERS_***, …), USE_MOCK_API
 │   ├── apiErrors.ts       # getApiErrorMessage (đọc { message } từ BE)
 │   ├── orderOverrides.ts  # Ghi đè trạng thái đơn cục bộ (demo / debug UI)
 │   ├── listingSnapshotFromOrder.ts  # Lấy snapshot listing từ object order (hiển thị)
@@ -55,8 +59,13 @@ src/
 │   ├── vi.json            # Tiếng Việt
 │   └── en.json            # English
 │
+├── hooks/
+│   ├── queries/           # useListingDetailQuery, useBuyerListingQuery, useSellerDashboardQueries, …
+│   ├── useAuthMutations.ts
+│   ├── useListingsQuery.ts
+│   └── useLogout.ts       # clearTokens + queryClient.removeQueries
 ├── apis/                  # Gọi apiClient + API_PATHS (xem bảng **Luồng Order** bên dưới)
-├── services/              # buyerService, sellerService, reviewService; mock & fallback; xem docs/FRONTEND-API-FLOWS.md
+├── services/              # buyerService, sellerService, listingDetailService, reviewService; mock & fallback; xem docs/FRONTEND-API-FLOWS.md
 ├── pages/                 # (giữ tạm) Các page – features re-export từ đây
 ├── components/            # (giữ tạm) Header, ListingCard, ui
 ├── layouts/               # (giữ tạm) MainLayout
@@ -101,3 +110,19 @@ import { HomePage } from "@/features/landing";
 import { GuestRoute, RequireAuth } from "@/shared/components/common";
 import { env } from "@/lib/env";
 ```
+
+---
+
+## Quy trình gợi ý cho dev
+
+1. **Tìm route:** `src/app/router.tsx` (hoặc `src/routes/AppRouter.tsx` tùy nhánh) — xem path → component.
+2. **Tìm API:** `src/lib/apiConfig.ts` (`API_PATHS`) → `src/apis/*.ts` → `src/services/*.ts`.
+3. **Tìm server state:** `src/hooks/queries/` + `src/lib/queryKeys.ts` — sau mutation nhớ `invalidateQueries`.
+4. **Tìm UI dùng chung:** `src/components/ui/`, `src/shared/components/layouts/`.
+5. **i18n:** `src/locales/vi.json`, `en.json` — key theo namespace từng feature.
+
+**Đọc thêm:** [README.md](../README.md) (onboard), [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) §7 (thực hành Query).
+
+---
+
+*Cập nhật: đồng bộ với README gốc và hướng dẫn kiến trúc V2.*

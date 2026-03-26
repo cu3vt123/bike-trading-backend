@@ -18,8 +18,11 @@
 
 ## 1. Mục đích & đọc kèm
 
+**Trước khi đọc sâu:** chạy được dự án theo [README.md](../README.md) (`.env`, `npm run dev`) để có thể đối chiếu code thật với các mục §5–§7.
+
 | Nhu cầu | Tài liệu |
 |---------|----------|
+| Chạy FE/BE, env, xử lý sự cố | [README.md](../README.md) |
 | Bảng path API, env, thuật ngữ | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
 | Từng **trang** gọi API nào | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Contract BE (Node/Spring) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |

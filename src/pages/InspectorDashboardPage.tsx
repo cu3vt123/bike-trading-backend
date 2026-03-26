@@ -1,23 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { queryKeys } from "@/lib/queryKeys";
 import {
-  fetchPendingListings,
-  approveListing,
-  rejectListing,
-  needUpdateListing,
-} from "@/services/inspectorService";
+  useInspectorPendingQuery,
+  useInspectorReInspectionQuery,
+  useInspectorWarehouseReQuery,
+} from "@/hooks/queries/useInspectorQueries";
+import { approveListing, rejectListing, needUpdateListing } from "@/services/inspectorService";
 import {
-  fetchReInspectionOrders,
   submitReInspectionDone,
   confirmWarehouseReInspectionListing,
 } from "@/services/adminService";
-import { fetchWarehouseReInspectionListings } from "@/services/inspectorService";
 import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { BicycleLoader, BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -61,9 +62,28 @@ function formatMoney(value: number, currency = "VND") {
 
 export default function InspectorDashboardPage() {
   const { t } = useTranslation();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const pendingQ = useInspectorPendingQuery();
+  const reQ = useInspectorReInspectionQuery();
+  const warehouseQ = useInspectorWarehouseReQuery();
+
+  const listings = pendingQ.data ?? [];
+  const loading = pendingQ.isPending;
+  const error = pendingQ.isError
+    ? pendingQ.error instanceof Error
+      ? pendingQ.error.message
+      : t("inspector.loadError")
+    : null;
+
+  const reInspectionOrders = reQ.data ?? [];
+  const reInspectionLoading = reQ.isPending;
+  const warehouseReInspectionListings = warehouseQ.data ?? [];
+  const warehouseReInspectionLoading = warehouseQ.isPending;
+
+  const loadListings = () => void pendingQ.refetch();
+  const loadReInspection = () => void reQ.refetch();
+  const loadWarehouseReInspection = () => void warehouseQ.refetch();
+
   const [actionTarget, setActionTarget] = useState<{ id: string; action: "approve" | "reject" | "needUpdate" } | null>(null);
   const [needUpdateReason, setNeedUpdateReason] = useState("");
   const [inspectionReport, setInspectionReport] = useState<InspectionReport>({
@@ -73,51 +93,10 @@ export default function InspectorDashboardPage() {
   });
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [reInspectionOrders, setReInspectionOrders] = useState<{ id: string; listingId: string; listing?: { brand?: string; model?: string }; status: string }[]>([]);
-  const [reInspectionLoading, setReInspectionLoading] = useState(false);
   const [reInspectionSubmittingId, setReInspectionSubmittingId] = useState<string | null>(null);
-  const [warehouseReInspectionListings, setWarehouseReInspectionListings] = useState<Listing[]>([]);
-  const [warehouseReInspectionLoading, setWarehouseReInspectionLoading] = useState(false);
   const [warehouseReInspectionSubmittingId, setWarehouseReInspectionSubmittingId] = useState<string | null>(null);
   const [warehouseNeedUpdateListingId, setWarehouseNeedUpdateListingId] = useState<string | null>(null);
   const [warehouseNeedUpdateReason, setWarehouseNeedUpdateReason] = useState("");
-
-  const loadReInspection = useCallback(() => {
-    setReInspectionLoading(true);
-    fetchReInspectionOrders()
-      .then(setReInspectionOrders)
-      .catch(() => setReInspectionOrders([]))
-      .finally(() => setReInspectionLoading(false));
-  }, []);
-
-  const loadWarehouseReInspection = useCallback(() => {
-    setWarehouseReInspectionLoading(true);
-    fetchWarehouseReInspectionListings()
-      .then(setWarehouseReInspectionListings)
-      .catch(() => setWarehouseReInspectionListings([]))
-      .finally(() => setWarehouseReInspectionLoading(false));
-  }, []);
-
-  const loadListings = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    fetchPendingListings()
-      .then(setListings)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : t("inspector.loadError")),
-      )
-      .finally(() => setLoading(false));
-  }, [t]);
-
-  useEffect(() => {
-    loadListings();
-  }, [loadListings]);
-  useEffect(() => {
-    loadReInspection();
-  }, [loadReInspection]);
-  useEffect(() => {
-    loadWarehouseReInspection();
-  }, [loadWarehouseReInspection]);
   useEffect(() => {
     if (actionTarget?.action === "approve") {
       const defaultKey = "listing.scoreGood";
@@ -155,7 +134,8 @@ export default function InspectorDashboardPage() {
         }
         await needUpdateListing(id, needUpdateReason.trim());
       }
-      setListings((prev) => prev.filter((l) => l.id !== id));
+      await queryClient.invalidateQueries({ queryKey: queryKeys.inspector.pending });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.listings });
       setActionTarget(null);
       setNeedUpdateReason("");
     } catch (err) {
@@ -191,9 +171,8 @@ export default function InspectorDashboardPage() {
       )}
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">{t("inspector.loading")}</p>
+        <div className="py-24">
+          <BicycleLoadingBlock message={t("inspector.loading")} size="md" />
         </div>
       ) : (
         <>
@@ -290,7 +269,7 @@ export default function InspectorDashboardPage() {
               </p>
               {warehouseReInspectionLoading ? (
                 <div className="flex justify-center py-6">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <BicycleLoader size="sm" />
                 </div>
               ) : warehouseReInspectionListings.length === 0 ? (
                 <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
@@ -333,7 +312,9 @@ export default function InspectorDashboardPage() {
                                       action: "need_update",
                                       reason: warehouseNeedUpdateReason,
                                     });
-                                    setWarehouseReInspectionListings((prev) => prev.filter((l) => l.id !== listing.id));
+                                    await queryClient.invalidateQueries({
+                                      queryKey: queryKeys.inspector.warehouseRe,
+                                    });
                                     setWarehouseNeedUpdateListingId(null);
                                     setWarehouseNeedUpdateReason("");
                                   } finally {
@@ -375,7 +356,9 @@ export default function InspectorDashboardPage() {
                               setWarehouseReInspectionSubmittingId(listing.id);
                               try {
                                 await confirmWarehouseReInspectionListing(listing.id, { action: "approve" });
-                                setWarehouseReInspectionListings((prev) => prev.filter((l) => l.id !== listing.id));
+                                await queryClient.invalidateQueries({
+                                  queryKey: queryKeys.inspector.warehouseRe,
+                                });
                               } finally {
                                 setWarehouseReInspectionSubmittingId(null);
                               }
@@ -420,7 +403,7 @@ export default function InspectorDashboardPage() {
               </p>
               {reInspectionLoading ? (
                 <div className="flex justify-center py-6">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <BicycleLoader size="sm" />
                 </div>
               ) : reInspectionOrders.length === 0 ? (
                 <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
@@ -444,8 +427,10 @@ export default function InspectorDashboardPage() {
                         onClick={async () => {
                           setReInspectionSubmittingId(order.id);
                           try {
-                            const updated = await submitReInspectionDone(order.id);
-                            setReInspectionOrders((prev) => prev.filter((o) => o.id !== updated.id));
+                            await submitReInspectionDone(order.id);
+                            await queryClient.invalidateQueries({
+                              queryKey: queryKeys.inspector.reInspection,
+                            });
                           } finally {
                             setReInspectionSubmittingId(null);
                           }

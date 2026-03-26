@@ -2,6 +2,8 @@
 
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
 
+**Cách đọc tài liệu này:** Đây là **bản tổng hợp dài** — dùng khi cần **bức tranh toàn cục** (chức năng, role, stack). Để **chạy dự án** hoặc **sửa code hàng ngày**, ưu tiên [README.md](../README.md) → [STRUCTURE.md](STRUCTURE.md) → [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md). Chi tiết quy tắc nghiệp vụ đầy đủ: [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md).
+
 **Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, luồng→API.  
 **Luồng gọi API trên FE:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) — `apiClient`, `apis`, `services`, VNPay, upload ảnh.  
 **Tham chiếu:** [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md).

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   createListing,
   updateListing,
   publishListing,
-  fetchListingById,
   uploadListingImages,
 } from "@/services/sellerService";
+import { useSellerListingEditorQuery } from "@/hooks/queries/useSellerListingEditorQuery";
 import { isAxiosError } from "axios";
 import { getApiErrorMessage } from "@/lib/apiErrors";
 import { brandsApi } from "@/apis/brandsApi";
@@ -82,6 +83,7 @@ type PhotoSlot = { file?: File; url: string } | null;
 
 export default function SellerListingEditorPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -138,52 +140,61 @@ export default function SellerListingEditorPage() {
       .catch(() => { /* keep fallback */ });
   }, []);
   const listingId = id ?? savedId ?? "";
+  const listingQuery = useSellerListingEditorQuery(listingId || undefined);
 
   useEffect(() => {
     if (!listingId) return;
     setError(null);
-    fetchListingById(listingId)
-      .then((listing) => {
-        if (listing) {
-          setTitle(listing.title ?? "");
-          setBrand(listing.brand ?? "");
-          setModel(listing.model ?? "");
-          const yStr = listing.year != null ? String(listing.year) : "";
-          setYear(yStr);
-          setYearError(yStr ? validateYearField(yStr, t, "submit") : null);
-          setFrameSize(listing.frameSize ?? "");
-          setPrice(String(listing.price ?? ""));
-          setLocation(listing.location ?? "");
-          setCondition((listing.condition as Condition) ?? "MINT_USED");
-          if (listing.state === "PENDING_INSPECTION") setStep("PENDING_INSPECTION");
-          else setStep("DRAFT");
-          const reason = (listing as { inspectionNeedUpdateReason?: string }).inspectionNeedUpdateReason;
-          if (typeof reason === "string" && reason.trim()) {
-            setNeedUpdateReason(reason.trim());
-          }
-          const urls = Array.isArray(listing.imageUrls) ? listing.imageUrls : [];
-          setPhotoSlots((prev) => {
-            for (const p of prev) {
-              if (p?.url.startsWith("blob:")) URL.revokeObjectURL(p.url);
-            }
-            const next: PhotoSlot[] = Array.from(
-              { length: REQUIRED_PHOTO_COUNT },
-              () => null,
-            );
-            for (let i = 0; i < Math.min(REQUIRED_PHOTO_COUNT, urls.length); i++) {
-              const u = urls[i];
-              if (typeof u === "string" && u.trim()) next[i] = { url: u.trim() };
-            }
-            return next;
-          });
-        } else if (id) {
-          setError(t("seller.loadError"));
+    if (listingQuery.isPending) return;
+    if (listingQuery.isError) {
+      setError(getApiErrorMessage(listingQuery.error, t("seller.loadError")));
+      return;
+    }
+    const listing = listingQuery.data;
+    if (listing) {
+      setTitle(listing.title ?? "");
+      setBrand(listing.brand ?? "");
+      setModel(listing.model ?? "");
+      const yStr = listing.year != null ? String(listing.year) : "";
+      setYear(yStr);
+      setYearError(yStr ? validateYearField(yStr, t, "submit") : null);
+      setFrameSize(listing.frameSize ?? "");
+      setPrice(String(listing.price ?? ""));
+      setLocation(listing.location ?? "");
+      setCondition((listing.condition as Condition) ?? "MINT_USED");
+      if (listing.state === "PENDING_INSPECTION") setStep("PENDING_INSPECTION");
+      else setStep("DRAFT");
+      const reason = (listing as { inspectionNeedUpdateReason?: string }).inspectionNeedUpdateReason;
+      if (typeof reason === "string" && reason.trim()) {
+        setNeedUpdateReason(reason.trim());
+      }
+      const urls = Array.isArray(listing.imageUrls) ? listing.imageUrls : [];
+      setPhotoSlots((prev) => {
+        for (const p of prev) {
+          if (p?.url.startsWith("blob:")) URL.revokeObjectURL(p.url);
         }
-      })
-      .catch((err: unknown) => {
-        setError(getApiErrorMessage(err, t("seller.loadError")));
+        const next: PhotoSlot[] = Array.from(
+          { length: REQUIRED_PHOTO_COUNT },
+          () => null,
+        );
+        for (let i = 0; i < Math.min(REQUIRED_PHOTO_COUNT, urls.length); i++) {
+          const u = urls[i];
+          if (typeof u === "string" && u.trim()) next[i] = { url: u.trim() };
+        }
+        return next;
       });
-  }, [listingId, id, t]);
+    } else if (id) {
+      setError(t("seller.loadError"));
+    }
+  }, [
+    listingId,
+    id,
+    t,
+    listingQuery.isPending,
+    listingQuery.isError,
+    listingQuery.error,
+    listingQuery.data,
+  ]);
 
   function buildPayload(overrideImageUrls?: string[]) {
     const priceNum = parseFloat(price) || 0;
@@ -274,10 +285,14 @@ export default function SellerListingEditorPage() {
       if (resolvedUrls === null) return;
       if (isEdit && listingId) {
         await updateListing(listingId, buildPayload(resolvedUrls));
+        void queryClient.invalidateQueries({ queryKey: queryKeys.seller.dashboard });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.seller.listing(listingId) });
         setStep("DRAFT");
       } else {
         const created = await createListing(buildPayload(resolvedUrls));
         setSavedId(created.id);
+        void queryClient.invalidateQueries({ queryKey: queryKeys.seller.dashboard });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.listings });
         setStep("DRAFT");
         navigate(`/seller/listings/${created.id}/edit`, { replace: true });
       }
@@ -328,6 +343,9 @@ export default function SellerListingEditorPage() {
         return;
       }
       await publishListing(targetId, { requestInspection: false });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.seller.dashboard });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.listings });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.seller.listing(targetId) });
       addNotification({
         role: "SELLER",
         type: "success",
@@ -364,6 +382,10 @@ export default function SellerListingEditorPage() {
         return;
       }
       await publishListing(targetId, { requestInspection: true });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.seller.dashboard });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.listings });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.inspector.pending });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.seller.listing(targetId) });
       setStep("PENDING_INSPECTION");
       addNotification({
         role: "SELLER",

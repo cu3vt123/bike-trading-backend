@@ -1,5 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 
 export type QrPaymentDisplay = {
   qrContent: string;
@@ -18,8 +19,8 @@ export function QrPaymentPanel({ data, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-        {t("checkout.qrLoading")}
+      <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 p-6">
+        <BicycleLoadingBlock message={t("checkout.qrLoading")} size="sm" />
       </div>
     );
   }

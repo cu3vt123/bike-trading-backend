@@ -49,12 +49,13 @@
 
 Thứ tự đề xuất **trong ngày đầu**:
 
-1. **README root** [README.md](../README.md) — Phần A (chạy Spring), Phần B (chạy FE, `VITE_API_BASE_URL`).  
-2. **§3 + §5 của tài liệu này** — monorepo + tương thích FE.  
-3. **[BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md)** và **[BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md)** — mapping trang FE → API.  
-4. **[ERD-SPEC.md](ERD-SPEC.md)** — nếu dùng MySQL + JPA (cột, ENUM, FK).  
-5. **Mở Swagger** sau khi chạy Spring: `http://localhost:8081/swagger-ui/index.html` (port có thể khác — xem `application.properties`).  
-6. **So sánh handler Node** với **controller Spring** tương ứng (bảng §5, §10).
+1. **README root** [README.md](../README.md) — mục **Sau khi clone hoặc pull (setup)** + Phần A (Spring) + Phần B (FE, `VITE_API_BASE_URL`).  
+2. **[BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md)** — nếu vừa clone/pull: chạy full stack local (Node **hoặc** Spring, không trùng cổng).  
+3. **§3 + §5 của tài liệu này** — monorepo + tương thích FE.  
+4. **[BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md)** và **[BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md)** — mapping trang FE → API.  
+5. **[ERD-SPEC.md](ERD-SPEC.md)** — nếu dùng MySQL + JPA (cột, ENUM, FK).  
+6. **Mở Swagger** sau khi chạy Spring: `http://localhost:8081/swagger-ui/index.html` (port có thể khác — xem `application.properties`).  
+7. **So sánh handler Node** với **controller Spring** tương ứng (bảng §5, §10).
 
 **Nơi sửa code Spring (BE2):**
 

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { KeyRound, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,82 +15,48 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authApi } from "@/apis/authApi";
 import { Logo } from "@/components/common/Logo";
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
-
-const PASSWORD_MIN = 8;
-const PASSWORD_MAX = 64;
-const PASSWORD_UPPERCASE = /[A-Z]/;
-const PASSWORD_SPECIAL = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
-
-function validatePassword(
-  password: string,
-  t: (key: string, opts?: object) => string
-): string | null {
-  if (password.length < PASSWORD_MIN) {
-    return t("auth.errPasswordLength", { min: PASSWORD_MIN, max: PASSWORD_MAX });
-  }
-  if (password.length > PASSWORD_MAX) {
-    return t("auth.errPasswordMax", { max: PASSWORD_MAX });
-  }
-  if (!PASSWORD_UPPERCASE.test(password)) {
-    return t("auth.errPasswordUppercase");
-  }
-  if (!PASSWORD_SPECIAL.test(password)) {
-    return t("auth.errPasswordSpecial");
-  }
-  return null;
-}
+import {
+  resetPasswordFormSchema,
+  type ResetPasswordFormValues,
+} from "@/lib/authSchemas";
+import { useResetPasswordMutation } from "@/hooks/useAuthMutations";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const tokenFromUrl = searchParams.get("token");
-
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
   const [success, setSuccess] = useState(false);
+  const resetMutation = useResetPasswordMutation();
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const schema = useMemo(() => resetPasswordFormSchema(t), [t]);
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
 
+  const onSubmit = form.handleSubmit((data) => {
     const token = tokenFromUrl?.trim();
     if (!token) {
-      setError(t("auth.errResetLinkInvalid"));
+      form.setError("root", { message: t("auth.errResetLinkInvalid") });
       return;
     }
+    resetMutation.mutate(
+      { token, newPassword: data.password },
+      {
+        onSuccess: () => setSuccess(true),
+        onError: (err: unknown) => {
+          form.setError("root", {
+            message:
+              err instanceof Error ? err.message : t("auth.errResetLinkExpired"),
+          });
+        },
+      },
+    );
+  });
 
-    const pwdErr = validatePassword(password, t);
-    if (pwdErr) {
-      setError(pwdErr);
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError(t("auth.errPasswordsMatch"));
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      if (USE_MOCK) {
-        await new Promise((r) => setTimeout(r, 600));
-        setSuccess(true);
-        return;
-      }
-      await authApi.resetPassword({ token, newPassword: password });
-      setSuccess(true);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : t("auth.errResetLinkExpired");
-      setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const submitting = resetMutation.isPending;
 
   if (success) {
     return (
@@ -173,9 +141,11 @@ export default function ResetPasswordPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {error && (
+              {(form.formState.errors.root || form.formState.errors.password) && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                  {error}
+                  {form.formState.errors.root?.message ??
+                    form.formState.errors.password?.message ??
+                    form.formState.errors.confirmPassword?.message}
                 </div>
               )}
 
@@ -185,8 +155,7 @@ export default function ResetPasswordPage() {
                   <Input
                     id="password"
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    {...form.register("password")}
                     placeholder="••••••••"
                     autoComplete="new-password"
                   />
@@ -196,8 +165,7 @@ export default function ResetPasswordPage() {
                   <Input
                     id="confirm"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    {...form.register("confirmPassword")}
                     placeholder="••••••••"
                     autoComplete="new-password"
                   />

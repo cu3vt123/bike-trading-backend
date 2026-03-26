@@ -6,11 +6,30 @@ Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppi
 
 | Tài liệu | Nội dung |
 |----------|----------|
+| **[README.md](../README.md)** (root repo) | **Monorepo:** chạy Spring + **Frontend** Vite, biến `VITE_*`, mock/API, lint/build — đọc trước khi chỉ làm FE. |
 | **[docs/README.md](../docs/README.md)** | Mục lục toàn bộ tài liệu `docs/` (FE, BE, ERD, UR, …). |
 | **[docs/BACKEND-GUIDE.md](../docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc thư mục, Mongo, env, auth, thêm API, VNPAY Sandbox, kiểm tra nhanh |
 | [docs/USER-REQUIREMENTS.md](../docs/USER-REQUIREMENTS.md) | Yêu cầu người dùng (UR) — đối chiếu chức năng |
 | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port flow Express → Spring Boot |
+| **[docs/BACKEND-LOCAL-SETUP.md](../docs/BACKEND-LOCAL-SETUP.md)** | **Sau clone/pull:** chạy FE + Node hoặc FE + Spring, cổng, `git pull` |
 | `docs/ERD-MYSQL.md`, `docs/SCREEN_FLOW_BY_ACTOR.md` | Thiết kế DB MySQL, luồng màn hình |
+
+---
+
+## Sau khi `git clone` hoặc `git pull`
+
+1. **Root repo:** `npm install` (cho Frontend — luôn chạy ở thư mục có `package.json` cha).
+2. **Thư mục `backend/`:** `npm install` (cho API Node).
+3. Tạo `backend/.env` từ `backend/.env.example` (Windows: `copy .env.example .env`).
+4. **Frontend** (root): tạo `.env` từ `.env.example`, đặt:
+   - `VITE_API_BASE_URL=http://localhost:8081/api`
+   - `VITE_USE_MOCK_API=false`
+5. Chạy API: `npm run dev` trong `backend/`. Chạy UI: `npm run dev` ở root.
+6. **Không** chạy đồng thời **Node** (folder này) và **Spring Boot** trên **cùng cổng 8081** — tắt một bên hoặc đổi cổng.
+
+Chi tiết: [docs/BACKEND-LOCAL-SETUP.md](../docs/BACKEND-LOCAL-SETUP.md), [README.md](../README.md) (mục **Sau khi clone hoặc pull**).
+
+---
 
 ## Quick start (no Mongo install required)
 

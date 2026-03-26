@@ -4,6 +4,45 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-26] Docs — Backend local + README clone/pull
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`docs/BACKEND-LOCAL-SETUP.md`** | **Mới:** hướng dẫn sau `clone`/`git pull` — bước chung, 3 kịch bản (mock / Node / Spring), xử lý cổng trùng, sau `git pull`. |
+| **`README.md` (root)** | Mục **Sau khi clone hoặc pull (setup)** — bảng A/B/C; Phần A Spring cập nhật (DB khớp `application.properties`, `mvn spring-boot:run`); sửa `cd` clone; bản đồ docs thêm `BACKEND-LOCAL-SETUP`. |
+| **`docs/BACKEND-GUIDE.md`** | §0 checklist; liên kết `BACKEND-LOCAL-SETUP`. |
+| **`backend/README.md`** | Mục **Sau khi git clone hoặc git pull** + bảng tài liệu. |
+| **`docs/README.md`**, **`HELP.md`** | Trỏ tới `BACKEND-LOCAL-SETUP`. |
+| **`docs/BACKEND-NODE-TO-SPRING-BOOT.md`** | §2 lộ trình onboard: thêm bước đọc `BACKEND-LOCAL-SETUP`. |
+
+---
+
+## [2026-03-26] Docs — README chi tiết + onboard toàn diện
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`README.md` (root)** | Viết lại: mục lục, bắt đầu nhanh, yêu cầu môi trường, phần B FE chi tiết, bảng biến môi trường, lệnh npm, luồng dev hàng ngày, **xử lý sự cố**, bản đồ docs, **lộ trình đọc 3 ngày**, liên kết testing. |
+| **`docs/README.md`** | Lộ trình học 3 cấp, bảng mô tả từng nhóm tài liệu, mục artifact local rõ ràng. |
+| **`HELP.md`** | FAQ, bảng tài liệu theo tác vụ, gợi ý debug nhanh. |
+| **`docs/QUICK-REFERENCE.md`** | **§10** — xử lý sự cố & gợi ý debug (CORS, 401, cache Query, …). |
+| **`docs/FE-ARCHITECTURE-V1-VS-V2.md`** | **§7** — hướng dẫn thực hành (checklist Query, invalidate sau mutation, form auth, logout). |
+| **`docs/STRUCTURE.md`** | Thêm **quy trình gợi ý cho dev** (tìm route → API → query → i18n). |
+| **`docs/testing/README.md`** | Quy trình từng bước cho SWT301 + bảng “đọc file nào”. |
+
+---
+
+## [2026-03-26] Docs — mục lục lọc + so sánh kiến trúc FE V1 vs V2
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`docs/README.md`** | Viết lại: nhóm **Đọc nhanh**, **Kiến trúc & BE**, **Nghiệp vụ**, **Lịch sử**; giải thích khi nào dùng `BE-FE-API-AUDIT` vs `BE-FE-API-AUDIT-BY-PAGE`. |
+| **`docs/FE-ARCHITECTURE-V1-VS-V2.md`** | **Mới:** bảng định nghĩa V1/V2, khác biệt (Query, RHF/Zod, refresh, invalidate), điểm mạnh/yếu, phần chưa migrate (Admin, Success/Transaction). |
+| **`docs/STRUCTURE.md`** | Bổ sung `QueryClientProvider`, `queryClient` / `queryKeys`, `hooks/queries`, `listingDetailService`, `authSchemas`, `AUTH.REFRESH`. |
+| **`docs/PRODUCTION-HARDENING.md`** | Cập nhật bảng: refresh + `removeQueries`; checklist refresh/query cache đánh dấu đã có trên FE (phụ thuộc BE refresh). |
+| **`docs/QUICK-REFERENCE.md`** | Bảng Auth: thêm `POST /auth/refresh`; §9 + footer trỏ tới so sánh V1/V2. |
+
+---
+
 ## [2026-03-26] Docs — mục lục MD + `docs/testing` local
 
 | Thay đổi | Chi tiết |

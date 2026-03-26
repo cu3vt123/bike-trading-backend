@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { fetchMyOrders } from "@/services/buyerService";
-import { authApi } from "@/apis/authApi";
+import { BicycleLoader } from "@/components/common/BicycleLoader";
 import type { Order, OrderStatus } from "@/types/order";
+import { useBuyerOrdersQuery } from "@/hooks/queries/useBuyerOrdersQuery";
+import { useAuthMeQuery } from "@/hooks/queries/useAuthMeQuery";
+import { useLogout } from "@/hooks/useLogout";
 
 /** Trạng thái đơn trong giai đoạn chuẩn bị giao (dùng cho đơn cũ từ backend). */
 const IN_PROGRESS_PHASE: OrderStatus[] = [
@@ -32,35 +32,20 @@ function getBuyerStatusLabel(displayStatus: OrderStatus, t: (k: string) => strin
 
 export default function BuyerProfilePage() {
   const { t } = useTranslation();
-  const clearTokens = useAuthStore((s) => s.clearTokens);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [profile, setProfile] = useState<{
-    email?: string;
-    displayName?: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const logout = useLogout();
+  const ordersQuery = useBuyerOrdersQuery();
+  const profileQuery = useAuthMeQuery();
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([fetchMyOrders(), authApi.getProfile().catch(() => null)])
-      .then(([orderList, profileData]) => {
-        if (!cancelled) {
-          setOrders(Array.isArray(orderList) ? orderList : []);
-          setProfile(
-            profileData && typeof profileData === "object" ? profileData : null,
-          );
+  const orders = Array.isArray(ordersQuery.data) ? ordersQuery.data : [];
+  const profile =
+    profileQuery.data && typeof profileQuery.data === "object"
+      ? {
+          email: profileQuery.data.email,
+          displayName: profileQuery.data.displayName,
         }
-      })
-      .catch(() => {
-        if (!cancelled) setOrders([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      : null;
+
+  const loading = ordersQuery.isPending;
 
   return (
     <div className="mx-auto min-w-0 w-full max-w-6xl">
@@ -84,8 +69,6 @@ export default function BuyerProfilePage() {
                 </div>
               </div>
 
-              <Badge className="mt-4">{t("profile.verified")}</Badge>
-
               <nav className="mt-5 space-y-2">
                 <Button
                   className="w-full justify-start"
@@ -106,7 +89,7 @@ export default function BuyerProfilePage() {
               <Button
                 variant="outline"
                 className="mt-6 w-full"
-                onClick={() => clearTokens()}
+                onClick={() => logout()}
               >
                 {t("common.logout")}
               </Button>
@@ -185,8 +168,9 @@ export default function BuyerProfilePage() {
                 </div>
 
                 {loading ? (
-                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    {t("profile.loadingOrders")}
+                  <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+                    <BicycleLoader size="sm" />
+                    <p className="text-sm text-muted-foreground">{t("profile.loadingOrders")}</p>
                   </div>
                 ) : orders.length === 0 ? (
                   <div className="px-4 py-6 text-center text-sm text-muted-foreground">

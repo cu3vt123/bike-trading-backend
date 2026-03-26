@@ -1,12 +1,12 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { API_BASE_URL, API_TIMEOUT } from "./apiConfig";
+import { API_BASE_URL, API_PATHS, API_TIMEOUT } from "./apiConfig";
 
 /**
- * HTTP client dùng cho toàn app.
- * - Request: gắn Bearer từ Zustand.
- * - Response: 401 → clearTokens (session hết hạn / token lỗi).
- * Khi BE có refresh token: thêm interceptor retry + POST /auth/refresh (xem docs/PRODUCTION-HARDENING.md).
+ * HTTP client — kat-minh/react Bài 04 + 09:
+ * - Request: Bearer từ Zustand.
+ * - 401: thử POST /auth/refresh (nếu có refreshToken), retry 1 lần; không thì clearTokens.
+ * Refresh gọi bằng axios thuần (tránh vòng interceptor).
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -15,7 +15,17 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Attach JWT token to requests
+function isAuthPublicPath(url: string | undefined): boolean {
+  if (!url) return false;
+  return (
+    url.includes(API_PATHS.AUTH.LOGIN) ||
+    url.includes(API_PATHS.AUTH.SIGNUP) ||
+    url.includes(API_PATHS.AUTH.REFRESH) ||
+    url.includes(API_PATHS.AUTH.FORGOT_PASSWORD) ||
+    url.includes(API_PATHS.AUTH.RESET_PASSWORD)
+  );
+}
+
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
@@ -28,14 +38,64 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 – clear tokens (session expired / invalid)
 apiClient.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (err?.response?.status === 401) {
-      useAuthStore.getState().clearTokens();
+  async (err) => {
+    const original = err.config;
+    const status = err?.response?.status;
+
+    if (status !== 401 || !original) {
+      return Promise.reject(err);
     }
-    return Promise.reject(err);
+
+    const url = String(original.url ?? "");
+    if (original._retry) {
+      useAuthStore.getState().clearTokens();
+      return Promise.reject(err);
+    }
+    if (isAuthPublicPath(url)) {
+      useAuthStore.getState().clearTokens();
+      return Promise.reject(err);
+    }
+
+    const refreshToken = useAuthStore.getState().refreshToken;
+    const role = useAuthStore.getState().role;
+    if (!refreshToken || !role) {
+      useAuthStore.getState().clearTokens();
+      return Promise.reject(err);
+    }
+
+    try {
+      const { data } = await axios.post<unknown>(
+        `${API_BASE_URL}${API_PATHS.AUTH.REFRESH}`,
+        { refreshToken },
+        {
+          timeout: API_TIMEOUT,
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      const payload = (data as { data?: Record<string, unknown> }).data ?? data;
+      const accessToken = (payload as { accessToken?: string }).accessToken;
+      const newRefresh =
+        (payload as { refreshToken?: string }).refreshToken ?? refreshToken;
+      if (!accessToken) {
+        useAuthStore.getState().clearTokens();
+        return Promise.reject(err);
+      }
+      useAuthStore.getState().setTokens({
+        accessToken,
+        refreshToken: newRefresh,
+        role,
+      });
+      original.headers = original.headers ?? {};
+      original.headers.Authorization = `Bearer ${accessToken}`;
+      original._retry = true;
+      return apiClient(original);
+    } catch {
+      useAuthStore.getState().clearTokens();
+      return Promise.reject(err);
+    }
   },
 );
 

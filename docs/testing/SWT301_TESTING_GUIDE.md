@@ -1,5 +1,7 @@
 # SWT301 — Hướng dẫn testing & demo (ShopBike)
 
+**Trước khi chạy demo:** cài đặt và `.env` theo [README.md](../../README.md) — bảng biến môi trường và xử lý sự cố nằm ở đó. Mục lục ngắn thư mục testing: [testing/README.md](./README.md).
+
 Tài liệu **gộp một chỗ**: môi trường chạy demo, walkthrough theo vai, workbook Excel **200 test** (`SWT301_TestCase_Functional_and_Unit_Combined.xlsx`), defect **DEF-SWT-001…007**, và **xuất DefectList.xlsx**.
 
 ## Mục lục

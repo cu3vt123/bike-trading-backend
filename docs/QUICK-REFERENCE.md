@@ -42,6 +42,7 @@
 |--------|------|-------|
 | POST | /auth/login | `{ emailOrUsername, password }` → `{ accessToken, refreshToken?, user: { id, role, ... } }` |
 | POST | /auth/signup | `{ username, email, password, role: BUYER|SELLER }` |
+| POST | /auth/refresh | `{ refreshToken }` → access mới (FE dùng trong interceptor khi 401) — **cần BE hỗ trợ** |
 | GET | /auth/me | Header `Authorization: Bearer` → thông tin user |
 
 ### Bikes (public)
@@ -227,8 +228,26 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | Luồng màn hình | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Cấu trúc FE | [STRUCTURE.md](STRUCTURE.md) |
+| So sánh kiến trúc FE V1 vs V2 (Query, RHF, refresh) | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |
 | Luồng gọi API trên FE | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 
 ---
 
-*Đồng bộ với codebase và docs. Cập nhật: 2026-03-26 — GET `/inspector/listings/:id` (Spring), ProductDetail inspector fallback; trước: 2026-03-25 — FRONTEND-API-FLOWS, vnpay-checkout, upload ảnh.*
+## 10. Xử lý sự cố & gợi ý debug
+
+| Hiện tượng | Nguyên nhân thường gặp | Việc nên làm |
+|------------|-------------------------|--------------|
+| **Network Error / CORS** | BE tắt, sai URL, hoặc CORS chưa cho origin FE | Kiểm tra BE chạy, `VITE_API_BASE_URL`, CORS `CLIENT_ORIGIN` / tương đương trên BE |
+| **401 sau thời gian dài** | Access token hết hạn; refresh thất bại hoặc BE không có `/auth/refresh` | Xem `apiClient` refresh; đăng nhập lại; kiểm tra contract refresh |
+| **403 trên route** | Role không khớp (route bảo vệ) | Đối chiếu bảng §2 (Roles & Routes) với user trong `auth/me` |
+| **GET /bikes/:id 404** | Listing RESERVED/SOLD hoặc chưa PUBLISHED | Đúng luồng nghiệp vụ; staff có thể cần API inspector — xem `FRONTEND-API-FLOWS` |
+| **Danh sách và chi tiết khác trạng thái** | Cache TanStack Query chưa invalidate sau mutation | Sau mutation gọi `queryClient.invalidateQueries` đúng `queryKeys` — xem [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |
+| **Mock không đổi** | `VITE_USE_MOCK_API` | Đặt `true`, restart `npm run dev` |
+
+**Debug React Query:** mở DevTools trình duyệt + (nếu cài) TanStack Query DevTools — xem `queryKey`, `dataUpdatedAt`, trạng thái stale.
+
+**Đọc thêm:** [README.md](../README.md) (xử lý sự cố), [HELP.md](../HELP.md).
+
+---
+
+*Đồng bộ với codebase và docs. Cập nhật: 2026-03-26 — thêm §10 xử lý sự cố; `/auth/refresh`; mục lục docs + [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md); trước: GET `/inspector/listings/:id`, FRONTEND-API-FLOWS, vnpay-checkout, upload ảnh.*

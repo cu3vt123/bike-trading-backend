@@ -2,6 +2,8 @@
 
 Tài liệu này áp dụng tinh thần **[BÀI 09: Production Hardening & FE Theory](https://github.com/kat-minh/react/blob/main/09-hardening-theory-guide.md)** (kat-minh/react) vào dự án ShopBike.
 
+**Cách đọc:** Đây là **checklist và bảng trạng thái** — không thay cho [README.md](../README.md) (chạy dự án) hay [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) (kiến trúc). Đọc từ **§ Đã tích hợp** để biết code đã có gì; **§ Việc nên làm thêm** là backlog polish trước ship. Dev mới: sau file này nên xem `src/lib/apiClient.ts`, `src/hooks/useLogout.ts`, `src/app/ErrorBoundary.tsx`.
+
 ---
 
 ## Đã tích hợp trong repo
@@ -11,8 +13,8 @@ Tài liệu này áp dụng tinh thần **[BÀI 09: Production Hardening & FE Th
 | **Route lazy loading** | `src/app/router.tsx` — `React.lazy` + `Suspense` cho các trang ít dùng. |
 | **Suspense fallback** | `RouteFallback` — spinner + aria, thay chữ "Loading..." chung chung. |
 | **Error Boundary** | `src/app/ErrorBoundary.tsx` — bọc `App`, tránh trắng trang khi render lỗi. |
-| **Auth interceptor** | `src/lib/apiClient.ts` — gắn Bearer, **401 → clearTokens** (logout an toàn). |
-| **Logout sạch state** | `useAuthStore.clearTokens` + xóa subscription seller (Zustand). |
+| **Auth interceptor** | `src/lib/apiClient.ts` — gắn Bearer; **401** → thử **`POST /auth/refresh`** (nếu có `refreshToken`) và retry 1 lần; không được thì **clearTokens**. |
+| **Logout sạch state** | `useAuthStore.clearTokens` + xóa subscription seller (Zustand) + **`queryClient.removeQueries()`** (TanStack Query). |
 | **Lỗi API có nghĩa** | `src/lib/apiErrors.ts` — `getApiErrorMessage()` map Axios / timeout / 5xx. |
 | **`.env.example`** | Biến `VITE_*` có chú thích. |
 | **Lint / build** | `npm run lint`, `npm run build` — ESLint bỏ qua `backend/**` (Node) để tập trung FE. |
@@ -29,8 +31,8 @@ Tài liệu này áp dụng tinh thần **[BÀI 09: Production Hardening & FE Th
 
 ## Việc nên làm thêm trước khi ship
 
-- [ ] **Silent refresh token**: Backend cần refresh endpoint; Axios interceptor gọi refresh rồi retry request (Bài 09 — Auth hardening). Hiện demo chỉ JWT access, hết hạn → 401 → login lại.
-- [ ] **Query cache**: Nếu sau này dùng TanStack Query, `logout` nên `queryClient.clear()`.
+- [x] **Silent refresh token (FE)**: Interceptor đã gọi `/auth/refresh` khi có refresh token — **cần BE triển khai đúng**; nếu không, vẫn clear session khi 401.
+- [x] **Query cache khi logout**: `useLogout` gọi `queryClient.removeQueries()` (toàn bộ cache query).
 - [ ] **Error Boundary theo route**: Bọc từng layout lớn nếu muốn isolate lỗi theo khu vực.
 - [ ] **Skeleton theo trang**: Thay `RouteFallback` bằng skeleton giống layout Home/Detail khi cần polish.
 - [ ] **ESLint TypeScript**: Cân nhắc `@typescript-eslint` cho `src/**/*.{ts,tsx}` (hiện config chỉ target `.js/.jsx` trong phạm vi đã ignore).

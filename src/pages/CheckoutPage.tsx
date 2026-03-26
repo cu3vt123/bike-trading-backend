@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { fetchListingById, createVnpayCheckoutOrder } from "@/services/buyerService";
+import { useQueryClient } from "@tanstack/react-query";
+import { createVnpayCheckoutOrder } from "@/services/buyerService";
+import { useBuyerListingQuery } from "@/hooks/queries/useBuyerListingQuery";
+import { queryKeys } from "@/lib/queryKeys";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 import type { BikeDetail } from "@/types/shopbike";
 import { cn } from "@/lib/utils";
 type Plan = "DEPOSIT" | "FULL";
@@ -31,11 +35,17 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
 export default function CheckoutPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { id } = useParams<{ id: string }>();
 
-  const [listing, setListing] = useState<BikeDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const listingQuery = useBuyerListingQuery(id);
+  const listing = listingQuery.data ?? null;
+  const loading = listingQuery.isPending;
+  const fetchError = useMemo(() => {
+    if (!listingQuery.isError) return null;
+    const e = listingQuery.error;
+    return e instanceof Error ? e.message : t("listing.loadError");
+  }, [listingQuery.isError, listingQuery.error, t]);
   const [apiError, setApiError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -59,28 +69,6 @@ export default function CheckoutPage() {
 
   const [ship, setShip] = useState({ street: "", city: "" });
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    fetchListingById(id)
-      .then((data) => {
-        if (!cancelled) setListing(data ?? null);
-      })
-      .catch((err) => {
-        if (!cancelled)
-          setFetchError(err?.message ?? t("listing.loadError"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
   /** Chỉ xe chưa kiểm định: bắt buộc popup cảnh báo. Xe đã kiểm định: không popup, sàn đảm nhận theo nghiệp vụ. */
   useEffect(() => {
     if (!listing) return;
@@ -97,9 +85,8 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">{t("checkout.loading")}</p>
+      <div className="mx-auto max-w-6xl py-24">
+        <BicycleLoadingBlock message={t("checkout.loading")} size="md" />
       </div>
     );
   }
@@ -174,6 +161,8 @@ export default function CheckoutPage() {
         setSubmitting(false);
         return;
       }
+      void queryClient.invalidateQueries({ queryKey: queryKeys.buyer.orders });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.listings });
       window.location.assign(url);
     } catch (err) {
       setApiError(

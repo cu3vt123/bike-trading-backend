@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,49 +15,41 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authApi } from "@/apis/authApi";
 import { Logo } from "@/components/common/Logo";
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
+import {
+  forgotPasswordFormSchema,
+  type ForgotPasswordFormValues,
+} from "@/lib/authSchemas";
+import { useForgotPasswordMutation } from "@/hooks/useAuthMutations";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const forgotMutation = useForgotPasswordMutation();
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const schema = useMemo(() => forgotPasswordFormSchema(t), [t]);
+  const form = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: "" },
+  });
 
-    const trimmed = email.trim();
-    if (!trimmed) {
-      setError("Vui lòng nhập email đã đăng ký.");
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmed)) {
-      setError("Email không hợp lệ.");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      if (USE_MOCK) {
-        await new Promise((r) => setTimeout(r, 800));
+  const onSubmit = form.handleSubmit((data) => {
+    forgotMutation.mutate(data.email.trim(), {
+      onSuccess: () => {
+        setSubmittedEmail(data.email.trim());
         setSuccess(true);
-        return;
-      }
-      await authApi.forgotPassword(trimmed);
-      setSuccess(true);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : t("auth.forgotGenericError");
-      setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
-  }
+      },
+      onError: (err: unknown) => {
+        form.setError("root", {
+          message:
+            err instanceof Error ? err.message : t("auth.forgotGenericError"),
+        });
+      },
+    });
+  });
+
+  const submitting = forgotMutation.isPending;
 
   if (success) {
     return (
@@ -76,7 +70,11 @@ export default function ForgotPasswordPage() {
               </div>
               <CardTitle>{t("auth.checkEmailTitle")}</CardTitle>
               <CardDescription>
-                <Trans i18nKey="auth.checkEmailDesc" values={{ email }} components={{ 1: <strong /> }} />
+                <Trans
+                  i18nKey="auth.checkEmailDesc"
+                  values={{ email: submittedEmail }}
+                  components={{ 1: <strong /> }}
+                />
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -123,9 +121,10 @@ export default function ForgotPasswordPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {error && (
+              {(form.formState.errors.root || form.formState.errors.email) && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                  {error}
+                  {form.formState.errors.email?.message ??
+                    form.formState.errors.root?.message}
                 </div>
               )}
 
@@ -135,8 +134,7 @@ export default function ForgotPasswordPage() {
                   <Input
                     id="email"
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    {...form.register("email")}
                     placeholder="email@example.com"
                     autoComplete="email"
                   />
