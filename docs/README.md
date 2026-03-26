@@ -9,12 +9,13 @@
 ## Mục lục tài liệu này
 
 1. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
-2. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
-3. [Kiến trúc & tích hợp BE](#kiến-trúc--tích-hợp-be)
-4. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
-5. [Lịch sử & testing](#lịch-sử--testing)
-6. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
-7. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
+2. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
+3. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
+4. [Kiến trúc & tích hợp BE](#kiến-trúc--tích-hợp-be)
+5. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
+6. [Lịch sử & testing](#lịch-sử--testing)
+7. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
+8. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
 
 ---
 
@@ -29,6 +30,24 @@
 | **Cấu trúc thư mục FE, quy ước import** | [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, `queryKeys`, hooks `queries/`. |
 | **Checklist ship / hardening** | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Trước khi deploy production. |
 | **Kiểm tra luồng + API (V2, thủ công)** | **[FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md)** | Lint/build, checklist theo vai, Query invalidate, Network. |
+
+---
+
+## Backend: Java Spring Boot (hướng dẫn & tài liệu)
+
+Dành cho **dev backend** làm việc với API Spring Boot trong repo này (IntelliJ, Maven, MySQL). Frontend nằm cùng monorepo — bạn vẫn cần `npm install` + `.env` nếu muốn chạy UI để kiểm thử end-to-end; **bước chi tiết và xử lý sự cố** nằm ở [README.md](../README.md) mục **Dành cho Backend (Java Spring Boot, IntelliJ)**.
+
+| Nhu cầu | Tài liệu | Ghi chú |
+|---------|----------|---------|
+| **Clone, MySQL, IntelliJ, chạy Spring + `npm run dev`** | [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Một lộ trình đủ để chạy local; cổng, sau `git pull`. |
+| **Chuyển đổi / đối chiếu Node (Express) → Spring Boot** — endpoint, JWT, enum, multipart, VNPay | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | “Port” công nghệ và hợp đồng JSON; đọc kèm `backend/` nếu cần so hành vi. |
+| **API mà FE đang gọi** | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md), [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Khớp `src/apis/` với controller Spring. |
+| **Quy tắc nghiệp vụ** | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | BR-ID; không chỉ suy từ entity. |
+| **Schema DB, ERD, SQL** | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md), [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | JPA entity ↔ bảng/cột/ENUM. |
+| **VNPay** | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | Return, IPN, khớp bảng thanh toán. |
+| **Làm việc với PM/QA/FE** | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket. |
+| **Backend Node (demo)** | [BACKEND-GUIDE.md](BACKEND-GUIDE.md), [../backend/README.md](../backend/README.md) | Không chạy cùng cổng với Spring. |
+| **Tra cứu nhanh env, auth, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Hỗ trợ cả FE và khi đối chiếu API. |
 
 ---
 
