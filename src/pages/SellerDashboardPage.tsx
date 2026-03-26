@@ -299,14 +299,14 @@ export default function SellerDashboardPage() {
           </div>
 
           <div className="mt-4 overflow-x-auto rounded-xl border border-border">
-            <div className="grid min-w-[720px] grid-cols-12 gap-x-3 bg-muted px-3 py-3 text-xs font-semibold text-muted-foreground sm:px-4">
-              <div className="col-span-5">{t("seller.listing")}</div>
-              <div className="col-span-2 text-right">{t("seller.price")}</div>
+            <div className="grid min-w-[56rem] grid-cols-12 gap-x-3 bg-muted px-3 py-3 text-xs font-semibold text-muted-foreground sm:px-4">
+              <div className="col-span-4">{t("seller.listing")}</div>
+              <div className="col-span-3 text-right">{t("seller.price")}</div>
               <div className="col-span-3 text-left">{t("seller.status")}</div>
               <div className="col-span-2 text-right">{t("seller.action")}</div>
             </div>
 
-            <div className="min-w-[720px] divide-y divide-border">
+            <div className="min-w-[56rem] divide-y divide-border">
               {listings.map((x) => {
                 const orderForListing = getOrderForListing(orders, x.id);
                 const needUpdateReason =
@@ -440,7 +440,7 @@ export default function SellerDashboardPage() {
                     key={x.id}
                     className="grid grid-cols-12 items-center gap-x-3 px-3 py-3 sm:px-4"
                   >
-                    <div className="col-span-5 flex min-w-0 items-center gap-3">
+                    <div className="col-span-4 flex min-w-0 items-center gap-3">
                       <ListingThumb listing={x} />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold text-foreground">
@@ -458,7 +458,7 @@ export default function SellerDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="col-span-2 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
+                    <div className="col-span-3 shrink-0 whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground">
                       {formatMoney(x.price, "VND")}
                     </div>
 
