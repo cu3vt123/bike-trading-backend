@@ -9,6 +9,30 @@
 
 ---
 
+## Cách đọc tài liệu này
+
+| | |
+|--|--|
+| **Mục đích** | Tổng quan **17 bảng**, ERD Mermaid, chạy script SQL, **mapping MongoDB → MySQL** (Node demo). |
+| **Ai đọc** | **Backend (SQL/JPA):** triển khai schema; **BA/PM:** hiểu thực thể; **QA:** liên kết bảng ↔ luồng (§5–6). |
+| **Chi tiết từng cột / ENUM / FK** | [ERD-SPEC.md](ERD-SPEC.md) — **đặc tả chính**; đồng bộ với [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql). |
+| **Vẽ ERD, import DB** | [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md). |
+| **Rule nghiệp vụ (không nằm hết trong SQL)** | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md), [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md). |
+| **Port Spring / Node** | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md). |
+
+---
+
+## Mục lục
+
+1. [Tổng quan 17 bảng](#1-tổng-quan-17-bảng)  
+2. [Sơ đồ ERD (Mermaid)](#2-sơ-đồ-erd-mermaid)  
+3. [Quan hệ chính](#3-quan-hệ-chính)  
+4. [Chạy SQL](#4-chạy-sql)  
+5. [Mapping với MongoDB hiện tại](#5-mapping-với-mongodb-hiện-tại)  
+6. [Tài liệu liên quan](#6-tài-liệu-liên-quan)  
+
+---
+
 ## 1. Tổng quan 17 bảng
 
 | # | Bảng | Mô tả |
@@ -285,9 +309,11 @@ Hoặc dùng client MySQL (DBeaver, phpMyAdmin, MySQL Workbench) import file `do
 |------|----------|
 | [ERD-SPEC.md](ERD-SPEC.md) | Đặc tả đầy đủ cột, ENUM, FK, luồng nghiệp vụ |
 | [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | Hướng dẫn vẽ ERD (Mermaid, Draw.io), tạo bảng MySQL |
+| [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | Business rules (bổ sung cho cột/trạng thái) |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Port Node → Spring Boot (JPA entities) |
-| [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết dự án, business rules |
+| [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết dự án |
+| [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | API / thuật ngữ (không thay ERD) |
 
 ---
 
-*Cập nhật: 2026-03 — 17 bảng MySQL, ERD Mermaid, order.balance_paid, order_snapshot.seller, order_payment.payment_type, mapping chi tiết.*
+*Cập nhật: 2026-03 — 17 bảng MySQL, ERD Mermaid, mapping Mongo; 2026-03-26 — mục lục + cách đọc, liên kết BR/QUICK-REFERENCE.*

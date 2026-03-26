@@ -4,6 +4,16 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [2026-03-26] Docs — ERD / SQL (mục lục, cách đọc, liên kết)
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`docs/ERD-SPEC.md`**, **`docs/ERD-HUONG-DAN.md`** | Thêm **Cách đọc tài liệu này**, **Mục lục** (neo §); § tài liệu liên quan bổ sung `business-rules`, `vietqr_mysql.sql`, `QUICK-REFERENCE` (tùng file); ghi chú cập nhật 2026-03-26. |
+| **`docs/ERD-MYSQL.md`** | (cùng đợt) mục lục + cách đọc + liên kết BR / quick ref — đồng bộ bộ ba ERD. |
+| **`docs/README.md`** | Dòng ERD/MySQL: ghi chú mục lục/cách đọc + link [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md). |
+
+---
+
 ## [2026-03-26] Docs — FE-V2-VERIFICATION-GUIDE (kiểm tra luồng & API)
 
 | Thay đổi | Chi tiết |
