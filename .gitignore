@@ -35,8 +35,22 @@ backend/data/*.sqlite-*
 # Editor / Cursor (local only — không đưa lên Git)
 .cursor/
 
-# SWT301 / DefectList — chỉ local (không commit, không đẩy lên repo chung)
-docs/testing/
+# SWT301 — artifact nộp bài / output (không commit). Markdown hướng dẫn trong docs/testing/*.md vẫn được track.
+docs/testing/DefectList.xlsx
+docs/testing/generated/
+docs/testing/*.xlsx
+docs/testing/*.csv
+docs/testing/*.har
+docs/testing/screenshots/
+docs/testing/evidence/
+docs/testing/*.png
+docs/testing/*.jpg
+docs/testing/*.jpeg
+docs/testing/*.webp
+docs/testing/**/*.png
+docs/testing/**/*.jpg
+docs/testing/**/*.jpeg
+docs/testing/**/*.webp
 
 # Editor
 .vscode/*
