@@ -42,7 +42,7 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 2. [Bắt đầu nhanh (Frontend)](#bắt-đầu-nhanh-frontend)
 3. [Yêu cầu môi trường](#yêu-cầu-môi-trường)
 4. [Dành cho Backend (Java Spring Boot, IntelliJ)](#dành-cho-backend-java-spring-boot-intellij)
-5. [Gợi ý tài liệu cho AI (Backend)](#gợi-ý-tài-liệu-cho-ai-backend)
+5. [Gợi ý tài liệu cho AI (Backend, Frontend, QA)](#readme-ai-context-team)
 6. [Phần A — Backend Spring Boot (BE2)](#phần-a--backend-spring-boot-be2)
 7. [Phần B — ShopBike Frontend (chi tiết)](#phần-b--shopbike-frontend-chi-tiết)
 8. [Biến môi trường Frontend](#biến-môi-trường-frontend)
@@ -107,7 +107,7 @@ Mục này dành cho **dev backend Java / Spring Boot**: bạn clone **cùng rep
 | **VNPay & thanh toán** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Return URL, IPN, khớp với `order_payment` / `vnpay_transaction_log`. |
 | **Làm việc chung PM/QA/FE** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket — khi BE không phải đọc hết doc FE. |
 | **Backend Node (demo, đối chiếu)** | [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md) | Chỉ khi cần chạy/so sánh với Node — **không** chạy đồng thời cùng cổng Spring. |
-| **Gửi tài liệu cho AI khác (Gemini, ChatGPT, …)** | [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) | Gói file `.md` nào đính kèm, thứ tự, mẫu prompt — [mục lục](#gợi-ý-tài-liệu-cho-ai-backend). |
+| **Gửi tài liệu cho AI (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) | Backend / Frontend / QA: gói file, thứ tự, mẫu prompt — [mục lục](#readme-ai-context-team). ([Alias](docs/AI-CONTEXT-for-BACKEND.md) trỏ về cùng bộ hướng dẫn.) |
 
 ### Luồng gợi ý: clone FE về máy → chạy Spring (IntelliJ) → chạy FE
 
@@ -119,15 +119,18 @@ Mục này dành cho **dev backend Java / Spring Boot**: bạn clone **cùng rep
 
 Nếu kẹt CORS, cổng, hoặc sau `git pull`: xem [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) và [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) (Auth, env).
 
-**Mục lục đầy đủ trong `docs/`:** [docs/README.md](docs/README.md) (có nhóm **Backend** và **AI: gợi ý tài liệu cho Backend**).
+**Mục lục đầy đủ trong `docs/`:** [docs/README.md](docs/README.md) (có nhóm **Backend** và **AI: gợi ý tài liệu cho cả team**).
 
 ---
 
-## Gợi ý tài liệu cho AI (Backend)
+<a id="readme-ai-context-team"></a>
 
-Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời về Spring / API / DB / VNPay, không nên chỉ nói miệng “đọc backend giúp” — nên đính kèm **gói tài liệu** theo thứ tự và theo loại việc.
+## Gợi ý tài liệu cho AI (Backend, Frontend, QA)
 
-**Hướng dẫn chi tiết (một file):** [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) — gói tối thiểu (README + LOCAL-SETUP + NODE-TO-SPRING + QUICK-REFERENCE), bảng “thêm file khi…”, kịch bản **chỉ một file**, mẫu prompt, và những doc thường **không** cần gửi.
+Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời, **đừng** chỉ nói miệng “đọc project giúp” — nên đính kèm **gói tài liệu** theo **vai** (dev backend, dev frontend, tester/QA) và theo thứ tự trong bài hướng dẫn.
+
+**Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA / SWT301; bảng tổng hợp; lỗi prompt thường gặp.  
+File [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) chỉ còn **chuyển hướng** về file trên (giữ link cũ không gãy).
 
 ---
 
@@ -285,7 +288,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | Nhóm | File chính | Dùng khi nào |
 |------|------------|----------------|
 | **Backend (Java / Spring / IntelliJ)** | [Mục *Dành cho Backend* ở README này](#dành-cho-backend-java-spring-boot-intellij), [docs/README — Backend](docs/README.md#backend-java-spring-boot-hướng-dẫn--tài-liệu) | Clone repo, chạy Spring + FE, tài liệu port Node→Spring, DB, VNPay |
-| **AI — gói tài liệu cho Backend** | [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md), [README § Gợi ý tài liệu cho AI](#gợi-ý-tài-liệu-cho-ai-backend) | Đính kèm file nào khi chat với Gemini / ChatGPT / … |
+| **AI — gói tài liệu (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md), [README § Gợi ý tài liệu cho AI](#readme-ai-context-team) | BE / FE / QA: đính kèm file nào khi chat với Gemini / ChatGPT / … |
 | **Onboard & tra cứu** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | API, role, routes, env, order status |
 | **Luồng code FE → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | axios, services, VNPay, upload |
 | **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, RHF, Zod, refresh, invalidate |

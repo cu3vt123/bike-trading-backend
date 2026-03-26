@@ -20,6 +20,7 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 | **`.gitignore` + testing** | `docs/testing/`; mục tài liệu local trong `docs/README`; `HELP` trợ giúp ShopBike. |
 | **Spring + Inspector + FE** | `GET /api/inspector/listings/{id}`; `SecurityConfig` INSPECTOR+ADMIN; `ProductDetailPage` fallback inspector; `QUICK-REFERENCE`, `BE-FE-API-AUDIT-BY-PAGE`, `FRONTEND-API-FLOWS`. |
 | **`AI-CONTEXT-for-BACKEND.md`** | Gợi ý gói tài liệu đính kèm cho AI (Gemini, …); mục lục `README` + `docs/README`. |
+| **`AI-CONTEXT-for-TEAM.md`** | Mở rộng cho Backend + Frontend + QA/Tester: bối cảnh chung, gói file & prompt từng vai; `AI-CONTEXT-for-BACKEND` trỏ về đây. |
 
 ---
 

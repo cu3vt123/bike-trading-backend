@@ -10,7 +10,7 @@
 
 1. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
 2. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
-3. [AI: gợi ý tài liệu cho Backend](#ai-gợi-ý-tài-liệu-cho-backend)
+3. [AI: gợi ý tài liệu cho cả team (BE / FE / QA)](#ai-context-team)
 4. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
 5. [Kiến trúc & tích hợp BE](#kiến-trúc--tích-hợp-be)
 6. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
@@ -52,17 +52,19 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 
 ---
 
-## AI: gợi ý tài liệu cho Backend
+<a id="ai-context-team"></a>
 
-*(Áp dụng khi đính kèm tài liệu cho Gemini, ChatGPT, Claude, …)*
+## AI: gợi ý tài liệu cho cả team (BE / FE / QA)
 
-Khi dev backend **đính kèm file `.md` vào chat AI** (Gemini, ChatGPT, Claude, …) để hỏi về Spring, API, DB, VNPay — dùng **một bài hướng dẫn thống nhất** thay vì tự chọn lẻ từng file.
+*(Áp dụng khi đính kèm tài liệu cho Gemini, ChatGPT, Claude, … — dev backend, dev frontend, hoặc tester/QA.)*
+
+**Một file đủ dài, phân vai rõ:** **[AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md)** — bối cảnh chung (copy-paste); **Phần A** Backend; **Phần B** Frontend; **Phần C** QA / SWT301; bảng tổng hợp; mẫu prompt; doc thường không cần gửi.
 
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
-| **Gói tài liệu tối thiểu, thứ tự, bảng theo loại việc, mẫu prompt** | **[AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md)** | Trỏ tới README, `BACKEND-LOCAL-SETUP`, `BACKEND-NODE-TO-SPRING-BOOT`, `QUICK-REFERENCE`, audit, BR, ERD, VNPay khi cần. |
+| **Chỉ cần nhắc backend (link cũ)** | [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | File ngắn — **chuyển hướng** sang `AI-CONTEXT-for-TEAM.md` (mục Phần A). |
 
-Root [README.md](../README.md) có mục **[Gợi ý tài liệu cho AI (Backend)](../README.md#gợi-ý-tài-liệu-cho-ai-backend)** — tóm tắt + link vào file trên.
+Root [README.md](../README.md) có mục **[Gợi ý tài liệu cho AI (Backend, Frontend, QA)](../README.md#readme-ai-context-team)** — tóm tắt + link.
 
 ---
 
@@ -151,7 +153,8 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | PM/QA/FE hỗ trợ BE, thuật ngữ, mẫu ticket |
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node backend |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Port Spring |
-| [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Gói `.md` đính kèm cho AI (backend) |
+| [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Gói `.md` đính kèm cho AI (BE / FE / QA) |
+| [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Alias → `AI-CONTEXT-for-TEAM` (Phần A) |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready checklist |
 | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | VNPay |
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tham chiếu nhanh |
