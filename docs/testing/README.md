@@ -1,6 +1,15 @@
 # SWT301 — Testing (`docs/testing/`)
 
-Thư mục dùng cho **file Excel / screenshot nộp bài** (thường **không** commit) và **hướng dẫn** trong repo.
+## Thư mục này dùng để làm gì?
+
+| | |
+|--|--|
+| **Mục đích** | Hỗ trợ **kiểm thử thủ công & báo cáo SWT301**: chạy demo ShopBike, điền workbook **test case** (Functional + Unit), quản lý **defect** (DEF-SWT), xuất **DefectList.xlsx** bằng script trong repo. |
+| **Có trong repo (thường được track)** | Các file **`.md`** hướng dẫn: `README.md` (trang này), `SWT301_TESTING_GUIDE.md`, `TESTCASE-WORKBOOK.md`. |
+| **Chỉ trên máy (thường gitignore)** | File **`.xlsx`** sinh ra, screenshot, `generated/`, v.v. — xem `.gitignore` ở root. |
+| **Không thuộc phạm vi thư mục này** | Hướng dẫn gắn với **công cụ chat / trợ lý code** — không đặt trong `docs/testing/`; tài liệu tổng quan nằm ở các file khác trong `docs/` nếu team dùng. |
+
+Thư mục còn dùng cho **file Excel / screenshot nộp bài** (thường **không** commit) và **hướng dẫn** trong repo.
 
 ---
 
