@@ -228,7 +228,17 @@ Ví dụ map Functional ↔ Unit cùng số: TC-BUY-012 ↔ UTC-BUY-012 (Finaliz
 
 Buyer 001–002 + một luồng checkout; Seller 001,004,005 (năm xe); Inspector 001–002; Admin 006,008,010; Unit: vài dòng U_Buyer (401, polling) + U_Inspector (GET listing).
 
-### 3.7. Git
+### 3.7. Sinh lại workbook khung từ repo (200 dòng + đúng mã TC/UTC)
+
+Nếu chưa có file Excel hoặc cần **khung** đúng tên sheet / mã `TC-*` và `UTC-*`:
+
+```bash
+npm run generate:testcase-workbook
+```
+
+Chi tiết: [TESTCASE-WORKBOOK.md](./TESTCASE-WORKBOOK.md). Script: `scripts/generate-swt301-testcase-workbook.mjs` — output: `docs/testing/SWT301_TestCase_Functional_and_Unit_Combined.xlsx` (thường **gitignore**).
+
+### 3.8. Git
 
 File `.xlsx` thường ignore; backup workbook trên drive nhóm hoặc nộp bài theo yêu cầu môn.
 
@@ -273,6 +283,12 @@ Minh chứng local: `docs/testing/screenshots/` hoặc `evidence/` (có thể ig
 ## 5. Xuất DefectList.xlsx (Lab 4)
 
 **Yêu cầu:** Node.js, `npm install` (package `xlsx`).
+
+```bash
+npm run export:defectlist
+```
+
+hoặc:
 
 ```bash
 node scripts/export-defectlist-xlsx.mjs
@@ -343,6 +359,8 @@ Mục này bổ sung **kịch bản nói gợi ý** đi kèm **thao tác** — b
 | [../QUICK-REFERENCE.md](../QUICK-REFERENCE.md) | API, role, routes |
 | [../../README.md](../../README.md) | Chạy monorepo / BE + FE |
 | [../FRONTEND-API-FLOWS.md](../FRONTEND-API-FLOWS.md) | Luồng API FE chi tiết |
-| `scripts/export-defectlist-xlsx.mjs` | Nguồn 7 dòng defect |
+| [TESTCASE-WORKBOOK.md](./TESTCASE-WORKBOOK.md) | Sinh workbook 200 TC (`npm run generate:testcase-workbook`) |
+| `scripts/export-defectlist-xlsx.mjs` | Nguồn 7 dòng DefectList (`npm run export:defectlist`) |
+| `scripts/generate-swt301-testcase-workbook.mjs` | Sinh file Excel testcase |
 
 [↑ Về mục lục](#mục-lục)

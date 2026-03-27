@@ -1,8 +1,12 @@
 /**
  * Sinh docs/testing/DefectList.xlsx — Lab 4 (không MantisBT).
- * Các defect lấy theo lỗi đã báo / đã sửa trong CHANGELOG (Inspector, Security, Product detail, …).
+ * Đồng bộ mô tả defect với docs/testing/SWT301_TESTING_GUIDE.md §4–5.
  *
  * Chạy: node scripts/export-defectlist-xlsx.mjs
+ * Hoặc: npm run export:defectlist
+ *
+ * Cập nhật nội dung: sửa mảng `rows` bên dưới → chạy lại.
+ * Cập nhật lần cuối dữ liệu mẫu: 2026-03-26
  */
 import { mkdirSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
@@ -119,7 +123,7 @@ const rows = [
     "403 hoặc dữ liệu sai role cho đến khi xóa storage / login lại.",
     "screenshot-403-auth.png",
     "Nhóm ShopBike",
-    "2026-03-15",
+    "2026-03-26",
     "",
     "Đã sửa: chuẩn hóa logout và hydrate token/role (đồng bộ docs CHANGELOG 2026-03).",
   ],

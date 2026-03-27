@@ -119,7 +119,7 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 | Nội dung | File |
 |----------|------|
 | Changelog tóm tắt | [CHANGELOG.md](CHANGELOG.md) |
-| Hướng dẫn testing (SWT301, v.v.) | [testing/README.md](testing/README.md), [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md) |
+| Hướng dẫn testing (SWT301, v.v.) | [testing/README.md](testing/README.md), [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md), [testing/TESTCASE-WORKBOOK.md](testing/TESTCASE-WORKBOOK.md) |
 
 ---
 
@@ -127,7 +127,7 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 
 Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có thể nằm trong `docs/testing/generated/`, `evidence/`, … và bị **`.gitignore`** ở root repo.
 
-- Xem **[testing/README.md](testing/README.md)** — mô tả rõ artifact local và lệnh `export-defectlist`.  
+- Xem **[testing/README.md](testing/README.md)** — mô tả rõ artifact local và lệnh `npm run export:defectlist` / `npm run generate:testcase-workbook`.  
 - Không commit file chứa dữ liệu nhạy cảm hoặc chỉ dùng một lần.
 
 ---
@@ -156,6 +156,7 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tham chiếu nhanh |
 | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | ERD / MySQL / hướng dẫn vẽ |
 | [sql/](sql/) | Script SQL |
+| [testing/README.md](testing/README.md), [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md), [testing/TESTCASE-WORKBOOK.md](testing/TESTCASE-WORKBOOK.md) | SWT301, sinh workbook TC / DefectList |
 
 ---
 

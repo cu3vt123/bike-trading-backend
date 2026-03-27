@@ -9,6 +9,7 @@ Thư mục dùng cho **file Excel / screenshot nộp bài** (thường **không*
 | Mục đích | File | Ghi chú |
 |----------|------|---------|
 | **Chuẩn bị báo cáo / bảo vệ / nộp SWT301** | [**SWT301_TESTING_GUIDE.md**](./SWT301_TESTING_GUIDE.md) | **Một file đủ dài** — môi trường, walkthrough theo vai, workbook 200 TC, defect DEF-SWT, xuất DefectList, **mục thuyết trình** (thao tác + lời nói mẫu). |
+| **Sinh workbook Excel 200 TC (khung sheet + mã TC/UTC)** | [TESTCASE-WORKBOOK.md](./TESTCASE-WORKBOOK.md) | `npm run generate:testcase-workbook` → `SWT301_TestCase_Functional_and_Unit_Combined.xlsx` (local). |
 | **Chạy dự án để test** | [README.md](../../README.md) | Cài Node, `.env`, `npm run dev`, tài khoản test BE. |
 | **Tra API / role khi viết test case** | [../QUICK-REFERENCE.md](../QUICK-REFERENCE.md) | Routes, endpoint, thuật ngữ. |
 
@@ -53,7 +54,11 @@ npm install && npm run dev
 ```
 
 ```bash
-node scripts/export-defectlist-xlsx.mjs
+npm run export:defectlist
+```
+
+```bash
+npm run generate:testcase-workbook
 ```
 
 ---
@@ -68,4 +73,5 @@ node scripts/export-defectlist-xlsx.mjs
 
 ---
 
-*Cập nhật: hướng dẫn từng bước + bảng đọc file; đồng bộ với README gốc.*
+*Cập nhật: `npm run export:defectlist`, `npm run generate:testcase-workbook`; TESTCASE-WORKBOOK.md.*
+
