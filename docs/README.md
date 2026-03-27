@@ -92,7 +92,7 @@ Tóm tắt ở root: [README.md — Gợi ý tài liệu cho AI](../README.md#re
 
 ## Team phối hợp BE (BA, Tester, PM / QA / FE)
 
-Các tài liệu dưới đây phục vụ **người không chỉ code Spring** nhưng cần hiểu cách làm việc với BE, viết test case, audit API theo màn hình. *(Gợi ý đính kèm tài liệu cho AI cả team: xem mục [AI: gợi ý tài liệu cho cả team](#ai-context-team-md) và file [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md).)*
+Các tài liệu dưới đây phục vụ **người không chỉ code Spring** nhưng cần hiểu cách làm việc với BE, viết test case, audit API theo màn hình.
 
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
@@ -160,4 +160,4 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 
 ---
 
-*Cập nhật: mục lục có **[AI: gợi ý tài liệu cho cả team](#ai-context-team-md)** → `AI-CONTEXT-for-TEAM.md`; bảng Backend vẫn có hàng AI cho dev backend.*
+*Cập nhật: mục lục có **[AI: gợi ý tài liệu cho cả team](#ai-context-team-md)** → `AI-CONTEXT-for-TEAM.md`; bảng Backend có hàng gợi ý đính kèm cho dev backend.*

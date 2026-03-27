@@ -129,7 +129,7 @@ Nếu kẹt CORS, cổng, hoặc sau `git pull`: xem [docs/BACKEND-LOCAL-SETUP.m
 
 Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời, **đừng** chỉ nói miệng “đọc project giúp” — nên đính kèm **gói tài liệu** theo **vai** (dev backend, dev frontend, tester/QA) và theo thứ tự trong bài hướng dẫn.
 
-**Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA / SWT301; bảng tổng hợp; lỗi prompt thường gặp.  
+**Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA / kiểm thử; bảng tổng hợp; mục lỗi thường gặp.  
 File [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) chỉ còn **chuyển hướng** về file trên (giữ link cũ không gãy).
 
 ---
