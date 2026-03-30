@@ -107,7 +107,7 @@ Mục này dành cho **dev backend Java / Spring Boot**: bạn clone **cùng rep
 | **VNPay & thanh toán** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Return URL, IPN, khớp với `order_payment` / `vnpay_transaction_log`. |
 | **Làm việc chung PM/QA/FE** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket — khi BE không phải đọc hết doc FE. |
 | **Backend Node (demo, đối chiếu)** | [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md) | Chỉ khi cần chạy/so sánh với Node — **không** chạy đồng thời cùng cổng Spring. |
-| **Gửi tài liệu cho AI (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) | Backend / Frontend / QA: gói file, thứ tự, mẫu prompt — [mục lục](#readme-ai-context-team). ([Alias](docs/AI-CONTEXT-for-BACKEND.md) trỏ về cùng bộ hướng dẫn.) |
+| **Gửi tài liệu cho AI (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) | Backend / Frontend / QA: gói file, thứ tự, mẫu prompt — [mục lục](#readme-ai-context-team). Dev backend: thêm [AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) (tóm tắt Spring+MySQL). |
 
 ### Luồng gợi ý: clone FE về máy → chạy Spring (IntelliJ) → chạy FE
 
@@ -130,7 +130,7 @@ Nếu kẹt CORS, cổng, hoặc sau `git pull`: xem [docs/BACKEND-LOCAL-SETUP.m
 Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời, **đừng** chỉ nói miệng “đọc project giúp” — nên đính kèm **gói tài liệu** theo **vai** (dev backend, dev frontend, tester/QA) và theo thứ tự trong bài hướng dẫn.
 
 **Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA; bảng tổng hợp; lỗi prompt thường gặp.  
-File [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) chỉ còn **chuyển hướng** về file trên (giữ link cũ không gãy).
+File [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) **tóm tắt** gói đính kèm và ràng buộc Spring/MySQL; chi tiết đầy đủ vẫn trong [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) (Phần A).
 
 ---
 

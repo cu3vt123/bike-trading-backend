@@ -49,7 +49,7 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 | **Làm việc với PM/QA/FE** | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket. |
 | **Backend Node (demo)** | [BACKEND-GUIDE.md](BACKEND-GUIDE.md), [../backend/README.md](../backend/README.md) | Không chạy cùng cổng với Spring. |
 | **Tra cứu nhanh env, auth, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Hỗ trợ cả FE và khi đối chiếu API. |
-| **Gợi ý tài liệu đính kèm cho AI (dev backend)** | [AI-CONTEXT-for-TEAM.md — Phần A](AI-CONTEXT-for-TEAM.md#phan-a-backend), [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Gửi Gemini / ChatGPT: gói `.md`, thứ tự, mẫu prompt — file `AI-CONTEXT-for-BACKEND` là alias chuyển hướng (Phần A). |
+| **Gợi ý tài liệu đính kèm cho AI (dev backend)** | [AI-CONTEXT-for-TEAM.md — Phần A](AI-CONTEXT-for-TEAM.md#phan-a-backend), [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | **TEAM** = bản đầy đủ; **BACKEND** = tóm tắt Spring+MySQL, gói file, ràng buộc không dùng Mongo cho Spring. |
 
 ---
 
@@ -141,7 +141,7 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node backend |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Spring + IntelliJ + SQL |
 | [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Gói `.md` đính kèm cho AI (BE / FE / QA) |
-| [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Alias → `AI-CONTEXT-for-TEAM` (Phần A) |
+| [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Tóm tắt AI cho backend + link Phần A trong `AI-CONTEXT-for-TEAM` |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready checklist |
 | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | VNPay |
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tham chiếu nhanh |
