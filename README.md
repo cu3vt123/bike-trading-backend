@@ -30,7 +30,7 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 
 **Hướng dẫn backend từng bước (Node vs Spring, xử lý cổng trùng, sau `git pull`):** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md).  
 **Code & env Node chi tiết:** [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md).  
-**Spring, contract API, CORS:** [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md).
+**Spring Boot (IntelliJ) + MySQL, contract API, CORS:** [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md).
 
 > **Cảnh báo:** Không chạy đồng thời **Node** và **Spring** trên **cùng cổng 8081**. Tắt một bên hoặc đổi cổng + cập nhật `VITE_API_BASE_URL`.
 
@@ -100,7 +100,7 @@ Mục này dành cho **dev backend Java / Spring Boot**: bạn clone **cùng rep
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
 | **Cài repo, MySQL, IntelliJ, chạy Spring + FE từng bước** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Sau `clone` / `git pull`, cổng 8081, xử lý trùng cổng với Node. |
-| **Chuyển đổi / đối chiếu Node → Spring** (map endpoint, JWT, enum, VNPay, CORS) | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Tài liệu “port” stack và hợp đồng API — khi đọc code Express trong `backend/` và cần khớp Spring. |
+| **Spring Boot + MySQL** (IntelliJ, map endpoint, JWT, enum, VNPay, CORS) | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Hợp đồng API + ERD/SQL; `backend/` (Express) chỉ tham chiếu HTTP tùy chọn. |
 | **API mà FE gọi** (theo nhóm / theo màn) | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Tránh lệch method/path so với `src/apis/`. |
 | **Nghiệp vụ & rule** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Không chỉ nằm trong entity — đọc khi sửa luồng đơn, thanh toán, kiểm định. |
 | **Schema DB / ERD** | [docs/ERD-SPEC.md](docs/ERD-SPEC.md), [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | 17 bảng chính; JPA/Hibernate cần khớp đặc tả. |
@@ -299,7 +299,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **Cấu trúc thư mục** | [docs/STRUCTURE.md](docs/STRUCTURE.md) | Cây `src/`, import, hooks |
 | **Ship / hardening** | [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) | Checklist trước production |
 | **Rà soát API BE–FE** | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Theo endpoint / theo màn hình |
-| **Spring port** | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Map endpoint Node → Spring |
+| **Spring + SQL** | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | IntelliJ, JPA, contract REST |
 | **Cài đặt backend sau clone/pull** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Node vs Spring, cổng, sau `git pull` |
 | **PM / QA / FE + Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ chung, mẫu báo bug, ai đọc gì |
 | **ERD / SQL** | [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | Schema DB |

@@ -4,7 +4,7 @@
 
 **Nguồn chi tiết:** [README.md](README.md) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
 
-**Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A. **Chuyển giao Node→Spring:** [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) §0.
+**Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A. **Spring Boot (IntelliJ) + MySQL:** [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) — intro + mục **Thiết kế SQL**.
 
 ---
 

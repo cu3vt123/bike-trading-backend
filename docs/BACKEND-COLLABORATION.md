@@ -80,7 +80,7 @@ Copy mẫu dưới đây vào ticket / chat (điền nội dung):
 |----------|------|
 | Cài đặt clone/pull | [README.md](../README.md), [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md) |
 | Hướng dẫn code Node (Express) | [BACKEND-GUIDE.md](./BACKEND-GUIDE.md) |
-| Port Spring ↔ Node | [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) |
+| Spring Boot + SQL (IntelliJ) | [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) |
 | Thư mục `backend/` (README ngắn) | [backend/README.md](../backend/README.md) |
 
 ---

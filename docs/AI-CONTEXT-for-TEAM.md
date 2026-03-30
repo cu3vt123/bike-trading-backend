@@ -44,7 +44,7 @@ Dev **Java / Spring Boot** trong repo: controller, service, entity, security, VN
 |--------|----------------------|--------|
 | 1 | [README.md](../README.md) — tối thiểu: *Sau khi clone hoặc pull*, *Dành cho Backend*, *Phần A — Backend Spring Boot*, dòng Swagger | Monorepo, IntelliJ, MySQL, cổng, nối FE. |
 | 2 | [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Clone/pull, cổng, xung đột Node vs Spring. |
-| 3 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | **Trọng tâm:** map Node ↔ Spring, JWT, enum, multipart, VNPay, CORS. |
+| 3 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | **Trọng tâm:** Spring + IntelliJ + **MySQL/JPA**, contract REST, JWT, multipart, VNPay; Express trong `backend/` chỉ tham chiếu tùy chọn. |
 | 4 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Auth, order status, env — khớp với FE. |
 
 ### A.3. Thêm file theo loại công việc (backend)

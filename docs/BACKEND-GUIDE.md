@@ -1,6 +1,6 @@
 # Hướng dẫn Backend — ShopBike (Node.js + Express)
 
-Tài liệu dành cho dev/backend port (Spring Boot xem thêm [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md)).
+Tài liệu **Node (Express + Mongo demo trong `backend/`)**. Chuẩn triển khai đồ án: **Spring Boot + MySQL** — xem [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) (IntelliJ, JPA, SQL).
 
 **Sau khi `clone` hoặc `git pull` — chạy full stack local:** [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md) (bắt buộc đọc nếu lần đầu setup).  
 **README monorepo (FE + lệnh chung):** [README.md](../README.md) — mục **Sau khi clone hoặc pull (setup)**.
@@ -222,7 +222,7 @@ Dùng `accessToken` trả về cho các request `/api/buyer/*`, `/api/vietqr/*`,
 
 ## 11. Tài liệu liên quan
 
-**Inspector / Spring:** `GET /api/inspector/listings/:id` (Bearer + role INSPECTOR hoặc ADMIN) — chi tiết tin khi duyệt từ UI; bắt buộc đối chiếu với FE (trang `/bikes/:id`). Xem [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) mục 9.5 và [QUICK-REFERENCE.md](./QUICK-REFERENCE.md).
+**Inspector / Spring:** `GET /api/inspector/listings/:id` (Bearer + role INSPECTOR hoặc ADMIN) — chi tiết tin khi duyệt từ UI; bắt buộc đối chiếu với FE (trang `/bikes/:id`). Xem [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) mục **11.5 (Inspector)** và [QUICK-REFERENCE.md](./QUICK-REFERENCE.md).
 
 | File | Nội dung |
 |------|----------|

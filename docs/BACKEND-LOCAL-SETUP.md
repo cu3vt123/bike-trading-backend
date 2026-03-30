@@ -97,7 +97,7 @@ VITE_USE_MOCK_API=false
 
 `npm run dev` ở root.
 
-Chi tiết port, CORS, contract: [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) §3–4, §15.
+Chi tiết port, CORS, contract: [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) (mục **Môi trường Spring & Frontend**, **CORS**).
 
 ---
 
@@ -130,7 +130,7 @@ Chi tiết port, CORS, contract: [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE
 | [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md) | PM/QA/FE: thuật ngữ, mẫu ticket, hỗ trợ BE |
 | [BACKEND-GUIDE.md](./BACKEND-GUIDE.md) | Node: cấu trúc, env, auth, VNPay |
 | [backend/README.md](../backend/README.md) | Quick start Node, endpoint tóm tắt |
-| [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) | Spring vs Node, checklist |
+| [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) | Spring Boot (IntelliJ) + **MySQL/JPA**; contract API; `backend/` chỉ tham chiếu tùy chọn |
 | [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) | Bảng API, env |
 
 ---

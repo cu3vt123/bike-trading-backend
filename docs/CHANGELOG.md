@@ -10,6 +10,7 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 | Thay đổi | Chi tiết |
 |----------|----------|
+| **`BACKEND-NODE-TO-SPRING-BOOT.md`** | Viết lại: trọng tâm **Spring Boot (IntelliJ) + MySQL/JPA** và thiết kế SQL (`ERD-SPEC`, script); bỏ Mongo làm mô hình chuyển giao; folder `backend/` chỉ tham chiếu contract HTTP tùy chọn; đổi mục lục & cập nhật liên kết README/QUICK-REFERENCE/BACKEND-GUIDE/business-rules. |
 | **`FRONTEND-DEVELOPER-GUIDE.md`** | Hướng dẫn FE tổng hợp (lần 1): stack, env, cấu trúc `src/`, bảng route, guard, API layers, Query/`queryKeys`, Zustand, RHF+Zod, i18n, UI, checklist, xử lý sự cố. **Bổ sung:** alias TS/Vite; `env.ts` vs `apiConfig`; chi tiết interceptor/refresh `apiClient`; `getApiErrorMessage`; `queryClient` defaults; i18n + `useLanguageStore`; `MainLayout`/scroll; lint/build. |
 | **README, `docs/README`, STRUCTURE, `AI-CONTEXT-for-TEAM`** | Liên kết tới guide; lộ trình người mới đọc guide sau README. |
 | **Hướng dẫn Backend (`BACKEND-GUIDE`, `BACKEND-LOCAL-SETUP`, `QUICK-REFERENCE`)** | Đồng bộ: file **`.env` FE nằm ở root repo** (cùng `package.json`), không dùng đường dẫn `frontend/.env`; ghi chú **`GET /api/inspector/listings/:id`** trong `BACKEND-GUIDE` (liên kết Spring/QUICK-REFERENCE). |

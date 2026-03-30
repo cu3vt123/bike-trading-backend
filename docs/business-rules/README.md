@@ -12,7 +12,7 @@ Tài liệu và công cụ cập nhật **Business Rules** cho dự án ShopBike
 |------|----------|
 | **[BUSINESS-RULES.md](./BUSINESS-RULES.md)** | Toàn bộ business rules có cấu trúc, theo nhóm (Listing, Order, Payment, Finalize, VietQR, …). **Source of truth** cho quy tắc nghiệp vụ. |
 | **[../PROJECT-SUMMARY.md](../PROJECT-SUMMARY.md)** | §2 Business rules tóm tắt; luồng màn hình, API, flow runtime. |
-| **[../BACKEND-NODE-TO-SPRING-BOOT.md](../BACKEND-NODE-TO-SPRING-BOOT.md)** | §5 Business rules bắt buộc khi port Node → Spring Boot. |
+| **[../BACKEND-NODE-TO-SPRING-BOOT.md](../BACKEND-NODE-TO-SPRING-BOOT.md)** | Mục **15 (Business rules)** — triển khai Spring Boot + MySQL; không lấy Mongo làm chuẩn. |
 
 ---
 

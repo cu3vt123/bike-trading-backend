@@ -41,7 +41,7 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
 | **Clone, MySQL, IntelliJ, chạy Spring + `npm run dev`** | [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Một lộ trình đủ để chạy local; cổng, sau `git pull`. |
-| **Chuyển đổi / đối chiếu Node (Express) → Spring Boot** — endpoint, JWT, enum, multipart, VNPay | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | “Port” công nghệ và hợp đồng JSON; đọc kèm `backend/` nếu cần so hành vi. |
+| **Spring Boot (IntelliJ) + MySQL/JPA** — contract API, JWT, enum, multipart, VNPay; thiết kế SQL | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Chuẩn backend đồ án; folder `backend/` (Express) chỉ tham chiếu HTTP tùy chọn — **không** lấy Mongo làm mô hình Spring. |
 | **API mà FE đang gọi** | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md), [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Khớp `src/apis/` với controller Spring. |
 | **Quy tắc nghiệp vụ** | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | BR-ID; không chỉ suy từ entity. |
 | **Schema DB, ERD, SQL** | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md), [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | JPA entity ↔ bảng/cột/ENUM. |
@@ -139,7 +139,7 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 | [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Clone/pull, chạy Node hoặc Spring + FE |
 | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | PM/QA/FE hỗ trợ BE, thuật ngữ, mẫu ticket |
 | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node backend |
-| [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Port Spring |
+| [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Spring + IntelliJ + SQL |
 | [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Gói `.md` đính kèm cho AI (BE / FE / QA) |
 | [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Alias → `AI-CONTEXT-for-TEAM` (Phần A) |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready checklist |
