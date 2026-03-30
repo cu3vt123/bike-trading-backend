@@ -137,7 +137,7 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | PUBLIC_ORIGIN | Base URL công khai BE (link ảnh upload trả về) | http://localhost:8081 |
 | CORS_EXTRA_ORIGINS | Thêm origin CORS (cách nhau dấu phẩy) | (tùy chọn) |
 
-### Frontend (`frontend/.env`)
+### Frontend (file **`.env` ở root repo** — cùng cấp `package.json`, không phải thư mục `frontend/`)
 
 | Biến | Mô tả | Ví dụ |
 |------|-------|-------|
@@ -252,4 +252,4 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 ---
 
-*Đồng bộ với codebase và docs. Cập nhật: 2026-03-26 — thêm §10 xử lý sự cố; `/auth/refresh`; mục lục docs + [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md); trước: GET `/inspector/listings/:id`, FRONTEND-API-FLOWS, vnpay-checkout, upload ảnh.*
+*Đồng bộ với codebase và docs. Cập nhật: 2026-03-30 — §5: đường dẫn `.env` FE = root repo. Trước: 2026-03-26 — §10 xử lý sự cố; `/auth/refresh`; GET `/inspector/listings/:id`, vnpay-checkout, upload ảnh.*

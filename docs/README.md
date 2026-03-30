@@ -36,7 +36,7 @@
 
 ## Backend: Java Spring Boot (hướng dẫn & tài liệu)
 
-Dành cho **dev backend** làm việc với API Spring Boot trong repo này (IntelliJ, Maven, MySQL). Frontend nằm cùng monorepo — bạn vẫn cần `npm install` + `.env` nếu muốn chạy UI để kiểm thử end-to-end; **bước chi tiết và xử lý sự cố** nằm ở [README.md](../README.md) mục **Dành cho Backend (Java Spring Boot, IntelliJ)**.
+Dành cho **dev backend** làm việc với API Spring Boot trong repo này (IntelliJ, Maven, MySQL). Frontend nằm cùng monorepo — bạn vẫn cần `npm install` + **`.env` ở root repo** (cùng cấp `package.json`, không phải thư mục `frontend/`) nếu muốn chạy UI để kiểm thử end-to-end; **bước chi tiết và xử lý sự cố** nằm ở [README.md](../README.md) mục **Dành cho Backend (Java Spring Boot, IntelliJ)** — biến `VITE_*`: [QUICK-REFERENCE.md](QUICK-REFERENCE.md) (mục 5).
 
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|

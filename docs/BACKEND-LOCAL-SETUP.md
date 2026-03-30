@@ -13,7 +13,7 @@ Tài liệu **một chỗ** để sau khi lấy code về máy bạn **chạy đ
 | 1 | `git clone <url-repo>` lần đầu; các lần sau: `git pull` trong thư mục repo | Luôn làm việc ở **root monorepo** (có `package.json` + `pom.xml` nếu có Spring). |
 | 2 | Cài **Node.js LTS** (v20+), kiểm tra `node -v`, `npm -v` | FE và folder `backend/` (Node) đều cần npm. |
 | 3 | Ở **root repo**: `npm install` | Bắt buộc sau mỗi lần pull nếu `package-lock.json` đổi. |
-| 4 | Tạo `/.env` từ mẫu: `cp .env.example .env` (Linux/macOS/Git Bash) hoặc `copy .env.example .env` (Windows CMD/PowerShell) | Không commit `.env`. |
+| 4 | Tạo **`.env` ở root repo** (cùng cấp `package.json`, không phải trong `frontend/`): `cp .env.example .env` (Linux/macOS/Git Bash) hoặc `copy .env.example .env` (Windows CMD/PowerShell) | Không commit `.env`. |
 
 ---
 
@@ -135,4 +135,4 @@ Chi tiết port, CORS, contract: [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE
 
 ---
 
-*Cập nhật: full stack local; liên kết [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md) cho vai trò không chuyên BE.*
+*Cập nhật: 30-03-2026 — nhấn mạnh `.env` FE ở root repo; full stack local; liên kết [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md) cho vai trò không chuyên BE.*

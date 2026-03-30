@@ -12,6 +12,7 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 |----------|----------|
 | **`FRONTEND-DEVELOPER-GUIDE.md`** | Hướng dẫn FE tổng hợp (lần 1): stack, env, cấu trúc `src/`, bảng route, guard, API layers, Query/`queryKeys`, Zustand, RHF+Zod, i18n, UI, checklist, xử lý sự cố. **Bổ sung:** alias TS/Vite; `env.ts` vs `apiConfig`; chi tiết interceptor/refresh `apiClient`; `getApiErrorMessage`; `queryClient` defaults; i18n + `useLanguageStore`; `MainLayout`/scroll; lint/build. |
 | **README, `docs/README`, STRUCTURE, `AI-CONTEXT-for-TEAM`** | Liên kết tới guide; lộ trình người mới đọc guide sau README. |
+| **Hướng dẫn Backend (`BACKEND-GUIDE`, `BACKEND-LOCAL-SETUP`, `QUICK-REFERENCE`)** | Đồng bộ: file **`.env` FE nằm ở root repo** (cùng `package.json`), không dùng đường dẫn `frontend/.env`; ghi chú **`GET /api/inspector/listings/:id`** trong `BACKEND-GUIDE` (liên kết Spring/QUICK-REFERENCE). |
 
 ---
 
@@ -95,4 +96,4 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
-*Cập nhật lần cuối: 26-03-2026 — tiêu đề [ngày-tháng], sắp mới → cũ; bảng Thay đổi / Chi tiết.*
+*Cập nhật lần cuối: 30-03-2026 — tiêu đề [ngày-tháng], sắp mới → cũ; bảng Thay đổi / Chi tiết.*
