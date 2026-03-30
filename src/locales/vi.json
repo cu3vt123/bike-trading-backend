@@ -527,6 +527,7 @@
     "reject": "Từ chối",
     "needUpdate": "Yêu cầu cập nhật",
     "viewDetail": "Xem chi tiết",
+    "backToInspectorDashboard": "← Quay lại bảng kiểm định",
     "approveHint": "Duyệt online (vòng 1): tin chưa lên sàn — seller phải gửi xe tới kho; admin xác nhận xe khớp ảnh (vòng 2) rồi tin mới PUBLISHED + CERTIFIED. Từ chối → đóng. Yêu cầu cập nhật → seller sửa và gửi lại.",
     "warehouseReInspectionDesc": "Admin đã xác nhận xe tới kho. Inspector kiểm tra lại khớp mô tả thì Duyệt → tin lên sàn với mác đã kiểm định. Không khớp thì Yêu cầu cập nhật.",
     "noWarehouseReInspection": "Chưa có tin nào chờ xác nhận tại kho.",

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
 import type { BikeDetail, BikeCondition } from "@/types/shopbike";
 import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useListingDetailQuery } from "@/hooks/queries/useListingDetailQuery";
@@ -92,6 +92,7 @@ export default function ProductDetailPage() {
   const inWishlist = useWishlistStore((s) => s.ids.has(listing?.id ?? ""));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const canWishlist = role === "BUYER";
+  const showInspectorBack = role === "INSPECTOR" || role === "ADMIN";
 
   const specs = useMemo(() => {
     const s = listing?.specs;
@@ -117,6 +118,16 @@ export default function ProductDetailPage() {
     return (
       <Card className="mx-auto max-w-6xl border-border">
         <CardContent className="py-16 text-center">
+          {showInspectorBack && (
+            <div className="mb-6 flex justify-center">
+              <Button asChild variant="outline" size="sm" className="gap-1.5 font-semibold">
+                <Link to="/inspector">
+                  <ChevronLeft className="h-4 w-4" aria-hidden />
+                  {t("inspector.backToInspectorDashboard")}
+                </Link>
+              </Button>
+            </div>
+          )}
           <h1 className="text-xl font-bold">{t("listing.notFound")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {error ?? t("listing.notFoundDesc")}
@@ -158,6 +169,16 @@ export default function ProductDetailPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
+      {showInspectorBack && (
+        <div className="mb-4">
+          <Button asChild variant="outline" size="sm" className="gap-1.5 font-semibold">
+            <Link to="/inspector">
+              <ChevronLeft className="h-4 w-4" aria-hidden />
+              {t("inspector.backToInspectorDashboard")}
+            </Link>
+          </Button>
+        </div>
+      )}
       {/* breadcrumb */}
       <div className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to="/" className="transition-colors hover:text-foreground">

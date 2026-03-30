@@ -527,6 +527,7 @@
     "reject": "Reject",
     "needUpdate": "Request update",
     "viewDetail": "View detail",
+    "backToInspectorDashboard": "← Back to inspection dashboard",
     "approveHint": "Online approval (round 1): listing stays off-market — seller ships to warehouse; admin confirms it matches photos (round 2), then PUBLISHED + CERTIFIED. Reject → closed. Request update → seller fixes and resubmits.",
     "warehouseReInspectionDesc": "Admin has confirmed bike arrived. Inspector verifies it matches the listing — Approve → listing goes live with certified badge. Or Request update if it does not match.",
     "noWarehouseReInspection": "No listings awaiting confirmation at warehouse.",
