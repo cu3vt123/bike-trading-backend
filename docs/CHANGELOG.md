@@ -6,6 +6,14 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [31-03-2026]
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **BE migration sync note** | Đồng bộ backend Spring (`com.minhyun.quydu_be`) theo contract Node/FE: JWT refresh, field listing (`condition`, `inspection*`, warehouse timestamps), CORS dev (`localhost` + `127.0.0.1`), upload `/uploads/**`. |
+
+---
+
 ## [30-03-2026]
 
 | Thay đổi | Chi tiết |
