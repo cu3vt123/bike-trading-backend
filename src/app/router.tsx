@@ -29,6 +29,7 @@ const ProductDetailPage = lazy(() =>
 const SupportPage = lazy(() =>
   import("@/features/support").then((m) => ({ default: m.SupportPage })),
 );
+const AboutUsPage = lazy(() => import("@/pages/AboutUsPage"));
 const WishlistPage = lazy(() =>
   import("@/features/support").then((m) => ({ default: m.WishlistPage })),
 );
@@ -80,6 +81,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "bikes/:id", element: withSuspense(<ProductDetailPage />) },
       { path: "support", element: withSuspense(<SupportPage />) },
+      { path: "about-us", element: withSuspense(<AboutUsPage />) },
       { path: "wishlist", element: withSuspense(<WishlistPage />) },
       { path: "payment/vnpay-demo", element: withSuspense(<VnpayDemoPage />) },
       { path: "payment/vnpay-result", element: withSuspense(<VnpayResultPage />) },

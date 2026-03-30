@@ -121,8 +121,8 @@ import { env } from "@/lib/env";
 4. **Tìm UI dùng chung:** `src/components/ui/`, `src/shared/components/layouts/`.
 5. **i18n:** `src/locales/vi.json`, `en.json` — key theo namespace từng feature.
 
-**Đọc thêm:** [README.md](../README.md) (onboard), [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) §7 (thực hành Query).
+**Đọc thêm:** [README.md](../README.md) (onboard), [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) (hướng dẫn FE chi tiết một file), [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) §7 (thực hành Query).
 
 ---
 
-*Cập nhật: đồng bộ với README gốc và hướng dẫn kiến trúc V2.*
+*Cập nhật: đồng bộ với README gốc, [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) và hướng dẫn kiến trúc V2.*

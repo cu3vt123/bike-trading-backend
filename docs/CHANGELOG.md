@@ -6,6 +6,15 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [30-03-2026]
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **`FRONTEND-DEVELOPER-GUIDE.md`** | Hướng dẫn dev frontend tổng hợp: stack, env, cấu trúc `src/`, bảng route, guard, API layers, Query/`queryKeys`, Zustand, RHF+Zod, i18n, UI, checklist, xử lý sự cố, liên kết tài liệu liên quan. |
+| **README, `docs/README`, STRUCTURE, `AI-CONTEXT-for-TEAM`** | Thêm mục và liên kết tới guide mới; lộ trình người mới đọc guide sau README. |
+
+---
+
 ## [26-03-2026]
 
 | Thay đổi | Chi tiết |
@@ -15,9 +24,9 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 | **`BACKEND-COLLABORATION.md`** | PM/QA/FE làm việc với BE; cập nhật link từ README / guides. |
 | **Xóa 4 file spec** | UR, screen flow, state diagram; tham chiếu → `PROJECT-SUMMARY`, `BUSINESS-RULES`, audit. |
 | **`BACKEND-LOCAL-SETUP` + README** | Sau clone/pull; `BACKEND-GUIDE`, `backend/README`, `HELP`, `BACKEND-NODE-TO-SPRING-BOOT`. |
-| **README + docs lớn** | Root `README`, `docs/README`, `HELP`, `QUICK-REFERENCE` §10, `FE-ARCHITECTURE-V1-VS-V2` §7, `STRUCTURE`, `testing/README`. |
+| **README + docs lớn** | Root `README`, `docs/README`, `HELP`, `QUICK-REFERENCE` §10, `FE-ARCHITECTURE-V1-VS-V2` §7, `STRUCTURE`. |
 | **`docs/README` + kiến trúc FE** | Lộ trình 3 cấp; `FE-ARCHITECTURE-V1-VS-V2`; `PRODUCTION-HARDENING`; bảng auth refresh. |
-| **`.gitignore` + testing** | `docs/testing/`; mục tài liệu local trong `docs/README`; `HELP` trợ giúp ShopBike. |
+| **`.gitignore` + docs** | Cập nhật ignore và tài liệu trợ giúp ShopBike để gọn hơn khi onboard. |
 | **Spring + Inspector + FE** | `GET /api/inspector/listings/{id}`; `SecurityConfig` INSPECTOR+ADMIN; `ProductDetailPage` fallback inspector; `QUICK-REFERENCE`, `BE-FE-API-AUDIT-BY-PAGE`, `FRONTEND-API-FLOWS`. |
 | **`AI-CONTEXT-for-BACKEND.md`** | Gợi ý gói tài liệu đính kèm cho AI (Gemini, …); mục lục `README` + `docs/README`. |
 | **`AI-CONTEXT-for-TEAM.md`** | Mở rộng cho Backend + Frontend + QA/Tester: bối cảnh chung, gói file & prompt từng vai; `AI-CONTEXT-for-BACKEND` trỏ về đây. |
@@ -28,7 +37,6 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 | Thay đổi | Chi tiết |
 |----------|----------|
-| **`docs/testing/`** | SWT301 test case, Lab 4 Defect Management, template CSV, `testing/README`, link trong `docs/README`. |
 | **`FRONTEND-API-FLOWS.md`** | Mở rộng mục lục, §5–§7, sequence VNPay, bảng trang → file. |
 | **Đồng bộ docs** | `QUICK-REFERENCE`, `STRUCTURE`, `README`, `BACKEND-GUIDE`, audit, `PROJECT-SUMMARY`, `PRODUCTION-HARDENING`. |
 | **`BACKEND-NODE-TO-SPRING-BOOT.md`** | Upload ảnh, `PUBLIC_ORIGIN` / CORS, contract checkout khớp Node. |

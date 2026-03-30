@@ -28,7 +28,7 @@ Tuỳ vai, bạn **bổ sung một dòng** ở cuối khối:
 |-----|-----------|
 | Backend | `Tôi là dev backend Java/Spring — ưu tiên khớp docs/BACKEND-NODE-TO-SPRING-BOOT và audit API.` |
 | Frontend | `Tôi là dev frontend React — ưu tiên khớp apis/, services/, TanStack Query và docs/FE-ARCHITECTURE-V1-VS-V2.` |
-| QA / Tester | `Tôi là QA kiểm thử thủ công / SWT301 — ưu tiên kịch bản trong docs/testing và BE-FE-API-AUDIT-BY-PAGE để map màn hình ↔ API.` |
+| QA / Tester | `Tôi là QA kiểm thử thủ công — ưu tiên BE-FE-API-AUDIT-BY-PAGE, QUICK-REFERENCE và FE-V2-VERIFICATION-GUIDE để map màn hình ↔ API.` |
 
 <a id="phan-a-backend"></a>
 
@@ -95,10 +95,11 @@ Dev **React + TypeScript + Vite**: `src/apis/`, `src/services/`, hooks, TanStack
 | Thứ tự | File | Vì sao |
 |--------|------|--------|
 | 1 | [README.md](../README.md) — *Sau khi clone*, *Phần B — ShopBike Frontend*, *Biến môi trường* | `.env`, mock vs API thật, `npm run dev`. |
-| 2 | [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, `queryKeys`, `hooks/queries/`, quy ước import. |
-| 3 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Routes, role, API path, order status, env — tránh lệch với BE. |
-| 4 | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | **Bắt buộc** khi sửa data server: Query, `invalidateQueries`, RHF, tránh cache sai. |
-| 5 | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng axios → apiClient → apis → services; VNPay, upload — tìm đúng file khi sửa màn. |
+| 2 | [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) | **Tổng hợp một file:** stack, routing/guard, env, lớp API, Query, Zustand, form, i18n, checklist, xử lý sự cố. |
+| 3 | [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, `queryKeys`, `hooks/queries/`, quy ước import. |
+| 4 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Routes, role, API path, order status, env — tránh lệch với BE. |
+| 5 | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | **Bắt buộc** khi sửa data server: Query, `invalidateQueries`, RHF, tránh cache sai. |
+| 6 | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng axios → apiClient → apis → services; VNPay, upload — tìm đúng file khi sửa màn. |
 
 ### B.3. Thêm file theo loại công việc (frontend)
 
@@ -121,7 +122,7 @@ Dev **React + TypeScript + Vite**: `src/apis/`, `src/services/`, hooks, TanStack
 ```text
 [Khối bối cảnh §0 + dòng vai Frontend]
 
-Đính kèm: STRUCTURE, QUICK-REFERENCE, FE-ARCHITECTURE-V1-VS-V2, FRONTEND-API-FLOWS (hoặc rút mục liên quan).
+Đính kèm: FRONTEND-DEVELOPER-GUIDE (hoặc STRUCTURE + QUICK-REFERENCE), FE-ARCHITECTURE-V1-VS-V2, FRONTEND-API-FLOWS (hoặc rút mục liên quan).
 
 Câu hỏi: <ví dụ: sau khi mutate createOrder cần invalidate queryKeys nào>.
 
@@ -137,11 +138,11 @@ Ràng buộc: không đề xuất đổi env sang mock nếu đang debug API th�
 
 <a id="phan-c-qa"></a>
 
-## Phần C — QA / Kiểm thử thủ công / SWT301
+## Phần C — QA / Kiểm thử thủ công
 
 ### C.1. Ai dùng phần này
 
-**Tester / QA** trong team: viết test case, chạy thủ công, ghi defect, báo cáo SWT301, walkthrough theo vai (Guest, Buyer, Seller, Inspector, Admin).
+**Tester / QA** trong team: viết test case, chạy thủ công, ghi defect, walkthrough theo vai (Guest, Buyer, Seller, Inspector, Admin).
 
 ### C.2. Gói tài liệu tiêu chuẩn (thứ tự)
 
@@ -150,15 +151,15 @@ Ràng buộc: không đề xuất đổi env sang mock nếu đang debug API th�
 | 1 | [README.md](../README.md) — *Sau khi clone*, bảng kịch bản A/B/C, *Phần B*, tài khoản test (nếu có) | Cài máy, chạy FE + BE, `.env`, đăng nhập. |
 | 2 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Route, role, endpoint — viết bước TC và expected. |
 | 3 | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | **Page → API** — map màn hình với request để mô tả bug đúng chỗ. |
-| 4 | [testing/README.md](testing/README.md) | Quy trình SWT301, lệnh, file Excel local, export defect. |
-| 5 | [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md) | Kịch bản dài, workbook TC, DEF-SWT, thuyết trình — **bài chính cho môn / báo cáo**. |
+| 4 | [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) | Checklist kiểm tra luồng, query invalidate, lint/build và network. |
+| 5 | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | Mẫu ticket, thuật ngữ và cách phối hợp với dev/backend. |
 
 ### C.3. Thêm file theo loại công việc (QA)
 
 | Việc cần AI giúp | Thêm file |
 |------------------|-----------|
 | Viết expected theo rule nghiệp vụ | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
-| Hiểu luồng tổng thể / demo | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) |
+| Hiểu luồng tổng thể của sản phẩm | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) |
 | Kiểm tra checklist sau khi dev báo “đã sửa” | [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) |
 | Thanh toán / VNPay (lỗi tiền, redirect) | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Audit theo endpoint (không theo page) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) |
@@ -166,8 +167,8 @@ Ràng buộc: không đề xuất đổi env sang mock nếu đang debug API th�
 
 ### C.4. Chỉ được đính kèm một file
 
-- Ưu tiên **[testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md)** nếu AI phải giúp **bài SWT301 / slide / lời thuyết trình**.
-- Hoặc **[BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md)** nếu AI phải giúp **mô tả bug theo màn + API**.
+- Ưu tiên **[BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md)** nếu AI phải giúp **mô tả bug theo màn + API**.
+- Hoặc **[FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md)** nếu AI phải giúp **checklist hồi quy / xác minh sau sửa lỗi**.
 - Luôn dán kèm **khối §0** + **3–5 dòng** từ README về cách bật app (mock vs API thật).
 
 ### C.5. Mẫu prompt (QA / Tester)
@@ -175,7 +176,7 @@ Ràng buộc: không đề xuất đổi env sang mock nếu đang debug API th�
 ```text
 [Khối bối cảnh §0 + dòng vai QA]
 
-Đính kèm: QUICK-REFERENCE, BE-FE-API-AUDIT-BY-PAGE, testing/README, SWT301_TESTING_GUIDE (hoặc đoạn mục liên quan).
+Đính kèm: QUICK-REFERENCE, BE-FE-API-AUDIT-BY-PAGE, FE-V2-VERIFICATION-GUIDE, BACKEND-COLLABORATION (hoặc đoạn mục liên quan).
 
 Câu hỏi: <ví dụ: viết thêm 5 test case cho luồng Inspector duyệt tin — format ID, bước, expected, trace BR>.
 
@@ -197,8 +198,8 @@ Ràng buộc: mọi expected phải có thể chỉ ra route trong QUICK-REFEREN
 | Vai | Gói tối thiểu (4–5 file đầu) |
 |-----|------------------------------|
 | **Backend** | README (mục BE + A) → BACKEND-LOCAL-SETUP → BACKEND-NODE-TO-SPRING-BOOT → QUICK-REFERENCE |
-| **Frontend** | README (mục B + env) → STRUCTURE → QUICK-REFERENCE → FE-ARCHITECTURE-V1-VS-V2 → FRONTEND-API-FLOWS |
-| **QA / Tester** | README (chạy app) → QUICK-REFERENCE → BE-FE-API-AUDIT-BY-PAGE → testing/README → SWT301_TESTING_GUIDE |
+| **Frontend** | README (mục B + env) → FRONTEND-DEVELOPER-GUIDE → STRUCTURE → QUICK-REFERENCE → FE-ARCHITECTURE-V1-VS-V2 → FRONTEND-API-FLOWS |
+| **QA / Tester** | README (chạy app) → QUICK-REFERENCE → BE-FE-API-AUDIT-BY-PAGE → FE-V2-VERIFICATION-GUIDE → BACKEND-COLLABORATION |
 
 ---
 

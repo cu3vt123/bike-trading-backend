@@ -9,7 +9,7 @@ type LogoVariant = "header" | "headerCenter" | "headerStacked" | "hero" | "heroB
 const variantClasses: Record<LogoVariant, string> = {
   header:
     "h-7 w-auto max-w-[108px] object-contain object-left drop-shadow-[0_1px_4px_rgba(0,0,0,0.2)] sm:h-8 sm:max-w-[128px]",
-  /** Giữa thanh nav: canh giữa — Hỗ trợ | Logo | Danh sách xe (vừa chiều cao header gọn) */
+  /** Giữa thanh nav: canh giữa — Hỗ trợ | Logo | Về chúng tôi (vừa chiều cao header gọn) */
   headerCenter:
     "h-9 w-auto max-w-[160px] object-contain object-center drop-shadow-[0_1px_6px_rgba(0,0,0,0.22)] sm:h-11 sm:max-w-[200px] md:h-12 md:max-w-[220px] lg:h-[3.35rem] lg:max-w-[240px]",
   /** Header stacked: chỉ ảnh logo to gấp ~3 lần (không chữ ShopBike), chữ xác minh ở dưới */

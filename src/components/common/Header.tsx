@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -25,11 +25,6 @@ import { useTheme } from "@/app/providers/ThemeProvider";
 import { useLanguageStore } from "@/stores/useLanguageStore";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-function scrollToListings() {
-  const el = document.getElementById("listings");
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
 
 const channelIconBtn =
   "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:h-7 sm:w-7";
@@ -109,14 +104,6 @@ export function Header() {
     };
   }, [langOpen]);
 
-  const onListings = useCallback(() => {
-    if (location.pathname !== "/") {
-      navigate("/", { state: { scrollTo: "listings" } });
-      return;
-    }
-    scrollToListings();
-  }, [location.pathname, navigate]);
-
   const onSearchSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -181,7 +168,7 @@ export function Header() {
 
   return (
     <header className={headerClass}>
-      {/* Grid 3 cột: trái (tìm) | giữa (VI/EN | Hỗ trợ | Logo | Danh sách | sáng/tối) | phải (wishlist, đăng nhập…) */}
+      {/* Grid 3 cột: trái (tìm) | giữa (VI/EN | Hỗ trợ | Logo | Về chúng tôi | sáng/tối) | phải (wishlist, đăng nhập…) */}
       <div className="mx-auto grid min-h-9 w-full max-w-[100%] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1 overflow-x-auto whitespace-nowrap px-2 py-1 sm:min-h-10 sm:gap-x-2 sm:px-3 md:min-h-11 lg:px-4 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
         {/* Trái: tìm kiếm — ô nhập trượt ra (max-width) */}
         <div className="flex min-w-0 items-center justify-start">
@@ -226,7 +213,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* Giữa: VI/EN | Hỗ trợ | Logo | Danh sách xe | sáng/tối — không | đầu/cuối khung */}
+        {/* Giữa: VI/EN | Hỗ trợ | Logo | Về chúng tôi | sáng/tối — không | đầu/cuối khung */}
         <nav className="pointer-events-none flex items-center justify-center gap-0 text-xs text-muted-foreground sm:text-sm">
           <div className="pointer-events-auto relative shrink-0">
             <button
@@ -299,13 +286,19 @@ export function Header() {
             <Logo variant="headerCenter" />
           </Link>
           <NavSep />
-          <button
-            type="button"
-            onClick={onListings}
-            className="pointer-events-auto whitespace-nowrap rounded-md px-1 py-0.5 font-normal transition-colors hover:bg-muted/60 hover:text-foreground sm:px-1.5"
+          <NavLink
+            to="/about-us"
+            className={({ isActive }) =>
+              cn(
+                "pointer-events-auto whitespace-nowrap rounded-md px-1 py-0.5 font-normal transition-colors sm:px-1.5",
+                isActive
+                  ? "bg-primary/10 text-primary ring-1 ring-primary/25"
+                  : "hover:bg-muted/60 hover:text-foreground",
+              )
+            }
           >
-            {t("common.vehicleList")}
-          </button>
+            {t("common.aboutUs")}
+          </NavLink>
           <NavSep />
           <Button
             type="button"

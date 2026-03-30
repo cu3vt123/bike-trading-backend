@@ -14,9 +14,8 @@
 4. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
 5. [Team phối hợp BE (BA, Tester, PM / QA / FE)](#team-phối-hợp-be)
 6. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
-7. [Lịch sử & testing](#lịch-sử--testing)
-8. [Tài liệu local (không commit)](#tài-liệu-local-không-commit)
-9. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
+7. [Lịch sử](#lịch-sử)
+8. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
 
 ---
 
@@ -25,6 +24,7 @@
 | Nhu cầu | Tài liệu | Mô tả ngắn |
 |---------|----------|------------|
 | **Chạy dự án, env, lint/build, sự cố** | [README.md](../README.md) | Hướng dẫn gốc — bắt buộc khi onboard. |
+| **Hướng dẫn Frontend tổng hợp (stack, route, API, Query, i18n, checklist)** | **[FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md)** | **Đọc đầu tiên khi làm FE** — chi tiết một file. |
 | **API, routes, thuật ngữ, env, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tra cứu nhanh khi code hoặc port API. |
 | **Luồng gọi API trên FE** (axios, `apis/`, `services/`, VNPay) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Đi từ request đến đúng file TypeScript. |
 | **So sánh kiến trúc FE cũ / mới** (Query, RHF, refresh, invalidate) | **[FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md)** | Hiểu V2 và cách chỉnh code không lệch cache. |
@@ -114,21 +114,11 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 
 ---
 
-## Lịch sử & testing
+## Lịch sử
 
 | Nội dung | File |
 |----------|------|
 | Changelog tóm tắt | [CHANGELOG.md](CHANGELOG.md) |
-| Hướng dẫn testing (SWT301, v.v.) | [testing/README.md](testing/README.md), [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md), [testing/TESTCASE-WORKBOOK.md](testing/TESTCASE-WORKBOOK.md) |
-
----
-
-## Tài liệu local (không commit)
-
-Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có thể nằm trong `docs/testing/generated/`, `evidence/`, … và bị **`.gitignore`** ở root repo.
-
-- Xem **[testing/README.md](testing/README.md)** — mô tả rõ artifact local và lệnh `npm run export:defectlist` / `npm run generate:testcase-workbook`.  
-- Không commit file chứa dữ liệu nhạy cảm hoặc chỉ dùng một lần.
 
 ---
 
@@ -137,6 +127,7 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | File | Ghi chú ngắn |
 |------|----------------|
 | [STRUCTURE.md](STRUCTURE.md) | Cây thư mục FE, providers, apis/services |
+| [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) | Hướng dẫn dev FE đầy đủ (routing, guard, env, Query, form, i18n) |
 | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng API chi tiết, Mermaid |
 | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | So sánh V1/V2 + hướng dẫn thực hành |
 | [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) | Kiểm tra luồng & API (checklist) |
@@ -156,8 +147,6 @@ Các file **CSV/XLSX/screenshot** nộp bài cá nhân hoặc export script có 
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tham chiếu nhanh |
 | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | ERD / MySQL / hướng dẫn vẽ |
 | [sql/](sql/) | Script SQL |
-| [testing/README.md](testing/README.md), [testing/SWT301_TESTING_GUIDE.md](testing/SWT301_TESTING_GUIDE.md), [testing/TESTCASE-WORKBOOK.md](testing/TESTCASE-WORKBOOK.md) | SWT301, sinh workbook TC / DefectList |
-
 ---
 
 *Cập nhật: mục lục có **[AI: gợi ý tài liệu cho cả team](#ai-context-team-md)** → `AI-CONTEXT-for-TEAM.md`; bảng Backend vẫn có hàng AI cho dev backend.*

@@ -2,7 +2,7 @@
   "common": {
     "support": "Hỗ trợ",
     "explore": "Khám phá",
-    "vehicleList": "Danh sách xe",
+    "aboutUs": "Về chúng tôi",
     "wishlist": "Yêu thích",
     "register": "Đăng ký",
     "login": "Đăng nhập",
@@ -19,6 +19,43 @@
     "viewBikes": "Xem xe",
     "loading": "Đang tải...",
     "loadingPage": "Đang tải trang"
+  },
+  "aboutUs": {
+    "title": "Về chúng tôi",
+    "subtitle": "ShopBike — Sàn giao dịch xe đạp thể thao",
+    "heroLead": "ShopBike là đồ án phát triển phần mềm của nhóm: nền tảng kết nối người mua và người bán xe đạp đã qua kiểm định, có thanh toán an toàn và luồng giao hàng minh bạch. Chúng mình xây dựng sản phẩm theo hướng thật sự dùng được: từ duyệt tin, kho & kiểm định lại, tới theo dõi đơn và hoàn tất giao dịch.",
+    "missionTitle": "Sứ mệnh",
+    "missionBody": "Mang lại trải nghiệm mua bán xe đạp thể thao rõ ràng, an tâm: thông tin tin đăng nhất quán, trạng thái đơn theo thời gian thực, và hỗ trợ người dùng ở từng vai trò Buyer, Seller, Inspector và Admin.",
+    "visionTitle": "Tầm nhìn",
+    "visionBody": "Hướng tới một nền tảng gọn, tin cậy cho cộng đồng đạp — nơi chất lượng tin đăng được kiểm chứng, giao dịch có lộ trình đóng và đội ngũ có thể mở rộng tính năng theo phản hồi thực tế.",
+    "valuesTitle": "Giá trị cốt lõi",
+    "value1": "Minh bạch: trạng thái đơn, thanh toán và lịch sử thao tác thống nhất giữa giao diện và API.",
+    "value2": "An toàn: phân quyền theo vai, kiểm định tin trước khi lên sàn, luồng kho và giao hàng rõ ràng.",
+    "value3": "Đồng đội: phối hợp quản lý, frontend, phân tích nghiệp vụ và backend để giao nộp đúng tiến độ và tài liệu có thể tái sử dụng.",
+    "teamSectionTitle": "Đội ngũ dự án",
+    "members": {
+      "huong": {
+        "name": "Nguyễn Thị Cẩm Hương",
+        "role": "Founder & CEO"
+      },
+      "duyQuang": {
+        "name": "Duy Quang",
+        "roleManagement": "Management",
+        "roleFrontend": "FrontEnd"
+      },
+      "xuanHoang": {
+        "name": "Xuân Hoàng",
+        "role": "Frontend, Business analysis"
+      },
+      "minhQuan": {
+        "name": "Minh Quân",
+        "role": "BackEnd"
+      },
+      "anhBao": {
+        "name": "Anh Bảo",
+        "role": "BackEnd"
+      }
+    }
   },
   "vnpayDemo": {
     "title": "Thanh toán VNPAY",

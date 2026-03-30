@@ -2,7 +2,7 @@
   "common": {
     "support": "Support",
     "explore": "Explore",
-    "vehicleList": "Bike list",
+    "aboutUs": "About us",
     "wishlist": "Wishlist",
     "register": "Register",
     "login": "Login",
@@ -19,6 +19,43 @@
     "viewBikes": "View bikes",
     "loading": "Loading...",
     "loadingPage": "Loading page"
+  },
+  "aboutUs": {
+    "title": "About us",
+    "subtitle": "ShopBike — Sports bike marketplace",
+    "heroLead": "ShopBike is our course project: a platform connecting buyers and sellers of inspected sports bikes, with secure payments and clear order flows. We built it to be genuinely usable—from listing review and warehouse re-inspection to order tracking and completion.",
+    "missionTitle": "Mission",
+    "missionBody": "Deliver a clear, trustworthy buy-and-sell experience: consistent listing data, real-time order status, and support for Buyer, Seller, Inspector, and Admin roles.",
+    "visionTitle": "Vision",
+    "visionBody": "A lean, reliable hub for the cycling community—where listing quality is verified, transactions have a defined path, and the team can ship features from real feedback.",
+    "valuesTitle": "Core values",
+    "value1": "Transparency: order state, payments, and actions stay aligned between UI and API.",
+    "value2": "Safety: role-based access, inspection before publish, and explicit warehouse / delivery flows.",
+    "value3": "Teamwork: management, frontend, business analysis, and backend shipping milestones with reusable docs.",
+    "teamSectionTitle": "Project team",
+    "members": {
+      "huong": {
+        "name": "Nguyễn Thị Cẩm Hương",
+        "role": "Founder & CEO"
+      },
+      "duyQuang": {
+        "name": "Duy Quang",
+        "roleManagement": "Management",
+        "roleFrontend": "FrontEnd"
+      },
+      "xuanHoang": {
+        "name": "Xuân Hoàng",
+        "role": "Frontend, Business analysis"
+      },
+      "minhQuan": {
+        "name": "Minh Quân",
+        "role": "BackEnd"
+      },
+      "anhBao": {
+        "name": "Anh Bảo",
+        "role": "BackEnd"
+      }
+    }
   },
   "vnpayDemo": {
     "title": "VNPAY Payment",

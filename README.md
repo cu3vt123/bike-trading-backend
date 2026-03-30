@@ -129,7 +129,7 @@ Nếu kẹt CORS, cổng, hoặc sau `git pull`: xem [docs/BACKEND-LOCAL-SETUP.m
 
 Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời, **đừng** chỉ nói miệng “đọc project giúp” — nên đính kèm **gói tài liệu** theo **vai** (dev backend, dev frontend, tester/QA) và theo thứ tự trong bài hướng dẫn.
 
-**Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA / SWT301; bảng tổng hợp; lỗi prompt thường gặp.  
+**Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA; bảng tổng hợp; lỗi prompt thường gặp.  
 File [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) chỉ còn **chuyển hướng** về file trên (giữ link cũ không gãy).
 
 ---
@@ -172,6 +172,8 @@ Mã nguồn backend cho Sàn Giao Dịch Xe Đạp Thể Thao. Entry Java: `src/
 ## Phần B — ShopBike Frontend (chi tiết)
 
 Marketplace, checkout, seller/inspector/admin, i18n, theme.
+
+**Hướng dẫn Frontend chi tiết nhất (stack, cấu trúc `src/`, routing, guard, API layers, TanStack Query, Zustand, form, i18n, checklist, xử lý sự cố):** [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md).
 
 ### B1. Clone & cài dependency
 
@@ -263,7 +265,7 @@ Trước khi merge/PR: nên chạy **`npm run lint`** và **`npm run build`** th
 4. `npm run dev` — mở app, đăng nhập tài khoản test (nếu cần).
 5. Khi sửa **server state** (danh sách, đơn, dashboard): nhớ pattern **TanStack Query** + `queryKeys` + `invalidateQueries` (xem [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md)).
 6. Khi sửa **form auth**: xem `src/lib/authSchemas.ts` + React Hook Form.
-7. Commit message rõ ràng; không commit `.env`, `node_modules`, artifact local trong `docs/testing/` (nếu ignore).
+7. Commit message rõ ràng; không commit `.env` hoặc `node_modules`.
 
 ---
 
@@ -289,6 +291,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 |------|------------|----------------|
 | **Backend (Java / Spring / IntelliJ)** | [Mục *Dành cho Backend* ở README này](#dành-cho-backend-java-spring-boot-intellij), [docs/README — Backend](docs/README.md#backend-java-spring-boot-hướng-dẫn--tài-liệu) | Clone repo, chạy Spring + FE, tài liệu port Node→Spring, DB, VNPay |
 | **AI — gói tài liệu (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md), [README § Gợi ý tài liệu cho AI](#readme-ai-context-team) | BE / FE / QA: đính kèm file nào khi chat với Gemini / ChatGPT / … |
+| **Frontend — hướng dẫn tổng hợp** | [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md) | Một file cho dev FE: route, API, Query, i18n, checklist |
 | **Onboard & tra cứu** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | API, role, routes, env, order status |
 | **Luồng code FE → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | axios, services, VNPay, upload |
 | **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, RHF, Zod, refresh, invalidate |
@@ -301,17 +304,13 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **PM / QA / FE + Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ chung, mẫu báo bug, ai đọc gì |
 | **ERD / SQL** | [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | Schema DB |
 | **Business rules** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ |
-| **Testing (SWT301)** | [docs/testing/README.md](docs/testing/README.md) | Báo cáo, test case |
-
-**Tài liệu local (không Git):** `docs/testing/generated/`, CSV/XLSX cá nhân — xem [.gitignore](.gitignore) và [docs/testing/README.md](docs/testing/README.md) (mục artifact local).
-
 ---
 
 ## Lộ trình đọc cho người mới
 
 **Ngày 1 — Chạy được & hiểu repo**
 
-1. Đọc README này (phần B + biến môi trường).  
+1. Đọc README này (phần B + biến môi trường) và [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md).  
 2. Chạy `npm run dev` với mock hoặc API thật.  
 3. Đọc [docs/STRUCTURE.md](docs/STRUCTURE.md) và [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) § 1–3.
 
@@ -324,12 +323,6 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 1. [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) (cả phần hướng dẫn thực hành).  
 2. Mở `src/lib/queryKeys.ts` và một hook trong `src/hooks/queries/` để thấy pattern.
-
-**Khi làm báo cáo / test môn học**
-
-- [docs/testing/SWT301_TESTING_GUIDE.md](docs/testing/SWT301_TESTING_GUIDE.md)
-
----
 
 ## Thay đổi gần đây
 
