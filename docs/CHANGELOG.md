@@ -10,8 +10,8 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 | Thay đổi | Chi tiết |
 |----------|----------|
-| **`FRONTEND-DEVELOPER-GUIDE.md`** | Hướng dẫn dev frontend tổng hợp: stack, env, cấu trúc `src/`, bảng route, guard, API layers, Query/`queryKeys`, Zustand, RHF+Zod, i18n, UI, checklist, xử lý sự cố, liên kết tài liệu liên quan. |
-| **README, `docs/README`, STRUCTURE, `AI-CONTEXT-for-TEAM`** | Thêm mục và liên kết tới guide mới; lộ trình người mới đọc guide sau README. |
+| **`FRONTEND-DEVELOPER-GUIDE.md`** | Hướng dẫn FE tổng hợp (lần 1): stack, env, cấu trúc `src/`, bảng route, guard, API layers, Query/`queryKeys`, Zustand, RHF+Zod, i18n, UI, checklist, xử lý sự cố. **Bổ sung:** alias TS/Vite; `env.ts` vs `apiConfig`; chi tiết interceptor/refresh `apiClient`; `getApiErrorMessage`; `queryClient` defaults; i18n + `useLanguageStore`; `MainLayout`/scroll; lint/build. |
+| **README, `docs/README`, STRUCTURE, `AI-CONTEXT-for-TEAM`** | Liên kết tới guide; lộ trình người mới đọc guide sau README. |
 
 ---
 
