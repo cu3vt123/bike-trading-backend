@@ -3,6 +3,29 @@
 **Ngày kiểm tra:** 2025-03-15  
 **Mục đích:** Đối chiếu bộ API FE ↔ BE theo từng trang và actor để đảm bảo khớp.
 
+**Luồng xử lý tầng FE (apiClient, services, mock):** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md).
+
+---
+
+## Cách đọc tài liệu này
+
+| | |
+|--|--|
+| **Mục đích** | Rà soát **từng Page** (Home, Checkout, Transaction, …) và **actor** (Guest, Buyer, Seller, Inspector, Admin) — biết trang đó gọi API nào. |
+| **Khi nào mở file này** | Cần tra “**màn X** dùng endpoint gì?” hoặc **debug** thiếu gọi API trên một route. |
+| **Đọc cùng** | [BE-FE-API-AUDIT.md](./BE-FE-API-AUDIT.md) — cùng nội dung nhưng xếp theo **nhóm API**, không theo page. [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) — bảng path tóm tắt. |
+| **Ký hiệu trong bảng** | ✅ Khớp; phần **Dead code** ở §1 — path FE có nhưng BE không dùng / không gọi. |
+
+---
+
+## Mục lục
+
+1. [Tổng quan](#1-tổng-quan) — gồm dead code  
+2. [Chi tiết theo Actor và Page](#2-chi-tiết-theo-actor-và-page) — §2.1 Guest → §2.6 Auth  
+3. [Reviews (Buyer + Admin)](#muc-3-reviews)  
+4. [Khuyến nghị](#4-khuyến-nghị)  
+5. [File tham chiếu](#5-file-tham-chiếu)  
+
 ---
 
 ## 1. Tổng quan
@@ -62,6 +85,7 @@
 | | `fetchSellerRatings()` | `/seller/ratings` | Có | GET | ✅ |
 | | `authApi.getProfile()` | `/auth/me` | Có | GET | ✅ |
 | **SellerListingEditorPage** | `brandsApi.getList()` | `/brands` | Có | GET | ✅ |
+| | `uploadListingImages()` (trước khi lưu/publish) | `/seller/listings/upload-images` | Có | POST multipart | ✅ |
 | | `createListing()`, `updateListing()` | `/seller/listings`, `/seller/listings/:id` | Có | POST, PUT | ✅ |
 | | `submitForInspection()`, `publishListing()` | `/seller/listings/:id/submit`, `/seller/listings/:id/publish` | Có | PUT | ✅ |
 | | `getListingById()` | `/seller/listings/:id` | Có | GET | ✅ |
@@ -79,6 +103,7 @@
 
 | Page | API gọi | FE Path | BE Route | Method | Trạng thái |
 |------|---------|---------|----------|--------|------------|
+| **ProductDetailPage** (`/bikes/:id`) | `fetchListingById` → nếu null thì `fetchListingByIdForInspector` (khi INSPECTOR/ADMIN hoặc có token) | `/bikes/:id` rồi `/inspector/listings/:id` | `GET /bikes/:id` (chỉ published) + **`GET /inspector/listings/:id`** (mọi trạng thái) | GET | ✅ Spring BE2: bắt buộc có GET inspector theo id |
 | **InspectorDashboardPage** | `fetchPendingListings()` | `/inspector/pending-listings` | Có | GET | ✅ |
 | | `inspectorApi.getListingById(id)` | `/inspector/listings/:id` | Có | GET | ✅ |
 | | `approveListing(id, report)` | `/inspector/listings/:id/approve` | Có | PUT | ✅ |
@@ -125,6 +150,8 @@
 | ResetPasswordPage | `authApi.resetPassword()` | `/auth/reset-password` | Có | POST | ✅ |
 
 ---
+
+<a id="muc-3-reviews"></a>
 
 ## 3. Reviews (dùng bởi Buyer + Admin)
 

@@ -278,6 +278,22 @@ export async function fetchSellerRatings(): Promise<SellerRatingsSummary | null>
   }
 }
 
+export async function uploadListingImages(files: File[]): Promise<string[]> {
+  if (USE_MOCK) {
+    return files.map(
+      () =>
+        "https://images.unsplash.com/photo-1520975682031-ae1f0c1b1d20?auto=format&fit=crop&w=1400&q=60",
+    );
+  }
+  const formData = new FormData();
+  for (const f of files) formData.append("images", f);
+  const { urls } = await sellerApi.uploadListingImages(formData);
+  if (urls.length !== files.length) {
+    throw new Error("UPLOAD_COUNT_MISMATCH");
+  }
+  return urls;
+}
+
 export async function createListing(
   data: CreateListingRequest,
 ): Promise<Listing> {

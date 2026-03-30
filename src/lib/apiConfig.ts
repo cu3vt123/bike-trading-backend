@@ -24,6 +24,7 @@ export const API_PATHS = {
   AUTH: {
     LOGIN: "/auth/login",
     SIGNUP: "/auth/signup",
+    REFRESH: "/auth/refresh",
     ME: "/auth/me",
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
@@ -69,6 +70,8 @@ export const API_PATHS = {
     LISTING_SUBMIT: (id: string) => `/seller/listings/${id}/submit`,
     LISTING_MARK_SHIPPED_TO_WAREHOUSE: (id: string) =>
       `/seller/listings/${id}/mark-shipped-to-warehouse`,
+    /** Multipart POST field `images` (tối đa 10 file) — trả về URL tuyệt đối trỏ vào /uploads */
+    LISTING_UPLOAD_IMAGES: "/seller/listings/upload-images",
     SUBSCRIPTION_CHECKOUT: "/seller/subscription/checkout",
     SUBSCRIPTION_MOCK_COMPLETE: (orderId: string) =>
       `/seller/subscription/orders/${orderId}/mock-complete`,

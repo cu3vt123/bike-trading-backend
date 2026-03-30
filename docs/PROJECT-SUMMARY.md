@@ -2,8 +2,11 @@
 
 > Tài liệu tổng hợp toàn bộ chức năng đã hoàn thành, business rules, và hướng dẫn cho dự án ShopBike.
 
+**Cách đọc tài liệu này:** Đây là **bản tổng hợp dài** — dùng khi cần **bức tranh toàn cục** (chức năng, role, stack). Để **chạy dự án** hoặc **sửa code hàng ngày**, ưu tiên [README.md](../README.md) → [STRUCTURE.md](STRUCTURE.md) → [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md). Chi tiết quy tắc nghiệp vụ đầy đủ: [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md).
+
 **Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, luồng→API.  
-**Tham chiếu:** [USER-REQUIREMENTS.md](./USER-REQUIREMENTS.md), [BACKEND-GUIDE.md](./BACKEND-GUIDE.md).
+**Luồng gọi API trên FE:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) — `apiClient`, `apis`, `services`, VNPay, upload ảnh.  
+**Tham chiếu:** [BACKEND-GUIDE.md](./BACKEND-GUIDE.md); enum/trạng thái đơn & tin: `src/types/order.ts`, entity Java; sơ đồ nghiệp vụ: [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md).
 
 ---
 
@@ -342,8 +345,7 @@ Chi tiết: `docs/STRUCTURE.md`
 | `docs/BE-FE-API-AUDIT-BY-PAGE.md` | Rà soát API theo từng trang/actor — mapping Page → API → BE route |
 | `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
 | `docs/ERD-MYSQL.md` | Thiết kế MySQL 17 bảng — ERD Mermaid, SQL schema |
-| `docs/SCREEN_FLOW_BY_ACTOR.md` | Screen flow theo Guest/Buyer/Seller/Inspector/Admin |
-| `docs/STATE_TRANSITION_DIAGRAM_GUIDE.md` | State diagram Order/Listing/Review |
+| `docs/UI-UX-AUDIT-BY-ACTOR.md` | Rà soát UI/UX theo vai |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |
 | `backend/README.md` | Chạy backend Node demo |
 

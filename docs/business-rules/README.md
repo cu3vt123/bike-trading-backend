@@ -2,6 +2,8 @@
 
 Tài liệu và công cụ cập nhật **Business Rules** cho dự án ShopBike.
 
+**Đối tượng đọc:** dev/backend/BA cần **source of truth** cho quy tắc nghiệp vụ (đơn, listing, VNPay, finalize). **Frontend** khi sửa luồng mua/bán nên đối chiếu [BUSINESS-RULES.md](./BUSINESS-RULES.md) cùng với [FRONTEND-API-FLOWS.md](../FRONTEND-API-FLOWS.md). **Onboard tổng quát** (chạy app, cấu trúc code): xem [README.md](../../README.md) trước.
+
 ---
 
 ## 1. Tài liệu đầy đủ

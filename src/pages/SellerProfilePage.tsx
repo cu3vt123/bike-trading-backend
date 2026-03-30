@@ -196,7 +196,6 @@ export default function SellerProfilePage() {
                   <div className="truncate text-sm text-muted-foreground">{seller.email}</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Badge>Seller</Badge>
-                    <Badge variant="secondary">Verified</Badge>
                   </div>
                 </div>
               </div>

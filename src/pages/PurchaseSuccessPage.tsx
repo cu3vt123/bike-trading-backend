@@ -10,6 +10,7 @@ import type { BikeDetail } from "@/types/shopbike";
 import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
 import { createReview } from "@/services/reviewService";
 import { useNotificationStore } from "@/stores/useNotificationStore";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 
 type PaymentMethod =
   | { type: "CASH" }
@@ -177,9 +178,8 @@ export default function PurchaseSuccessPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-4xl flex-col items-center justify-center gap-3 py-24">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">{t("checkout.successLoading")}</p>
+      <div className="mx-auto max-w-4xl py-24">
+        <BicycleLoadingBlock message={t("checkout.successLoading")} size="md" />
       </div>
     );
   }

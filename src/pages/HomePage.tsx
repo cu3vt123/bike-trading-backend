@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Bike } from "lucide-react";
 
@@ -12,13 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchListings } from "@/services/buyerService";
+import { useListingsQuery } from "@/hooks/useListingsQuery";
 import ListingCard from "@/components/listing/ListingCard";
 import type { Listing } from "@/types/shopbike";
 import type { BikeCondition } from "@/types/shopbike";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useTranslation, Trans } from "react-i18next";
 import { Logo } from "@/components/common/Logo";
+import { BicycleLoader, BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 
 import { HERO_SLIDES, HERO_AUTO_SLIDE_MS } from "@/constants/hero";
 
@@ -45,9 +46,18 @@ export default function HomePage() {
   const { t } = useTranslation();
   const { accessToken, role } = useAuthStore();
 
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: listings = [],
+    isPending: loading,
+    isError,
+    error: listingsError,
+  } = useListingsQuery();
+  const error =
+    isError && listingsError instanceof Error
+      ? listingsError.message
+      : isError
+        ? t("home.loadError")
+        : null;
   const [heroIndex, setHeroIndex] = useState(0);
 
   const [q, setQ] = useState("");
@@ -56,26 +66,7 @@ export default function HomePage() {
   const [frameSize, setFrameSize] = useState<string>("ALL");
   const [priceMin, setPriceMin] = useState<string>("");
   const [priceMax, setPriceMax] = useState<string>("");
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetchListings()
-      .then((data) => {
-        if (!cancelled) setListings(data);
-      })
-      .catch((err) => {
-        if (!cancelled)
-          setError(err?.message ?? t("home.loadError"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [isFilterPending, startFilterTransition] = useTransition();
 
   const filtered = useMemo(() => {
     const keyword = q.trim().toLowerCase();
@@ -227,7 +218,7 @@ export default function HomePage() {
         {/* Hàng 1: Bộ lọc */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 flex-wrap gap-3 sm:items-center">
-            <Select value={brand} onValueChange={setBrand}>
+            <Select value={brand} onValueChange={(v) => startFilterTransition(() => setBrand(v))}>
               <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder={t("home.allBrands")} />
               </SelectTrigger>
@@ -240,7 +231,7 @@ export default function HomePage() {
               </SelectContent>
             </Select>
 
-            <Select value={condition} onValueChange={setCondition}>
+            <Select value={condition} onValueChange={(v) => startFilterTransition(() => setCondition(v))}>
               <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder={t("home.allConditions")} />
               </SelectTrigger>
@@ -254,7 +245,7 @@ export default function HomePage() {
               </SelectContent>
             </Select>
 
-            <Select value={frameSize} onValueChange={setFrameSize}>
+            <Select value={frameSize} onValueChange={(v) => startFilterTransition(() => setFrameSize(v))}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder={t("home.allSizes")} />
               </SelectTrigger>
@@ -273,7 +264,7 @@ export default function HomePage() {
                 inputMode="numeric"
                 placeholder={t("home.priceMin")}
                 value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
+                onChange={(e) => startFilterTransition(() => setPriceMin(e.target.value))}
                 className="w-28 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <Input
@@ -281,26 +272,31 @@ export default function HomePage() {
                 inputMode="numeric"
                 placeholder={t("home.priceMax")}
                 value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
+                onChange={(e) => startFilterTransition(() => setPriceMax(e.target.value))}
                 className="w-28 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>
 
           <div className="flex items-center justify-between gap-3 md:justify-end">
-            <div className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {isFilterPending && !loading ? (
+                <BicycleLoader size="sm" className="opacity-90" />
+              ) : null}
               <Trans i18nKey="home.resultsCount" values={{ count: filtered.length }} components={{ 1: <span className="font-semibold text-foreground" /> }} />
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                setQ("");
-                setBrand("ALL");
-                setCondition("ALL");
-                setFrameSize("ALL");
-                setPriceMin("");
-                setPriceMax("");
+                startFilterTransition(() => {
+                  setQ("");
+                  setBrand("ALL");
+                  setCondition("ALL");
+                  setFrameSize("ALL");
+                  setPriceMin("");
+                  setPriceMax("");
+                });
               }}
             >
               {t("home.clearFilters")}
@@ -313,10 +309,15 @@ export default function HomePage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => startFilterTransition(() => setQ(e.target.value))}
             placeholder={t("common.searchPlaceholderLong")}
-            className="h-11 w-full pl-9 text-base"
+            className="h-11 w-full pl-9 pr-11 text-base"
           />
+          {isFilterPending && !loading ? (
+            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+              <BicycleLoader size="sm" />
+            </span>
+          ) : null}
         </div>
       </section>
 
@@ -342,9 +343,8 @@ export default function HomePage() {
         </div>
 
         {loading ? (
-          <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-xl border bg-card py-16">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">{t("home.loadingListings")}</p>
+          <div className="mt-6 rounded-xl border bg-card py-16">
+            <BicycleLoadingBlock message={t("home.loadingListings")} size="md" />
           </div>
         ) : error ? (
           <Card className="mt-6">

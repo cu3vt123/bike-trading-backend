@@ -141,8 +141,26 @@ export async function completeOrder(orderId: string): Promise<Order> {
   return order;
 }
 
+const MOCK_CANCEL_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const MOCK_MAX_CANCELS = 3;
+const mockCancelTimestamps: number[] = [];
+
+function pruneMockCancelTimestamps() {
+  const since = Date.now() - MOCK_CANCEL_WINDOW_MS;
+  while (mockCancelTimestamps.length > 0 && mockCancelTimestamps[0]! < since) {
+    mockCancelTimestamps.shift();
+  }
+}
+
 export async function cancelOrder(orderId: string): Promise<Order> {
   if (USE_MOCK) {
+    pruneMockCancelTimestamps();
+    if (mockCancelTimestamps.length >= MOCK_MAX_CANCELS) {
+      const err = new Error("CANCEL_LIMIT_REACHED") as Error & { code?: string };
+      err.code = "CANCEL_LIMIT_REACHED";
+      throw err;
+    }
+    mockCancelTimestamps.push(Date.now());
     const mock = { id: orderId, listingId: "", status: "CANCELLED" } as Order;
     setOrderOverride(orderId, { status: mock.status });
     return mock;

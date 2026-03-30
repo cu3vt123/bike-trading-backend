@@ -14,6 +14,10 @@ import { buildVnpaySandboxPaymentUrl } from "../utils/vnpaySandbox.js";
 import { getVnpayDemoConfig } from "../config/vnpayDemoConfig.js";
 import { buildBuyerOrderVnpayTxnRef, buildBuyerBalanceVnpayTxnRef } from "../utils/vnpayBuyerTxnRef.js";
 
+/** Giới hạn nghiệp vụ: tối đa 3 lần hủy đơn / buyer / cửa sổ 7 ngày (lăn). */
+const CANCEL_LIMIT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_CANCELS_PER_7_DAYS = 3;
+
 function clientIp(req) {
   const xf = req.headers["x-forwarded-for"];
   if (typeof xf === "string" && xf.length > 0) {
@@ -407,6 +411,20 @@ export async function cancelOrder(req, res) {
   ];
   if (!cancellableStatuses.includes(order.status)) {
     return badRequest(res, `Không thể hủy đơn ở trạng thái ${order.status}.`);
+  }
+
+  const since = new Date(Date.now() - CANCEL_LIMIT_WINDOW_MS);
+  const recentCancelCount = await Order.countDocuments({
+    buyerId: order.buyerId,
+    status: "CANCELLED",
+    updatedAt: { $gte: since },
+  });
+  if (recentCancelCount >= MAX_CANCELS_PER_7_DAYS) {
+    return badRequest(
+      res,
+      "Bạn đã đạt giới hạn hủy đơn: tối đa 3 lần trong 7 ngày. Vui lòng thử lại sau.",
+      "CANCEL_LIMIT_REACHED",
+    );
   }
 
   order.status = "CANCELLED";

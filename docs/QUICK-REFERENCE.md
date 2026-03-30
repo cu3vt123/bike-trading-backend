@@ -2,7 +2,7 @@
 
 > Tài liệu tra cứu nhanh: thuật ngữ, API, routes, biến môi trường, vị trí file. Dùng khi onboard, port BE, hoặc tra cứu thông tin.
 
-**Nguồn chi tiết:** [README.md](README.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
+**Nguồn chi tiết:** [README.md](README.md) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
 
 **Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A. **Chuyển giao Node→Spring:** [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) §0.
 
@@ -42,6 +42,7 @@
 |--------|------|-------|
 | POST | /auth/login | `{ emailOrUsername, password }` → `{ accessToken, refreshToken?, user: { id, role, ... } }` |
 | POST | /auth/signup | `{ username, email, password, role: BUYER|SELLER }` |
+| POST | /auth/refresh | `{ refreshToken }` → access mới (FE dùng trong interceptor khi 401) — **cần BE hỗ trợ** |
 | GET | /auth/me | Header `Authorization: Bearer` → thông tin user |
 
 ### Bikes (public)
@@ -55,7 +56,7 @@
 
 | Method | Path | Mô tả |
 |--------|------|-------|
-| POST | /buyer/orders/vnpay-checkout | Tạo đơn + `paymentUrl` VNPay. Body: `listingId`, `plan`, `fulfillmentType`, `shippingAddress` |
+| POST | /buyer/orders/vnpay-checkout | Tạo đơn + `paymentUrl` VNPay. Body: `listingId`, `plan`, `shippingAddress`, `acceptedUnverifiedDisclaimer` (bắt buộc `true` nếu tin chưa CERTIFIED). **`fulfillmentType` do BE gán** — FE không gửi |
 | GET | /buyer/orders | Đơn của buyer |
 | GET | /buyer/orders/:id | Chi tiết đơn (trả `sellerId`, `listing.seller` cho Success) |
 | PUT | /buyer/orders/:id/complete | Hoàn tất (chỉ khi status SHIPPING) |
@@ -72,7 +73,8 @@
 | GET | /seller/orders | Đơn của seller (filter kho/direct) |
 | PUT | /seller/orders/:id/ship-to-buyer | Chỉ DIRECT + PENDING_SELLER_SHIP |
 | GET | /seller/ratings | Aggregate reviews |
-| CRUD | /seller/listings | Tạo/sửa tin |
+| POST | /seller/listings/upload-images | Multipart field `images` (≤10, 5MB/file) → `{ data: { urls } }` — URL `/uploads/listings/...` |
+| CRUD | /seller/listings | Tạo/sửa tin (`imageUrls` sau khi upload) |
 | PUT | /seller/listings/:id/mark-shipped-to-warehouse | Xe gửi kho |
 | POST | /seller/subscription/checkout | Mua gói `{ plan, provider }` |
 
@@ -81,9 +83,12 @@
 | Method | Path | Mô tả |
 |--------|------|-------|
 | GET | /inspector/pending-listings | Tin chờ kiểm định |
+| GET | /inspector/listings/:id | Chi tiết tin theo id (mọi trạng thái) — FE trang `/bikes/:id` khi duyệt tin chưa lên sàn; **Spring BE2** cần endpoint này (không chỉ Node). |
 | PUT | /inspector/listings/:id/approve | Duyệt + điểm |
 | PUT | /inspector/listings/:id/reject | Từ chối |
 | PUT | /inspector/listings/:id/need-update | Yêu cầu cập nhật + reason |
+
+**Spring Security:** toàn bộ `/api/inspector/**` → `hasAnyRole(INSPECTOR, ADMIN)`.
 
 ### Admin (role ADMIN)
 
@@ -129,6 +134,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | VNP_HASHSECRET | Hash secret | từ sandbox |
 | VNP_RETURNURL | Return URL (HTTPS) | https://your-ngrok/payment/vnpay-return |
 | VNP_IPNURL | IPN URL (HTTPS) | https://your-ngrok/payment/vnpay-ipn |
+| PUBLIC_ORIGIN | Base URL công khai BE (link ảnh upload trả về) | http://localhost:8081 |
+| CORS_EXTRA_ORIGINS | Thêm origin CORS (cách nhau dấu phẩy) | (tùy chọn) |
 
 ### Frontend (`frontend/.env`)
 
@@ -157,8 +164,11 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | Mục đích | Đường dẫn |
 |----------|-----------|
 | Router | src/app/router.tsx |
-| API config | src/lib/apiConfig.ts |
-| Services | src/services/buyerService.ts, sellerService.ts |
+| API config & paths | src/lib/apiConfig.ts |
+| HTTP client | src/lib/apiClient.ts |
+| API wrappers | src/apis/*.ts |
+| Luồng FE → API (tài liệu) | docs/FRONTEND-API-FLOWS.md |
+| Services | src/services/buyerService.ts, sellerService.ts, reviewService.ts |
 | Stores | src/stores/useAuthStore.ts, useWishlistStore.ts |
 | Types | src/types/order.ts, shopbike.ts, auth.ts |
 
@@ -177,7 +187,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 | Luồng | Màn hình | API chính |
 |-------|----------|-----------|
-| Mua xe | Checkout | POST /buyer/orders/vnpay-checkout |
+| Mua xe | Checkout | POST /buyer/orders/vnpay-checkout (+ disclaimer nếu UNVERIFIED) |
+| Ảnh tin seller | Seller listing editor | POST /seller/listings/upload-images → rồi POST/PUT /seller/listings |
 | Theo dõi đơn | Transaction | GET /buyer/orders/:id |
 | Hoàn tất | Finalize | PUT /buyer/orders/:id/complete |
 | Thanh toán số dư | Finalize | POST /buyer/orders/:id/vnpay-pay-balance |
@@ -211,13 +222,34 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | Kiểm tra khớp API BE–FE (theo khu vực) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) |
 | Kiểm tra khớp API BE–FE (theo trang/actor) | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
 | Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |
+| PM / QA / FE hỗ trợ BE (thuật ngữ, mẫu ticket) | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) |
 | Port sang Spring Boot | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |
 | Tạo/sửa schema MySQL | [ERD-SPEC.md](ERD-SPEC.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) |
 | Hiểu business rules | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
-| Luồng màn hình | [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md) |
+| Tổng quan luồng & BR | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md), [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Cấu trúc FE | [STRUCTURE.md](STRUCTURE.md) |
+| So sánh kiến trúc FE V1 vs V2 (Query, RHF, refresh) | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |
+| Kiểm tra luồng & API V2 (lint, checklist, invalidate) | [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) |
+| Luồng gọi API trên FE | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 
 ---
 
-*Đồng bộ với codebase và docs. Cập nhật: 2026-03 — thêm BE-FE-API-AUDIT-BY-PAGE.*
+## 10. Xử lý sự cố & gợi ý debug
+
+| Hiện tượng | Nguyên nhân thường gặp | Việc nên làm |
+|------------|-------------------------|--------------|
+| **Network Error / CORS** | BE tắt, sai URL, hoặc CORS chưa cho origin FE | Kiểm tra BE chạy, `VITE_API_BASE_URL`, CORS `CLIENT_ORIGIN` / tương đương trên BE |
+| **401 sau thời gian dài** | Access token hết hạn; refresh thất bại hoặc BE không có `/auth/refresh` | Xem `apiClient` refresh; đăng nhập lại; kiểm tra contract refresh |
+| **403 trên route** | Role không khớp (route bảo vệ) | Đối chiếu bảng §2 (Roles & Routes) với user trong `auth/me` |
+| **GET /bikes/:id 404** | Listing RESERVED/SOLD hoặc chưa PUBLISHED | Đúng luồng nghiệp vụ; staff có thể cần API inspector — xem `FRONTEND-API-FLOWS` |
+| **Danh sách và chi tiết khác trạng thái** | Cache TanStack Query chưa invalidate sau mutation | Sau mutation gọi `queryClient.invalidateQueries` đúng `queryKeys` — xem [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |
+| **Mock không đổi** | `VITE_USE_MOCK_API` | Đặt `true`, restart `npm run dev` |
+
+**Debug React Query:** mở DevTools trình duyệt + (nếu cài) TanStack Query DevTools — xem `queryKey`, `dataUpdatedAt`, trạng thái stale.
+
+**Đọc thêm:** [README.md](../README.md) (xử lý sự cố), [HELP.md](../HELP.md).
+
+---
+
+*Đồng bộ với codebase và docs. Cập nhật: 2026-03-26 — thêm §10 xử lý sự cố; `/auth/refresh`; mục lục docs + [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md); trước: GET `/inspector/listings/:id`, FRONTEND-API-FLOWS, vnpay-checkout, upload ảnh.*

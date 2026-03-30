@@ -5,6 +5,27 @@
 
 ---
 
+## Cách đọc tài liệu này
+
+| | |
+|--|--|
+| **Mục đích** | Rà soát FE ↔ BE theo **nhóm endpoint** (Auth, Bikes, Buyer orders, …), không xếp theo từng màn hình. |
+| **Khi nào mở file này** | Cần tra **path API** có khớp route BE không, hoặc tìm **dead code** / path thừa trong `apiConfig`. |
+| **Đọc cùng** | [BE-FE-API-AUDIT-BY-PAGE.md](./BE-FE-API-AUDIT-BY-PAGE.md) — cùng kết quả nhưng theo **Page / Actor**. [FRONTEND-API-FLOWS.md](./FRONTEND-API-FLOWS.md) — luồng gọi trong code. |
+| **Ký hiệu trong bảng** | ✅ Khớp; ⚠️ / ❌ Cần xử lý hoặc không còn route — chi tiết ở §2–§3. |
+
+---
+
+## Mục lục
+
+1. [Tóm tắt kết quả](#1-tóm-tắt-kết-quả)  
+2. [Chi tiết theo khu vực](#2-chi-tiết-theo-khu-vực) — §2.1 Auth → §2.6 Admin  
+3. [Các vấn đề cần xử lý](#3-các-vấn-đề-cần-xử-lý)  
+4. [Khuyến nghị tiếp theo](#4-khuyến-nghị-tiếp-theo)  
+5. [File tham chiếu](#5-file-tham-chiếu)  
+
+---
+
 ## 1. Tóm tắt kết quả
 
 | Khu vực | Trạng thái | Ghi chú |

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shield, Heart, MessageCircle } from "lucide-react";
 import type { BikeDetail, BikeCondition } from "@/types/shopbike";
 import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
-import { fetchListingById } from "@/services/buyerService";
+import { useListingDetailQuery } from "@/hooks/queries/useListingDetailQuery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useWishlistStore } from "@/stores/useWishlistStore";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 const INSPECTION_ROW_KEYS = {
   frameIntegrity: "listing.inspectionFrameIntegrity",
   drivetrainHealth: "listing.inspectionDrivetrain",
@@ -63,41 +64,17 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
 
   const fromState = (location.state as NavState | null)?.listing;
+  const role = useAuthStore((s) => s.role);
 
-  const [listing, setListing] = useState<BikeDetail | null>(
-    fromState && String(fromState.id) === String(id) ? fromState : null,
-  );
-  const [loading, setLoading] = useState(!fromState || String(fromState.id) !== String(id));
-  const [error, setError] = useState<string | null>(null);
+  const {
+    listing: listingFromQuery,
+    loading,
+    error: queryErr,
+  } = useListingDetailQuery(id, role, { fromStateListing: fromState ?? undefined });
 
-  useEffect(() => {
-    const stateMatch = fromState && String(fromState.id) === String(id);
-    if (stateMatch) {
-      setListing(fromState!);
-      setLoading(false);
-      return;
-    }
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    fetchListingById(id)
-      .then((data) => {
-        if (!cancelled) setListing(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message ?? t("listing.loadError"));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  const listing = listingFromQuery;
+  const error =
+    queryErr || (!loading && !listing ? t("listing.loadError") : null);
 
   const images = useMemo(() => {
     const arr =
@@ -112,10 +89,10 @@ export default function ProductDetailPage() {
   const [active, setActive] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const role = useAuthStore((s) => s.role);
   const inWishlist = useWishlistStore((s) => s.ids.has(listing?.id ?? ""));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const canWishlist = role === "BUYER";
+  const showInspectorBack = role === "INSPECTOR" || role === "ADMIN";
 
   const specs = useMemo(() => {
     const s = listing?.specs;
@@ -131,9 +108,8 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-4 py-28">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm font-medium text-muted-foreground">{t("listing.loading")}</p>
+      <div className="mx-auto max-w-6xl py-28">
+        <BicycleLoadingBlock message={t("listing.loading")} size="lg" />
       </div>
     );
   }
@@ -142,6 +118,16 @@ export default function ProductDetailPage() {
     return (
       <Card className="mx-auto max-w-6xl border-border">
         <CardContent className="py-16 text-center">
+          {showInspectorBack && (
+            <div className="mb-6 flex justify-center">
+              <Button asChild variant="outline" size="sm" className="gap-1.5 font-semibold">
+                <Link to="/inspector">
+                  <ChevronLeft className="h-4 w-4" aria-hidden />
+                  {t("inspector.backToInspectorDashboard")}
+                </Link>
+              </Button>
+            </div>
+          )}
           <h1 className="text-xl font-bold">{t("listing.notFound")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {error ?? t("listing.notFoundDesc")}
@@ -183,6 +169,16 @@ export default function ProductDetailPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
+      {showInspectorBack && (
+        <div className="mb-4">
+          <Button asChild variant="outline" size="sm" className="gap-1.5 font-semibold">
+            <Link to="/inspector">
+              <ChevronLeft className="h-4 w-4" aria-hidden />
+              {t("inspector.backToInspectorDashboard")}
+            </Link>
+          </Button>
+        </div>
+      )}
       {/* breadcrumb */}
       <div className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to="/" className="transition-colors hover:text-foreground">

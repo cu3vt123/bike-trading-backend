@@ -8,6 +8,28 @@
 
 ---
 
+## Cách đọc tài liệu này
+
+| | |
+|--|--|
+| **Mục đích** | Hướng dẫn **thực hành**: copy Mermaid, vẽ ERD (Draw.io), chạy SQL tạo DB — không thay thế bảng chi tiết từng cột. |
+| **Ai đọc** | **Dev** khi cần sơ đồ hoặc import DB cục bộ; **QA** khi kiểm tra số bảng / luồng; **BA** khi trình bày luồng nghiệp vụ kèm bảng. |
+| **Đọc kèm** | [ERD-SPEC.md](ERD-SPEC.md) (cột, ENUM, FK); [ERD-MYSQL.md](ERD-MYSQL.md) (tổng quan thiết kế); [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) (rule không chỉ nằm trong schema). |
+
+---
+
+## Mục lục
+
+1. [Code Mermaid (copy-paste)](#1-code-mermaid-copy-paste)  
+2. [Bước vẽ ERD chi tiết](#2-bước-vẽ-erd-chi-tiết)  
+3. [Bảng ENUM đầy đủ](#3-bảng-enum-đầy-đủ)  
+4. [Vẽ trên Draw.io (diagrams.net)](#4-vẽ-trên-drawio-diagramsnet)  
+5. [Tạo bảng trong MySQL](#5-tạo-bảng-trong-mysql)  
+6. [Ngữ cảnh nghiệp vụ (luồng chính)](#6-ngữ-cảnh-nghiệp-vụ-luồng-chính)  
+7. [File tham chiếu](#7-file-tham-chiếu)  
+
+---
+
 ## 1. Code Mermaid (copy-paste)
 
 Copy đoạn sau vào [mermaid.live](https://mermaid.live) hoặc file `.mmd`:
@@ -416,7 +438,10 @@ Kỳ vọng: 17 bảng (brand, category, inspection_report, listing, listing_med
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Chuyển BE Node→Spring Boot — JPA entities, endpoint map, business rules |
 | [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | CREATE TABLE đầy đủ |
 | [sql/shopbike_erd.mmd](sql/shopbike_erd.mmd) | Nguồn Mermaid ERD |
+| [sql/vietqr_mysql.sql](sql/vietqr_mysql.sql) | Module VietQR (ngoài 17 bảng — nếu dùng) |
+| [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ |
+| [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tra cứu nhanh repo |
 
 ---
 
-*Đồng bộ: shopbike_erd.mmd, shopbike_mysql_schema.sql, ERD-SPEC.md. Cập nhật: 2026-03.*
+*Đồng bộ: `shopbike_erd.mmd`, `shopbike_mysql_schema.sql`, [ERD-SPEC.md](ERD-SPEC.md). Cập nhật: 2026-03; 2026-03-26 — mục lục + cách đọc, liên kết BR / VietQR / quick ref.*

@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Bike, Package, Star } from "lucide-react";
@@ -10,24 +11,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { authApi } from "@/apis/authApi";
+import { queryKeys } from "@/lib/queryKeys";
+import { useAuthMeQuery } from "@/hooks/queries/useAuthMeQuery";
+import { useSellerDashboardQueries } from "@/hooks/queries/useSellerDashboardQueries";
 import {
   useSellerSubscriptionStore,
   normalizeSubscriptionPayload,
 } from "@/stores/useSellerSubscriptionStore";
 import { USE_MOCK_API } from "@/lib/apiConfig";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 import type { Listing, ListingState } from "@/types/shopbike";
 import type { Order } from "@/types/order";
 import {
-  fetchSellerDashboard,
-  fetchSellerDashboardOrders,
-  fetchSellerRatings,
   shipOrderToBuyer,
   markListingShippedToWarehouse,
   syncSellerOrderNotifications,
 } from "@/services/sellerService";
-import type { SellerRatingsSummary } from "@/apis/sellerApi";
-
 function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
@@ -142,42 +141,26 @@ function StatCard({
 export default function SellerDashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ total: 0, published: 0, inReview: 0, needUpdate: 0 });
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [ratings, setRatings] = useState<SellerRatingsSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { loading, stats, listings, orders, ratings } = useSellerDashboardQueries();
   const [packageDialogOpen, setPackageDialogOpen] = useState(false);
   const [shippingOrderId, setShippingOrderId] = useState<string | null>(null);
   const [markShippedListingId, setMarkShippedListingId] = useState<string | null>(null);
   const subscription = useSellerSubscriptionStore((s) => s.subscription);
   const setSubscription = useSellerSubscriptionStore((s) => s.setSubscription);
 
+  const authMe = useAuthMeQuery(!USE_MOCK_API);
   useEffect(() => {
-    if (USE_MOCK_API) return;
-    authApi
-      .getProfile()
-      .then((me) => {
-        const sub = normalizeSubscriptionPayload(me.subscription);
-        if (sub) setSubscription(sub);
-      })
-      .catch(() => {});
-  }, [setSubscription]);
+    const me = authMe.data;
+    if (!me || USE_MOCK_API) return;
+    const sub = normalizeSubscriptionPayload(
+      (me as { subscription?: unknown }).subscription,
+    );
+    if (sub) setSubscription(sub);
+  }, [authMe.data, setSubscription]);
 
   useEffect(() => {
     syncSellerOrderNotifications(t);
-    Promise.all([
-      fetchSellerDashboard(),
-      fetchSellerDashboardOrders(),
-      fetchSellerRatings(),
-    ])
-      .then(([dashboard, ordersData, ratingsData]) => {
-        setStats(dashboard.stats);
-        setListings(dashboard.listings);
-        setOrders(ordersData);
-        setRatings(ratingsData);
-      })
-      .finally(() => setLoading(false));
   }, [t]);
 
   const { total, published, inReview, needUpdate } = stats;
@@ -196,8 +179,8 @@ export default function SellerDashboardPage() {
     setShippingOrderId(orderId);
     try {
       await shipOrderToBuyer(orderId);
-      const next = await fetchSellerDashboardOrders();
-      setOrders(next);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.seller.orders });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.seller.dashboard });
     } catch {
       /* toast optional */
     } finally {
@@ -209,9 +192,8 @@ export default function SellerDashboardPage() {
     setMarkShippedListingId(listingId);
     try {
       await markListingShippedToWarehouse(listingId);
-      const dash = await fetchSellerDashboard();
-      setStats(dash.stats);
-      setListings(dash.listings);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.seller.dashboard });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.listings });
     } catch {
       /* toast optional */
     } finally {
@@ -222,10 +204,7 @@ export default function SellerDashboardPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl py-12">
-        <div className="flex flex-col items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="mt-3 text-sm text-muted-foreground">{t("seller.loading")}</p>
-        </div>
+        <BicycleLoadingBlock message={t("seller.loading")} size="md" />
       </div>
     );
   }
@@ -299,14 +278,14 @@ export default function SellerDashboardPage() {
           </div>
 
           <div className="mt-4 overflow-x-auto rounded-xl border border-border">
-            <div className="grid min-w-[720px] grid-cols-12 gap-x-3 bg-muted px-3 py-3 text-xs font-semibold text-muted-foreground sm:px-4">
-              <div className="col-span-5">{t("seller.listing")}</div>
-              <div className="col-span-2 text-right">{t("seller.price")}</div>
+            <div className="grid min-w-[56rem] grid-cols-12 gap-x-3 bg-muted px-3 py-3 text-xs font-semibold text-muted-foreground sm:px-4">
+              <div className="col-span-4">{t("seller.listing")}</div>
+              <div className="col-span-3 text-right">{t("seller.price")}</div>
               <div className="col-span-3 text-left">{t("seller.status")}</div>
               <div className="col-span-2 text-right">{t("seller.action")}</div>
             </div>
 
-            <div className="min-w-[720px] divide-y divide-border">
+            <div className="min-w-[56rem] divide-y divide-border">
               {listings.map((x) => {
                 const orderForListing = getOrderForListing(orders, x.id);
                 const needUpdateReason =
@@ -440,7 +419,7 @@ export default function SellerDashboardPage() {
                     key={x.id}
                     className="grid grid-cols-12 items-center gap-x-3 px-3 py-3 sm:px-4"
                   >
-                    <div className="col-span-5 flex min-w-0 items-center gap-3">
+                    <div className="col-span-4 flex min-w-0 items-center gap-3">
                       <ListingThumb listing={x} />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold text-foreground">
@@ -458,7 +437,7 @@ export default function SellerDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="col-span-2 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
+                    <div className="col-span-3 shrink-0 whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground">
                       {formatMoney(x.price, "VND")}
                     </div>
 

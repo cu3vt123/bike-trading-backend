@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { packagesApi, type PackagesCatalogResponse } from "@/apis/packagesApi";
@@ -11,6 +11,13 @@ import { getApiErrorMessage } from "@/lib/apiErrors";
 import { VNPAY_UI_MAINTENANCE } from "@/lib/featureFlags";
 import { VnpayMaintenanceNotice } from "@/components/payment/VnpayMaintenanceNotice";
 import type { SubscriptionCheckoutResponse } from "@/apis/packagesApi";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
+import {
+  mergePlanPrices,
+  loadPackagePriceOverrides,
+  PACKAGE_PRICES_UPDATED_EVENT,
+  PACKAGE_PRICE_STORAGE_KEY,
+} from "@/lib/packagePriceOverrides";
 
 function formatVnd(n: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -60,6 +67,25 @@ export default function SellerPackagePage() {
     payStep === "pay" ? (searchParams.get("orderId") ?? "") : "";
   const [demoPayBusy, setDemoPayBusy] = useState(false);
   const [revokeBusy, setRevokeBusy] = useState(false);
+  const [priceTick, setPriceTick] = useState(0);
+
+  useEffect(() => {
+    const bump = () => setPriceTick((x) => x + 1);
+    window.addEventListener(PACKAGE_PRICES_UPDATED_EVENT, bump);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === PACKAGE_PRICE_STORAGE_KEY) bump();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(PACKAGE_PRICES_UPDATED_EVENT, bump);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  const plansWithPrices = useMemo(() => {
+    if (!catalog) return [];
+    return mergePlanPrices(catalog.plans, loadPackagePriceOverrides());
+  }, [catalog, priceTick]);
 
   const refreshSubscription = useCallback(async () => {
     try {
@@ -225,8 +251,8 @@ export default function SellerPackagePage() {
 
   if (!catalog) {
     return (
-      <div className="mx-auto max-w-3xl py-24 text-center text-muted-foreground">
-        Loading…
+      <div className="mx-auto max-w-3xl py-24">
+        <BicycleLoadingBlock message={t("common.loading")} size="md" />
       </div>
     );
   }
@@ -246,7 +272,12 @@ export default function SellerPackagePage() {
     (currentPlan === "BASIC" && plan === "VIP"); // upgrade only
   const isUpgradePrice =
     hasActiveSub && currentPlan === "BASIC" && plan === "VIP";
-  const upgradeAmountVnd = 100_000; // 199k - 99k
+  const basicMerged = plansWithPrices.find((p) => p.id === "BASIC");
+  const vipMerged = plansWithPrices.find((p) => p.id === "VIP");
+  const upgradeAmountVnd =
+    basicMerged && vipMerged
+      ? Math.max(0, vipMerged.priceVnd - basicMerged.priceVnd)
+      : 100_000;
 
   function getDisplayPrice(p: { id: string; priceVnd: number }): number {
     if (p.id === "VIP" && hasActiveSub && currentPlan === "BASIC")
@@ -362,7 +393,7 @@ export default function SellerPackagePage() {
       )}
 
       <div className="grid min-w-0 gap-4 sm:grid-cols-1 md:grid-cols-2">
-        {catalog.plans.map((p) => {
+        {plansWithPrices.map((p) => {
           const disabled =
             p.id === "BASIC" && !canSelectBasic;
           const displayPrice = getDisplayPrice(p);

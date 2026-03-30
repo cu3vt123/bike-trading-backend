@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Clock, CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,9 +23,11 @@ import {
   cancelOrder,
   resumeVnpayCheckoutOrder,
 } from "@/services/buyerService";
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 import type { BikeDetail } from "@/types/shopbike";
 import type { Order, OrderFulfillmentType, OrderStatus } from "@/types/order";
 import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
+import { queryKeys } from "@/lib/queryKeys";
 
 function Stars({ value }: { value: number }) {
   const full = Math.round(Math.max(0, Math.min(5, value)));
@@ -71,6 +76,18 @@ function formatMoney(value: number, currency: "VND" | "USD" = "VND") {
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
+}
+
+function cancelOrderErrorMessage(e: unknown, t: TFunction): string {
+  if (axios.isAxiosError(e)) {
+    const data = e.response?.data as { message?: string; code?: string } | undefined;
+    if (data?.code === "CANCEL_LIMIT_REACHED") return t("transaction.cancelLimitReached");
+    if (data?.message) return String(data.message);
+  }
+  if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "CANCEL_LIMIT_REACHED") {
+    return t("transaction.cancelLimitReached");
+  }
+  return t("transaction.cancelFailed");
 }
 
 const INSPECTION_ROW_KEYS = {
@@ -182,6 +199,7 @@ export default function TransactionPage() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const locationState = (location.state ?? {}) as TxState;
   const orderIdFromQuery = searchParams.get("orderId") ?? "";
   const orderIdFromNavState = locationState.orderId ?? "";
@@ -317,6 +335,7 @@ export default function TransactionPage() {
 
   const [now, setNow] = useState(() => Date.now());
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -395,19 +414,49 @@ export default function TransactionPage() {
   async function handleCancelReservation() {
     if (!state.orderId) {
       setCancelOpen(false);
-      navigate("/profile", { replace: true });
+      navigate({ pathname: "/", hash: "#listings" }, { replace: true });
       return;
     }
+    setCancelError(null);
     setCancelling(true);
     try {
       await cancelOrder(state.orderId);
-      setCancelOpen(false);
-      navigate("/profile", {
-        replace: true,
-        state: { cancelledOrderId: state.orderId },
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.buyer.orders,
       });
-    } catch {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.order.buyer(state.orderId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.listings,
+      });
+      if (id) {
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.listingBuyer(id),
+        });
+        await queryClient.invalidateQueries({
+          predicate: (q) => {
+            const key = q.queryKey;
+            return (
+              Array.isArray(key) &&
+              key[0] === "listing" &&
+              key[1] === "detail" &&
+              key[2] === id
+            );
+          },
+        });
+      }
       setCancelOpen(false);
+      const titleQ = listing?.title?.trim();
+      navigate(
+        { pathname: "/", hash: "#listings" },
+        {
+          replace: true,
+          state: titleQ ? { searchQuery: titleQ } : undefined,
+        },
+      );
+    } catch (e) {
+      setCancelError(cancelOrderErrorMessage(e, t));
     } finally {
       setCancelling(false);
     }
@@ -487,9 +536,8 @@ export default function TransactionPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 py-24">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">{t("transaction.loading")}</p>
+      <div className="mx-auto max-w-6xl py-24">
+        <BicycleLoadingBlock message={t("transaction.loading")} size="md" />
       </div>
     );
   }
@@ -887,7 +935,13 @@ export default function TransactionPage() {
       </div>
 
       {/* Cancel Reservation Confirm */}
-      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+      <Dialog
+        open={cancelOpen}
+        onOpenChange={(open) => {
+          setCancelOpen(open);
+          if (!open) setCancelError(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("transaction.cancelDialogTitle")}</DialogTitle>
@@ -895,6 +949,11 @@ export default function TransactionPage() {
               {t("transaction.cancelDialogDesc")}
             </DialogDescription>
           </DialogHeader>
+          {cancelError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {cancelError}
+            </p>
+          ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
               {t("transaction.keepReservation")}

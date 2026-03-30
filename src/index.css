@@ -91,10 +91,12 @@
     word-break: break-word;
   }
 
-  /* UI/UX Pro Max: smooth transitions 150–300ms, cursor on clickables */
+  /* UI UX Pro Max (github.com/nextlevelbuilder/ui-ux-pro-max-skill): transitions 150–300ms, cursor on clickables, SVG icons (Lucide) — không dùng emoji làm icon */
   button,
   a,
-  [role="button"] {
+  [role="button"],
+  label[for],
+  summary {
     @apply cursor-pointer transition-colors duration-normal;
   }
 
@@ -110,6 +112,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after {

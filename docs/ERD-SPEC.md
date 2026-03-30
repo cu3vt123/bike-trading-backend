@@ -13,6 +13,28 @@
 
 ---
 
+## Cách đọc tài liệu này
+
+| | |
+|--|--|
+| **Mục đích** | **Source of truth** cho **tên bảng, cột, kiểu, ENUM, FK** — không mô tả API HTTP (REST nằm ở doc API). |
+| **Ai đọc** | **Backend (JPA/SQL)**; **QA** khi cần đối chiếu dữ liệu lưu DB; **BA** khi tranh luận trường dữ liệu. |
+| **Đọc kèm** | [ERD-MYSQL.md](ERD-MYSQL.md) (tổng quan + ERD), [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) (rule nghiệp vụ không chỉ nằm trong cột). |
+| **File SQL thực thi** | [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) — phải **đồng bộ** với đặc tả này khi đổi schema. |
+
+---
+
+## Mục lục
+
+1. [Quy ước chung](#quy-ước-chung)  
+2. [Thứ tự tạo bảng](#thứ-tự-tạo-bảng-theo-phụ-thuộc-fk)  
+3. Bảng **§1–§17:** [user](#1-user) → … → [vnpay_transaction_log](#17-vnpay_transaction_log)  
+4. [Ma trận quan hệ (FK)](#ma-trận-quan-hệ-fk)  
+5. [Luồng nghiệp vụ chính](#luồng-nghiệp-vụ-chính)  
+6. [Tài liệu liên quan](#tài-liệu-liên-quan)  
+
+---
+
 ## Quy ước chung
 
 | Quy ước | Mô tả |
@@ -440,9 +462,11 @@
 |------|----------|
 | [ERD-MYSQL.md](ERD-MYSQL.md) | Thiết kế 17 bảng, ERD Mermaid, mapping MongoDB |
 | [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | Hướng dẫn vẽ ERD, tạo bảng MySQL |
+| [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ (bổ sung schema) |
 | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Chuyển BE Node→Spring Boot — endpoint map, JPA entities, business rules |
 | [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | CREATE TABLE đầy đủ |
+| [sql/vietqr_mysql.sql](sql/vietqr_mysql.sql) | Module VietQR (ngoài 17 bảng chính — nếu dùng) |
 
 ---
 
-*Đồng bộ với: docs/sql/shopbike_mysql_schema.sql, ERD-MYSQL.md. Cập nhật: 2026-03.*
+*Đồng bộ với: `docs/sql/shopbike_mysql_schema.sql`, [ERD-MYSQL.md](ERD-MYSQL.md). Cập nhật: 2026-03; 2026-03-26 — mục lục + cách đọc, liên kết BR / VietQR.*

@@ -95,6 +95,15 @@ export const sellerApi = {
       .put(API_PATHS.SELLER.LISTING_PUBLISH(id), body)
       .then((r) => r.data?.data ?? r.data),
 
+  uploadListingImages: (formData: FormData): Promise<{ urls: string[] }> =>
+    apiClient
+      .post(API_PATHS.SELLER.LISTING_UPLOAD_IMAGES, formData, { timeout: 120_000 })
+      .then((r) => {
+        const d = r.data?.data ?? r.data ?? {};
+        const urls = Array.isArray(d.urls) ? d.urls : [];
+        return { urls };
+      }),
+
   markListingShippedToWarehouse: (id: string): Promise<Listing> =>
     apiClient
       .put(API_PATHS.SELLER.LISTING_MARK_SHIPPED_TO_WAREHOUSE(id))

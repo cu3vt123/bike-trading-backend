@@ -38,6 +38,17 @@ public class InspectorController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Chi tiết tin (mọi trạng thái) — FE trang /bikes/:id khi INSPECTOR/ADMIN duyệt.
+     * GET /api/bikes/{id} chỉ trả tin đã public; endpoint này bổ sung cho luồng kiểm định.
+     */
+    @GetMapping("/listings/{id}")
+    public ResponseEntity<ListingDTO> getListingById(@PathVariable Long id) {
+        return listingRepository.findById(id)
+                .map(listing -> ResponseEntity.ok(ListingDTO.fromEntity(listing)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/listings/{id}/approve")
     public ResponseEntity<?> approveBike(@PathVariable Long id) {
         Optional<Listing> listingOpt = listingRepository.findById(id);

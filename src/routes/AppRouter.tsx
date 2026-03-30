@@ -46,7 +46,7 @@ export default function AppRouter() {
           <Route path="support" element={<SupportPage />} />
           <Route path="wishlist" element={<WishlistPage />} />
 
-          {/* ✅ Profile: chỉ cần login, tự ra Buyer/Seller/Inspector theo role */}
+          {/* Profile: chỉ cần login; Buyer/Seller/Inspector theo role */}
           <Route element={<RequireAuth />}>
             <Route path="profile" element={<ProfilePage />} />
           </Route>

@@ -4,7 +4,7 @@
  */
 import { inspectorApi } from "@/apis/inspectorApi";
 import { adminApi } from "@/apis/adminApi";
-import type { Listing } from "@/types/shopbike";
+import type { BikeDetail, Listing } from "@/types/shopbike";
 import { USE_MOCK_API } from "@/lib/apiConfig";
 
 const USE_MOCK = USE_MOCK_API;
@@ -44,6 +44,22 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
   ]);
 }
 
+/** Chi tiết tin (mọi trạng thái) cho INSPECTOR/ADMIN — GET /bikes/:id chỉ trả PUBLISHED. */
+export async function fetchListingByIdForInspector(id: string): Promise<BikeDetail | null> {
+  if (USE_MOCK) {
+    const pending = MOCK_PENDING.find((x) => x.id === id);
+    if (pending) return { ...pending } as BikeDetail;
+    const { getListingById } = await import("@/mocks/mockListings");
+    const found = getListingById(id);
+    return found ? ({ ...found } as BikeDetail) : null;
+  }
+  try {
+    return await inspectorApi.getListingById(id);
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchPendingListings(): Promise<Listing[]> {
   if (USE_MOCK) return MOCK_PENDING;
   try {
@@ -81,7 +97,7 @@ export async function needUpdateListing(id: string, reason?: string): Promise<vo
   await inspectorApi.needUpdate(id, reason);
 }
 
-/** Tin tại kho chờ inspector xác nhận lại (Bước 6) — Admin đã xác nhận xe tới. */
+/** Tin tại kho chờ inspector xác nhận lại — Admin đã xác nhận xe tới. */
 export async function fetchWarehouseReInspectionListings(): Promise<Listing[]> {
   if (USE_MOCK) return [];
   try {

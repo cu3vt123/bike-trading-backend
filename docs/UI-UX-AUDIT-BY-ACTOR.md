@@ -1,9 +1,35 @@
 # Rà soát UI/UX theo Actor — ShopBike
 
-> Tài liệu kiểm tra chi tiết UI/UX cho từng vai trò (Guest, Buyer, Seller, Inspector, Admin), so với [SCREEN_FLOW_BY_ACTOR.md](SCREEN_FLOW_BY_ACTOR.md).
+> Tài liệu kiểm tra chi tiết UI/UX cho từng vai trò (Guest, Buyer, Seller, Inspector, Admin), bổ sung cho [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) và [BE-FE-API-AUDIT-BY-PAGE.md](./BE-FE-API-AUDIT-BY-PAGE.md).
 
 **Ngày rà soát:** 2026-03  
 **Phạm vi:** Routes, Header, flows chính, feedback, i18n, accessibility
+
+---
+
+## Cách đọc tài liệu này
+
+| | |
+|--|--|
+| **Mục đích** | Đánh giá **UI/UX theo từng actor** (Guest → Admin), không đối chiếu API như file BE–FE Audit. |
+| **Khi nào mở file này** | Cần biết **màn nào** / **vai nào** còn vấn đề UX, i18n, header, luồng hủy đơn, v.v. |
+| **Đọc cùng** | [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md) — tổng quan luồng; [BE-FE-API-AUDIT-BY-PAGE.md](./BE-FE-API-AUDIT-BY-PAGE.md) — khi cần khớp API. |
+| **Ký hiệu** | ✅ Ổn; ⚠️ Cần chỉnh — chi tiết trong từng mục con. |
+
+---
+
+## Mục lục
+
+1. [Tổng quan](#tổng-quan)  
+2. [1. Guest](#1-guest)  
+3. [2. Buyer](#2-buyer)  
+4. [3. Seller](#3-seller)  
+5. [4. Inspector](#4-inspector)  
+6. [5. Admin](#5-admin)  
+7. [6. Role guards & 403](#6-role-guards--403)  
+8. [7. i18n — Chuỗi cần chuyển sang key](#7-i18n--chuỗi-cần-chuyển-sang-key)  
+9. [8. Accessibility (a11y)](#8-accessibility-a11y)  
+10. [9. Tóm tắt hành động](#9-tóm-tắt-hành-động)  
 
 ---
 
@@ -28,7 +54,7 @@
 | Home | `/` | ✅ Hero, filters, listings grid |
 | Product Detail | `/bikes/:id` | ✅ Ảnh, specs, Buy now, Add wishlist (ẩn với Guest) |
 | Support | `/support` | ✅ FAQ, contact |
-| Wishlist | `/wishlist` | ⚠️ Không RequireAuth — Guest vào được nhưng **Header không hiện icon Wishlist** (chỉ BUYER mới có). SCREEN_FLOW: "Home --Click Wishlist--> [Wishlist]" — Guest không thấy nút. |
+| Wishlist | `/wishlist` | ⚠️ Không RequireAuth — Guest vào được nhưng **Header không hiện icon Wishlist** (chỉ BUYER mới có). Kỳ vọng luồng: từ Home → Wishlist — Guest không thấy nút. |
 | Login | `/login` | ✅ GuestRoute, redirect nếu đã login |
 | Register | `/register` | ✅ |
 | Forgot/Reset password | `/forgot-password`, `/reset-password` | ✅ |
@@ -40,7 +66,7 @@
 
 ### 1.3. Đề xuất
 
-- **Guest + Wishlist:** Có thể hiện icon Wishlist cho Guest (dẫn đến /wishlist) — khi Guest thêm yêu thích thì nhắc đăng nhập. Hoặc giữ hiện tại (chỉ Buyer thấy) và cập nhật SCREEN_FLOW: "Wishlist header chỉ hiện với Buyer".
+- **Guest + Wishlist:** Có thể hiện icon Wishlist cho Guest (dẫn đến /wishlist) — khi Guest thêm yêu thích thì nhắc đăng nhập. Hoặc giữ hiện tại (chỉ Buyer thấy) và ghi nhận rõ: header Wishlist chỉ với Buyer.
 
 ---
 
@@ -48,7 +74,7 @@
 
 ### 2.1. Header (BUYER)
 
-| Element | Hiện tại | SCREEN_FLOW | Ghi chú |
+| Element | Hiện tại | Kỳ vọng / mô tả luồng | Ghi chú |
 |---------|----------|-------------|---------|
 | Wishlist icon | `ShoppingCart` (giỏ hàng) | Wishlist | ⚠️ **Sai icon** — nên dùng `Heart` (WishlistPage dùng Heart). ShoppingCart dễ nhầm với giỏ mua. |
 | Profile | ✅ | ✅ | |
@@ -68,7 +94,7 @@
 ### 2.3. Transaction — Cancel Reservation
 
 - **Hiện tại:** Sau cancel → `navigate(\`/bikes/${id}\`)`
-- **SCREEN_FLOW:** "Cancel Confirm --Confirm--> [Buyer Profile]"
+- **Kỳ vọng luồng:** sau xác nhận hủy → về Buyer Profile (hoặc trang chủ — tùy product).
 - **Vấn đề:** Khi đơn RESERVED/SOLD, listing có thể đã ẩn khỏi GET /bikes → 404. Nên redirect về **Profile** thay vì Product Detail.
 - **Đề xuất:** `navigate("/profile", { replace: true, state: { cancelledOrderId: state.orderId } })`
 
@@ -93,7 +119,7 @@
 
 ### 3.1. Header (SELLER)
 
-| Element | Hiện tại | SCREEN_FLOW | Ghi chú |
+| Element | Hiện tại | Kỳ vọng / mô tả luồng | Ghi chú |
 |---------|----------|-------------|---------|
 | Seller Channel | ✅ → /seller | ✅ | |
 | Packages | ✅ → /seller/packages | ✅ | |
@@ -119,7 +145,7 @@
 
 - RequireInspector: `role === "INSPECTOR" || role === "ADMIN"` ✅
 - Header: Nút "Inspector" → /inspector ✅
-- Profile: Inspector/Admin click Profile → render `InspectorDashboardPage` (theo SCREEN_FLOW) ✅
+- Profile: Inspector/Admin click Profile → render `InspectorDashboardPage` ✅
 
 ### 4.2. Inspector Dashboard
 
@@ -146,7 +172,7 @@
 
 ### 5.2. Admin Dashboard — Tabs
 
-| Tab | SCREEN_FLOW | Hiện tại |
+| Tab | Tài liệu cũ (tham chiếu) | Hiện tại |
 |-----|-------------|----------|
 | Warehouse | Tab Warehouse | ✅ |
 | Users | Tab Users | ✅ |
@@ -158,7 +184,7 @@
 | — | Tab Inspection | Thêm — quick access kiểm định |
 | — | Tab Seller Packages | Thêm — quản lý gói seller |
 
-SCREEN_FLOW mô tả 7 tab; thực tế có 9 tab (thêm Inspection, Seller Packages) — hợp lý cho admin.
+Tài liệu trước đây mô tả 7 tab; thực tế có 9 tab (thêm Inspection, Seller Packages) — hợp lý cho admin.
 
 ### 5.3. UX
 
@@ -230,4 +256,4 @@ Có thể bổ sung:
 
 ---
 
-*Tham chiếu: SCREEN_FLOW_BY_ACTOR.md, router.tsx, Header.tsx, các trang theo actor.*
+*Tham chiếu: `router.tsx`, `Header.tsx`, các trang theo actor, [PROJECT-SUMMARY.md](./PROJECT-SUMMARY.md).*

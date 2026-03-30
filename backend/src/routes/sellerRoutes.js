@@ -14,6 +14,8 @@ import {
   shipToWarehouse,
   markListingShippedToWarehouse,
 } from "../controllers/sellerController.js";
+import { uploadListingImages } from "../controllers/sellerUploadController.js";
+import { listingImagesUpload } from "../middlewares/listingImageUpload.middleware.js";
 import {
   checkoutSubscription,
   mockCompletePackageOrder,
@@ -35,6 +37,11 @@ sellerRoutes.put(
   wrapAsync(markListingShippedToWarehouse),
 );
 sellerRoutes.get("/listings", wrapAsync(listMyListings));
+sellerRoutes.post(
+  "/listings/upload-images",
+  listingImagesUpload.array("images", 10),
+  wrapAsync(uploadListingImages),
+);
 sellerRoutes.get("/listings/:id", wrapAsync(getMyListing));
 sellerRoutes.post("/listings", wrapAsync(createListing));
 sellerRoutes.put("/listings/:id", wrapAsync(updateListing));

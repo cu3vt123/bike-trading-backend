@@ -1,30 +1,60 @@
-# Getting Started
+# ShopBike — Trợ giúp & FAQ
 
-### Reference Documentation
+**Repo monorepo:** React/Vite + Spring Boot trong `src/`. Hướng dẫn **cài đặt, chạy, biến môi trường, lộ trình đọc** nằm ở **[README.md](README.md)** — đọc file đó trước.
 
-For further reference, please consider the following sections:
+---
 
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/4.0.1/maven-plugin)
-* [Create an OCI image](https://docs.spring.io/spring-boot/4.0.1/maven-plugin/build-image.html)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/4.0.1/reference/data/sql.html#data.sql.jpa-and-spring-data)
-* [Spring Web](https://docs.spring.io/spring-boot/4.0.1/reference/web/servlet.html)
+## Tài liệu chính
 
-### Guides
+| Mục | Link | Khi nào mở |
+|-----|------|------------|
+| **Chạy BE + FE, env, sự cố, bản đồ docs** | [README.md](README.md) | Luôn — điểm vào dự án |
+| **Mục lục `docs/`, lộ trình học 3 cấp** | [docs/README.md](docs/README.md) | Chọn đúng file theo tác vụ |
+| **Hướng dẫn Frontend chi tiết (một file)** | [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md) | Route, API, Query, i18n, checklist — ưu tiên khi làm FE |
+| **PM / QA / FE làm việc với Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu báo bug, không cần dạy lại BE |
+| **Tra cứu API, role, routes, env** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | Khi code hoặc debug API |
+| **Kiến trúc FE V1 vs V2** (Query, invalidate) | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Sau khi đọc STRUCTURE |
+| **Kiểm tra luồng & API V2** | [docs/FE-V2-VERIFICATION-GUIDE.md](docs/FE-V2-VERIFICATION-GUIDE.md) | Trước merge / sau đổi Query |
+| **Luồng code → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | Tìm đúng chỗ gọi axios/service |
+| **Backend sau clone/pull (Node + Spring)** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Full stack local, cổng 8081 |
+| **Backend Node (tham chiếu)** | [backend/README.md](backend/README.md) | Nếu repo có thư mục `backend/` |
 
-The following guides illustrate how to use some features concretely:
+**Maven / Spring Boot** (plugin, JPA): xem [Apache Maven](https://maven.apache.org/guides/index.html) và tài liệu Spring Boot nếu chỉnh `pom.xml`.
 
-* [Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/)
-* [Accessing data with MySQL](https://spring.io/guides/gs/accessing-data-mysql/)
-* [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
-* [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
-* [Building REST services with Spring](https://spring.io/guides/tutorials/rest/)
+---
 
-### Maven Parent overrides
+## Câu hỏi thường gặp (FAQ)
 
-Due to Maven's design, elements are inherited from the parent POM to the project POM.
-While most of the inheritance is fine, it also inherits unwanted elements like `<license>` and `<developers>` from the
-parent.
-To prevent this, the project POM contains empty overrides for these elements.
-If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
+### Làm sao chạy FE mà không cần Java?
 
+- Sao chép `.env.example` → `.env`, đặt `VITE_USE_MOCK_API=true`, chạy `npm install` và `npm run dev`.  
+- Xem [README.md](README.md) phần **Bắt đầu nhanh**.
+
+### FE kết nối Spring ở cổng nào?
+
+- Mặc định tài liệu dùng `http://localhost:8081/api` — cần đồng bộ với `server.port` + `context-path` (nếu có) trong Spring.  
+- `VITE_API_BASE_URL` phải **không** có dấu `/` ở cuối.
+
+### Sửa đơn / hủy đơn xong mà danh sách trên trang khác vẫn cũ?
+
+- Kiến trúc V2 dùng **TanStack Query** — sau thao tác ghi API cần **`invalidateQueries`** với đúng `queryKeys` (ví dụ `buyer.orders`, `listings`).  
+- Chi tiết: [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) phần **hướng dẫn thực hành**.
+
+### `/auth/refresh` là gì?
+
+- FE có thể gửi refresh token khi 401; backend cần implement đúng contract.  
+- Nếu không có refresh, user sẽ bị đăng xuất khi access token hết hạn.  
+- Xem [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) và `src/lib/apiClient.ts`.
+
+## Gợi ý xử lý nhanh
+
+| Vấn đề | Việc thử |
+|--------|----------|
+| Lỗi sau khi sửa `.env` | Restart `npm run dev` (Vite chỉ đọc env lúc khởi động). |
+| CORS | Cấu hình BE cho `http://localhost:5173`; kiểm tra URL gọi đúng base. |
+| Cache lạ | React Query DevTools (nếu bật) hoặc `invalidateQueries` sau mutation. |
+| Import lỗi `@/...` | Kiểm tra `tsconfig` alias và đường dẫn thật trong [docs/STRUCTURE.md](docs/STRUCTURE.md). |
+
+---
+
+*Cập nhật: đồng bộ với README gốc và mục lục docs.*
