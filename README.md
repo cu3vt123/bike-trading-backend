@@ -1,10 +1,8 @@
-# Bike Trading — ShopBike (BE2 + Frontend)
+# Bike Trading — ShopBike (Frontend)
 
-Repo **nhánh mặc định BE2** gồm backend **Spring Boot** (Java) và frontend **React + Vite** (đồng bộ từ nhánh `demo`).
+Nhánh **`front-only`** chỉ chứa **React + Vite** (ShopBike). **Không** có mã backend trong repo này.
 
-**Monorepo:** cùng thư mục `src/` — **Vite/React** (`src/app/`, `src/features/`, `src/pages/`, …) và **Spring** (`src/main/java/`, `src/main/resources/`). Maven/IDE dùng `src/main/java`; Vite bundle phần TypeScript/TSX ở `src/` (không đụng Java).
-
-**Backend Spring chuẩn team — nhánh `Bespring`:** mã nguồn Java/API cập nhật theo [bike-trading-backend @ **Bespring**](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) (cùng remote GitHub). Trên remote, nhánh `Bespring` là cây Maven **chỉ backend**; nhánh làm frontend (ví dụ `quydu12`) có thể là monorepo FE + `pom.xml` — khi đồng bộ Spring, lấy thay đổi từ `Bespring` (merge/cherry-pick/worktree). **Không** checkout `Bespring` đè lên thư mục đang làm React nếu bạn không dùng worktree — sẽ mất cây Vite. Cách an toàn: `git fetch origin && git worktree add ../bike-trading-bespring Bespring`, mở thư mục mới trong IntelliJ để chạy API; FE giữ nguyên repo hiện tại với `VITE_API_BASE_URL=http://localhost:8081/api`.
+**API / Spring Boot:** dùng nhánh [**`Bespring`**](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) trên cùng remote — clone hoặc `git worktree` riêng (ví dụ `git fetch origin && git worktree add ../bike-trading-bespring Bespring`). Trong thư mục FE, trỏ `VITE_API_BASE_URL` tới cổng API local (thường `http://localhost:8081/api`).
 
 ---
 
@@ -14,7 +12,7 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 
 ### Bước dùng chung (mọi cách chạy)
 
-1. Làm việc ở **thư mục gốc repo** (có `package.json` và `pom.xml` nếu dùng Spring).
+1. Làm việc ở **thư mục gốc repo** (có `package.json`).
 2. Cài **Node.js LTS** (khuyến nghị v20+). Kiểm tra: `node -v`, `npm -v`.
 3. **`npm install`** ở root — **chạy lại sau mỗi lần `git pull`** nếu đồng đội thêm dependency.
 4. Tạo **`.env`** từ mẫu:
@@ -27,14 +25,10 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 | Kịch bản | Backend | Trong `.env` (root) | Lệnh chính |
 |----------|---------|---------------------|------------|
 | **A — FE + mock** | Không cần | `VITE_USE_MOCK_API=true` | `npm run dev` |
-| **B — FE + API Node** | [backend/README.md](backend/README.md): `cd backend` → `npm install` → `npm run dev` (cổng thường **8081**) | `VITE_API_BASE_URL=http://localhost:8081/api`, `VITE_USE_MOCK_API=false` | Hai terminal: backend + `npm run dev` |
-| **C — FE + Spring** | MySQL bật; DB/user khớp `src/main/resources/application.properties`; Run `BikeTradingBackendApplication` hoặc `mvn spring-boot:run` | Giống cột B | Hai terminal: Spring + `npm run dev` |
+| **B — FE + API (Spring)** | Nhánh **`Bespring`** (worktree/clone riêng): chạy API theo README của repo backend | `VITE_API_BASE_URL=http://localhost:8081/api`, `VITE_USE_MOCK_API=false` | Hai terminal: API + `npm run dev` |
 
 **Hướng dẫn backend từng bước (Node vs Spring, xử lý cổng trùng, sau `git pull`):** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md).  
-**Code & env Node chi tiết:** [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md).  
 **Spring Boot (IntelliJ) + MySQL, contract API, CORS:** [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md).
-
-> **Cảnh báo:** Không chạy đồng thời **Node** và **Spring** trên **cùng cổng 8081**. Tắt một bên hoặc đổi cổng + cập nhật `VITE_API_BASE_URL`.
 
 ---
 

@@ -1,6 +1,6 @@
 # ShopBike — Trợ giúp & FAQ
 
-**Repo monorepo:** React/Vite + Spring Boot trong `src/`. Hướng dẫn **cài đặt, chạy, biến môi trường, lộ trình đọc** nằm ở **[README.md](README.md)** — đọc file đó trước.
+**Repo frontend:** React/Vite trong `src/`. Backend nằm trên nhánh **`Bespring`** (clone/worktree riêng). Hướng dẫn **cài đặt, chạy, biến môi trường** ở **[README.md](README.md)**.
 
 ---
 
@@ -17,9 +17,7 @@
 | **Kiểm tra luồng & API V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md — Phụ lục](docs/FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Trước merge / sau đổi Query |
 | **Luồng code → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | Tìm đúng chỗ gọi axios/service |
 | **Backend sau clone/pull (Node + Spring)** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Full stack local, cổng 8081 |
-| **Backend Node (tham chiếu)** | [backend/README.md](backend/README.md) | Nếu repo có thư mục `backend/` |
-
-**Maven / Spring Boot** (plugin, JPA): xem [Apache Maven](https://maven.apache.org/guides/index.html) và tài liệu Spring Boot nếu chỉnh `pom.xml`.
+| **Backend (mã nguồn)** | Nhánh `Bespring` trên GitHub | Không nằm trong thư mục FE này |
 
 ---
 

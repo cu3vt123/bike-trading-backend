@@ -1,19 +1,4 @@
-# --- Java / Spring (BE2) ---
-*.class
-*.log
-*.ctxt
-.mtj.tmp/
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-hs_err_pid*
-replay_pid*
-
-# --- Node / Vite (frontend từ nhánh demo) ---
+# --- Node / Vite (frontend) ---
 logs
 npm-debug.log*
 yarn-debug.log*
@@ -27,11 +12,6 @@ dist-ssr
 *.local
 .env
 .env.local
-backend/.env
-backend/uploads/
-backend/data/*.sqlite
-backend/data/*.sqlite-*
-
 # Editor / Cursor (local only — không đưa lên Git)
 .cursor/
 
