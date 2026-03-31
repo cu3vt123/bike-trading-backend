@@ -40,6 +40,10 @@ VITE_PAYMENT_API_ORIGIN=http://localhost:8081
 
 Chi tiết: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 
+## Checkout / buyer API
+
+`POST /api/buyer/orders/vnpay-checkout` (và các route `/api/buyer/**`) yêu cầu JWT của user có role **BUYER** hoặc **ADMIN**. Đăng nhập bằng tài khoản **SELLER** rồi vào checkout sẽ gặp **403 Forbidden** — dùng tài khoản buyer hoặc tạo user BUYER để test.
+
 ## Kiểm tra
 
 1. Chạy Spring: [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md).
