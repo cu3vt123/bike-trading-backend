@@ -75,7 +75,7 @@ public class BuyerServiceImpl implements BuyerService {
                 List.of(OrderStatus.RESERVED, OrderStatus.IN_TRANSACTION)
             );
             if (mine.isPresent()) {
-                Order existing = mine.get();
+                Order existing = orderRepository.findByIdWithGraph(mine.get().getId()).orElse(mine.get());
                 // Buyer bấm lại thanh toán cho cùng đơn: trả lại paymentUrl cũ để resume.
                 Map<String, Object> out = toOrderMap(existing);
                 out.put("paymentUrl", "http://localhost:8081/payment/create?orderId=" + existing.getId());
@@ -113,8 +113,11 @@ public class BuyerServiceImpl implements BuyerService {
         }
 
         BigDecimal totalPrice = listing.getPrice();
-        BigDecimal depositAmount = totalPrice.multiply(new BigDecimal("0.08")).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal vnpayAmount = request.getPlan().name().equals("DEPOSIT") ? depositAmount : totalPrice;
+        // Khớp FE/Node: cọc = Math.round(giá * 0.08) VND nguyên; FULL = giá làm tròn VND.
+        BigDecimal depositAmount = totalPrice.multiply(new BigDecimal("0.08")).setScale(0, RoundingMode.HALF_UP);
+        BigDecimal vnpayAmount = request.getPlan().name().equals("DEPOSIT")
+            ? depositAmount
+            : totalPrice.setScale(0, RoundingMode.HALF_UP);
 
         ShippingAddress address = new ShippingAddress();
         address.setStreet(request.getShippingAddress().getStreet());
@@ -143,7 +146,8 @@ public class BuyerServiceImpl implements BuyerService {
         listing.setState(ListingState.RESERVED);
         listingRepository.save(listing);
 
-        Map<String, Object> out = toOrderMap(order);
+        Order forJson = orderRepository.findByIdWithGraph(order.getId()).orElse(order);
+        Map<String, Object> out = toOrderMap(forJson);
         out.put("paymentUrl", "http://localhost:8081/payment/create?orderId=" + order.getId());
         out.put("txnRef", "ORDER_" + order.getId());
         return out;
@@ -176,15 +180,17 @@ public class BuyerServiceImpl implements BuyerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getMyOrders() {
         User buyer = currentBuyer();
-        return orderRepository.findByBuyerOrderByCreatedAtDesc(buyer)
+        return orderRepository.findByBuyerWithGraphOrderByCreatedAtDesc(buyer)
             .stream()
             .map(this::toOrderMap)
             .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, Object> getOrderById(Long orderId) {
         return toOrderMap(getOwnedOrder(orderId));
     }
@@ -286,7 +292,8 @@ public class BuyerServiceImpl implements BuyerService {
 
     private Order getOwnedOrder(Long orderId) {
         Long userId = SecurityUtils.currentUserId();
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = orderRepository.findByIdWithGraph(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         if (!order.getBuyer().getId().equals(userId)) {
             throw new ForbiddenException("Not your order");
         }

@@ -2,6 +2,7 @@ package com.minhyun.quydu_be.controller;
 
 import com.minhyun.quydu_be.web.RestResponses;
 import com.minhyun.quydu_be.entity.Order;
+import com.minhyun.quydu_be.entity.OrderFulfillmentType;
 import com.minhyun.quydu_be.entity.OrderStatus;
 import com.minhyun.quydu_be.entity.PackageOrder;
 import com.minhyun.quydu_be.entity.PackageOrderStatus;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/payment")
@@ -69,10 +71,27 @@ public class PaymentController {
 
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> create(@RequestBody(required = false) Map<String, Object> request) {
-        Object orderId = request == null ? null : request.get("orderId");
-        String id = orderId == null ? "" : String.valueOf(orderId);
-        String txnRef = "ORDER_" + id;
-        String url = buildVnpaySandboxPaymentUrl(txnRef, "ShopBike order " + id, 10000);
+        if (request == null || request.get("orderId") == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "orderId is required for payment amount"));
+        }
+        Long orderId;
+        try {
+            orderId = Long.valueOf(String.valueOf(request.get("orderId")));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "invalid orderId"));
+        }
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "order not found"));
+        }
+        String txnRef = "ORDER_" + orderId;
+        BigDecimal amountBd = order.getVnpayAmountVnd() != null ? order.getVnpayAmountVnd() : order.getTotalPrice();
+        long amountVnd = amountBd.setScale(0, RoundingMode.HALF_UP).longValue();
+        if (amountVnd <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "invalid payment amount"));
+        }
+        String url = buildVnpaySandboxPaymentUrl(txnRef, "ShopBike order " + orderId, amountVnd);
         return RestResponses.okData(Map.of("paymentUrl", url));
     }
 
@@ -211,7 +230,11 @@ public class PaymentController {
         order.setDepositPaid(true);
         order.setVnpayPaymentStatus(VnpayPaymentStatus.PAID);
         if (order.getStatus() == OrderStatus.RESERVED) {
-            order.setStatus(OrderStatus.AT_WAREHOUSE_PENDING_ADMIN);
+            if (order.getFulfillmentType() == OrderFulfillmentType.DIRECT) {
+                order.setStatus(OrderStatus.PENDING_SELLER_SHIP);
+            } else {
+                order.setStatus(OrderStatus.AT_WAREHOUSE_PENDING_ADMIN);
+            }
         }
         orderRepository.save(order);
     }

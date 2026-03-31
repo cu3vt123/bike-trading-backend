@@ -13,6 +13,9 @@ import org.springframework.stereotype.Repository;
 public interface OrderRepository extends BaseRepository<Order, Long> {
     List<Order> findByBuyerOrderByCreatedAtDesc(User buyer);
 
+    @Query("SELECT o FROM Order o JOIN FETCH o.listing l LEFT JOIN FETCH l.seller JOIN FETCH o.buyer b WHERE b = :buyer ORDER BY o.createdAt DESC")
+    List<Order> findByBuyerWithGraphOrderByCreatedAtDesc(@Param("buyer") User buyer);
+
     @Query("SELECT o FROM Order o WHERE o.listing.seller.id = :sellerId ORDER BY o.createdAt DESC")
     List<Order> findSellerOrders(@Param("sellerId") Long sellerId);
 
@@ -32,4 +35,8 @@ public interface OrderRepository extends BaseRepository<Order, Long> {
         Long listingId,
         List<OrderStatus> statuses
     );
+
+    /** Tránh LazyInitializationException khi map Order → JSON (listing.seller, buyer). */
+    @Query("SELECT o FROM Order o JOIN FETCH o.listing l LEFT JOIN FETCH l.seller JOIN FETCH o.buyer WHERE o.id = :id")
+    Optional<Order> findByIdWithGraph(@Param("id") Long id);
 }
