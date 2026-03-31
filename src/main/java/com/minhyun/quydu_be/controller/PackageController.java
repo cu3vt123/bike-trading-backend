@@ -1,7 +1,7 @@
 package com.minhyun.quydu_be.controller;
 
-import com.minhyun.quydu_be.dto.ApiResponse;
 import com.minhyun.quydu_be.service.PackageService;
+import com.minhyun.quydu_be.web.RestResponses;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,8 @@ public class PackageController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Map<String, Object>>> listPackages() {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched packages", packageService.getPackagesCatalog()));
+    public ResponseEntity<Map<String, Object>> listPackages() {
+        return RestResponses.okData(packageService.getPackagesCatalog());
     }
 }
+

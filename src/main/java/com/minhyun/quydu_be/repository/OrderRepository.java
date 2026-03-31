@@ -4,6 +4,7 @@ import com.minhyun.quydu_be.entity.Order;
 import com.minhyun.quydu_be.entity.OrderStatus;
 import com.minhyun.quydu_be.entity.User;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,4 +21,15 @@ public interface OrderRepository extends BaseRepository<Order, Long> {
     List<Order> findByStatusInOrderByCreatedAtDesc(List<OrderStatus> statuses);
 
     List<Order> findByStatusOrderByCreatedAtDesc(OrderStatus status);
+
+    Optional<Order> findTopByBuyerAndListingIdAndStatusInOrderByCreatedAtDesc(
+        User buyer,
+        Long listingId,
+        List<OrderStatus> statuses
+    );
+
+    Optional<Order> findTopByListingIdAndStatusInOrderByCreatedAtDesc(
+        Long listingId,
+        List<OrderStatus> statuses
+    );
 }

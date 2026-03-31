@@ -1,7 +1,7 @@
 package com.minhyun.quydu_be.dto.request;
 
 /**
- * Body tùy chọn cho PUT /api/inspector/listings/{id}/approve — khớp Node inspectionReport.
+ * Body tùy chọn cho PUT /api/inspector/listings/{id}/approve (inspectionReport ShopBike).
  */
 public class InspectorApproveRequest {
 

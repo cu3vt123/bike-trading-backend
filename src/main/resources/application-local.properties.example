@@ -1,0 +1,18 @@
+# Sao chép file này thành application-local.properties (file đó không commit).
+# Kích hoạt: SPRING_PROFILES_ACTIVE=local hoặc:
+#   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
+
+# --- MySQL (ghi đè mặc định trong application.properties) ---
+spring.datasource.url=jdbc:mysql://localhost:3306/quydu_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=your_mysql_password_here
+
+# --- JWT (bắt buộc có, đủ dài, không dùng giá trị mẫu ngắn trên production) ---
+app.jwt-secret=CHANGE_ME_to_a_long_random_secret_at_least_32_bytes
+
+# --- Tuỳ chọn: CORS (thêm origin, ngăn cách phẩy) ---
+# app.cors.extra-origins=http://localhost:3000,http://192.168.1.5:5173
+
+# --- Tuỳ chọn: VNPay sandbox (không commit secret thật) ---
+# vnpay.tmnCode=
+# vnpay.hashSecret=

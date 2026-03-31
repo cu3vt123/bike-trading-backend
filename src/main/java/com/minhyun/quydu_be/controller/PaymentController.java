@@ -1,6 +1,6 @@
 package com.minhyun.quydu_be.controller;
 
-import com.minhyun.quydu_be.dto.ApiResponse;
+import com.minhyun.quydu_be.web.RestResponses;
 import com.minhyun.quydu_be.entity.Order;
 import com.minhyun.quydu_be.entity.OrderStatus;
 import com.minhyun.quydu_be.entity.PackageOrder;
@@ -12,7 +12,19 @@ import com.minhyun.quydu_be.repository.OrderRepository;
 import com.minhyun.quydu_be.repository.PackageOrderRepository;
 import com.minhyun.quydu_be.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,6 +42,20 @@ public class PaymentController {
     private final OrderRepository orderRepository;
     private final PackageOrderRepository packageOrderRepository;
     private final UserRepository userRepository;
+    @Value("${app.frontend-base-url:http://localhost:5173}")
+    private String frontendBaseUrl;
+    @Value("${vnpay.tmnCode:}")
+    private String vnpTmnCode;
+    @Value("${vnpay.hashSecret:}")
+    private String vnpHashSecret;
+    @Value("${vnpay.url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
+    private String vnpPayUrl;
+    @Value("${vnpay.returnUrl:http://localhost:8081/payment/vnpay-return}")
+    private String vnpReturnUrl;
+    @Value("${vnpay.ipnUrl:}")
+    private String vnpIpnUrl;
+    @Value("${vnpay.bankCode:NCB}")
+    private String vnpBankCode;
 
     public PaymentController(
         OrderRepository orderRepository,
@@ -42,10 +68,12 @@ public class PaymentController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> create(@RequestBody(required = false) Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> create(@RequestBody(required = false) Map<String, Object> request) {
         Object orderId = request == null ? null : request.get("orderId");
-        String url = "http://localhost:8081/payment/vnpay-return?vnp_ResponseCode=00&vnp_TxnRef=ORDER_" + (orderId == null ? "" : orderId);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Created payment", Map.of("paymentUrl", url)));
+        String id = orderId == null ? "" : String.valueOf(orderId);
+        String txnRef = "ORDER_" + id;
+        String url = buildVnpaySandboxPaymentUrl(txnRef, "ShopBike order " + id, 10000);
+        return RestResponses.okData(Map.of("paymentUrl", url));
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)
@@ -53,8 +81,26 @@ public class PaymentController {
         @RequestParam(name = "orderId", required = false) Long orderId,
         @RequestParam(name = "kind", required = false) String kind
     ) {
-        String prefix = "BALANCE".equalsIgnoreCase(kind) ? "BALANCE_" : "ORDER_";
-        String url = "http://localhost:8081/payment/vnpay-return?vnp_ResponseCode=00&vnp_TxnRef=" + prefix + (orderId == null ? "" : orderId);
+        if (orderId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        boolean isBalance = "BALANCE".equalsIgnoreCase(kind);
+        String txnRef = (isBalance ? "BALANCE_" : "ORDER_") + orderId;
+        long amountVnd;
+        if (isBalance) {
+            BigDecimal deposit = order.getDepositAmount() == null ? BigDecimal.ZERO : order.getDepositAmount();
+            BigDecimal balance = order.getTotalPrice().subtract(deposit).max(BigDecimal.ZERO).setScale(0, RoundingMode.HALF_UP);
+            amountVnd = balance.longValue();
+        } else {
+            BigDecimal amount = order.getVnpayAmountVnd() == null ? order.getTotalPrice() : order.getVnpayAmountVnd();
+            amountVnd = amount.setScale(0, RoundingMode.HALF_UP).longValue();
+        }
+        String orderInfo = isBalance ? ("ShopBike balance " + orderId) : ("ShopBike order " + orderId);
+        String url = buildVnpaySandboxPaymentUrl(txnRef, orderInfo, amountVnd);
         return ResponseEntity.status(302).header(HttpHeaders.LOCATION, url).build();
     }
 
@@ -72,11 +118,31 @@ public class PaymentController {
             String sellerRedirect = "http://localhost:5173/seller/packages?vnpay=1&ok=" + (success && applied ? "1" : "0");
             return ResponseEntity.status(302).header(HttpHeaders.LOCATION, sellerRedirect).build();
         }
-        return ResponseEntity.ok(new ApiResponse<>(
-            true,
-            "Processed return",
-            Map.of("success", success && applied, "txnRef", txnRef, "responseCode", responseCode)
-        ));
+        if (txnRef != null && txnRef.startsWith("BALANCE_")) {
+            Long orderId = extractNumericId(txnRef.substring("BALANCE_".length()));
+            String listingId = "";
+            String orderIdText = "";
+            if (orderId != null) {
+                orderIdText = String.valueOf(orderId);
+                listingId = orderRepository.findById(orderId).map(o -> String.valueOf(o.getListing().getId())).orElse("");
+            }
+            String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
+            String url = base
+                + "/finalize/" + encode(listingId)
+                + "?orderId=" + encode(orderIdText)
+                + "&vnpay_balance=" + ((success && applied) ? "1" : "0");
+            return ResponseEntity.status(302).header(HttpHeaders.LOCATION, url).build();
+        }
+        Long orderId = null;
+        if (txnRef != null) {
+            if (txnRef.startsWith("ORDER_")) {
+                orderId = extractNumericId(txnRef.substring("ORDER_".length()));
+            } else if (txnRef.startsWith("BALANCE_")) {
+                orderId = extractNumericId(txnRef.substring("BALANCE_".length()));
+            }
+        }
+        String buyerRedirect = buildBuyerReturnRedirect(orderId, txnRef, responseCode, success && applied);
+        return ResponseEntity.status(302).header(HttpHeaders.LOCATION, buyerRedirect).build();
     }
 
     @GetMapping("/vnpay-ipn")
@@ -166,4 +232,80 @@ public class PaymentController {
         seller.setSubscriptionExpiresAt(LocalDateTime.now().plusDays(30));
         userRepository.save(seller);
     }
+
+    private String buildBuyerReturnRedirect(Long orderId, String txnRef, String responseCode, boolean ok) {
+        String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
+        String listingId = "";
+        String orderIdText = "";
+        if (orderId != null) {
+            orderIdText = String.valueOf(orderId);
+            listingId = orderRepository.findById(orderId)
+                .map(o -> String.valueOf(o.getListing().getId()))
+                .orElse("");
+        }
+        String txn = txnRef == null ? "" : txnRef;
+        String rc = responseCode == null ? "" : responseCode;
+        return base
+            + "/payment/vnpay-result?gate=buyer"
+            + "&ok=" + (ok ? "1" : "0")
+            + "&orderId=" + encode(orderIdText)
+            + "&listingId=" + encode(listingId)
+            + "&orderCode=" + encode(txn)
+            + "&vnp_ResponseCode=" + encode(rc);
+    }
+
+    private String encode(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
+    }
+
+    private String buildVnpaySandboxPaymentUrl(String txnRef, String orderInfo, long amountVnd) {
+        if (vnpTmnCode == null || vnpTmnCode.isBlank() || vnpHashSecret == null || vnpHashSecret.isBlank()) {
+            throw new IllegalStateException("VNPAY is not configured");
+        }
+        Map<String, String> vnp = new LinkedHashMap<>();
+        vnp.put("vnp_Version", "2.1.0");
+        vnp.put("vnp_Command", "pay");
+        vnp.put("vnp_TmnCode", vnpTmnCode);
+        vnp.put("vnp_Locale", "vn");
+        vnp.put("vnp_CurrCode", "VND");
+        vnp.put("vnp_TxnRef", txnRef);
+        vnp.put("vnp_OrderInfo", orderInfo);
+        vnp.put("vnp_OrderType", "other");
+        vnp.put("vnp_Amount", String.valueOf(Math.round(amountVnd) * 100));
+        vnp.put("vnp_ReturnUrl", vnpReturnUrl);
+        vnp.put("vnp_IpAddr", "127.0.0.1");
+        vnp.put("vnp_CreateDate", LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        if (vnpIpnUrl != null && !vnpIpnUrl.isBlank()) {
+            vnp.put("vnp_IpnUrl", vnpIpnUrl);
+        }
+        if (vnpBankCode != null && !vnpBankCode.isBlank()) {
+            vnp.put("vnp_BankCode", vnpBankCode);
+        }
+        var keys = new ArrayList<>(vnp.keySet());
+        keys.sort(Comparator.naturalOrder());
+        StringBuilder query = new StringBuilder();
+        for (int i = 0; i < keys.size(); i++) {
+            String k = keys.get(i);
+            if (i > 0) query.append("&");
+            query.append(encode(k)).append("=").append(encode(vnp.get(k)));
+        }
+        String secureHash = hmacSha512(vnpHashSecret, query.toString());
+        return vnpPayUrl + "?" + query + "&vnp_SecureHash=" + secureHash;
+    }
+
+    private String hmacSha512(String key, String data) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA512");
+            mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
+            byte[] bytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : bytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot sign VNPAY request", e);
+        }
+    }
 }
+

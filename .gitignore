@@ -32,5 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 
+### Local Spring overrides (secrets) ###
+src/main/resources/application-local.properties
+
 ### Local uploaded listing images (§13.6) ###
 /uploads/

@@ -7,6 +7,7 @@ import com.minhyun.quydu_be.entity.ListingState;
 import com.minhyun.quydu_be.entity.Order;
 import com.minhyun.quydu_be.entity.OrderFulfillmentType;
 import com.minhyun.quydu_be.entity.OrderStatus;
+import com.minhyun.quydu_be.entity.VnpayPaymentStatus;
 import com.minhyun.quydu_be.entity.Review;
 import com.minhyun.quydu_be.entity.ReviewStatus;
 import com.minhyun.quydu_be.entity.ShippingAddress;
@@ -64,7 +65,47 @@ public class BuyerServiceImpl implements BuyerService {
         Listing listing = listingRepository.findById(request.getListingId())
             .orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
 
-        if (listing.isHidden() || listing.getState() != ListingState.PUBLISHED) {
+        if (listing.isHidden()) {
+            throw new BadRequestException("Listing not available for purchase");
+        }
+        if (listing.getState() == ListingState.RESERVED) {
+            var mine = orderRepository.findTopByBuyerAndListingIdAndStatusInOrderByCreatedAtDesc(
+                buyer,
+                listing.getId(),
+                List.of(OrderStatus.RESERVED, OrderStatus.IN_TRANSACTION)
+            );
+            if (mine.isPresent()) {
+                Order existing = mine.get();
+                // Buyer bấm lại thanh toán cho cùng đơn: trả lại paymentUrl cũ để resume.
+                Map<String, Object> out = toOrderMap(existing);
+                out.put("paymentUrl", "http://localhost:8081/payment/create?orderId=" + existing.getId());
+                out.put("txnRef", "ORDER_" + existing.getId());
+                return out;
+            }
+
+            var reservedOrder = orderRepository.findTopByListingIdAndStatusInOrderByCreatedAtDesc(
+                listing.getId(),
+                List.of(OrderStatus.RESERVED, OrderStatus.IN_TRANSACTION)
+            );
+            if (reservedOrder.isPresent()) {
+                Order existing = reservedOrder.get();
+                LocalDateTime exp = existing.getExpiresAt();
+                // Đơn giữ chỗ đã quá hạn: tự nhả listing để buyer khác có thể checkout.
+                if (exp != null && !exp.isAfter(LocalDateTime.now())) {
+                    existing.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(existing);
+                    listing.setState(ListingState.PUBLISHED);
+                    listingRepository.save(listing);
+                } else {
+                    throw new BadRequestException("Listing is currently reserved by another order");
+                }
+            } else {
+                // Trạng thái listing bị lệch dữ liệu (RESERVED nhưng không còn order active).
+                listing.setState(ListingState.PUBLISHED);
+                listingRepository.save(listing);
+            }
+        }
+        if (listing.getState() != ListingState.PUBLISHED) {
             throw new BadRequestException("Listing not available for purchase");
         }
         if (listing.getListingExpiresAt() != null && !listing.getListingExpiresAt().isAfter(LocalDateTime.now())) {
@@ -84,7 +125,11 @@ public class BuyerServiceImpl implements BuyerService {
         order.setBuyer(buyer);
         order.setListing(listing);
         order.setStatus(OrderStatus.RESERVED);
-        order.setFulfillmentType(OrderFulfillmentType.WAREHOUSE);
+        order.setFulfillmentType(
+            "CERTIFIED".equalsIgnoreCase(listing.getCertificationStatus())
+                ? OrderFulfillmentType.WAREHOUSE
+                : OrderFulfillmentType.DIRECT
+        );
         order.setPlan(request.getPlan());
         order.setTotalPrice(totalPrice);
         order.setDepositAmount(depositAmount);
@@ -92,6 +137,7 @@ public class BuyerServiceImpl implements BuyerService {
         order.setShippingAddress(address);
         order.setExpiresAt(LocalDateTime.now().plusHours(24));
         order.setVnpayAmountVnd(vnpayAmount);
+        order.setVnpayPaymentStatus(VnpayPaymentStatus.PENDING_PAYMENT);
         orderRepository.save(order);
 
         listing.setState(ListingState.RESERVED);
@@ -148,7 +194,10 @@ public class BuyerServiceImpl implements BuyerService {
     public Map<String, Object> completeOrder(Long orderId) {
         Order order = getOwnedOrder(orderId);
         if (order.getStatus() != OrderStatus.SHIPPING) {
-            throw new BadRequestException("Chỉ hoàn tất khi đơn đang ở trạng thái SHIPPING.");
+            String hint = order.getFulfillmentType() == OrderFulfillmentType.DIRECT
+                ? "Chỉ hoàn tất khi seller đã giao xe và đơn đang ở trạng thái đang giao (SHIPPING)."
+                : "Chỉ hoàn tất khi xe đã qua kho, kiểm định lại và đang giao tới bạn (SHIPPING).";
+            throw new BadRequestException(hint + " (hiện tại: " + order.getStatus() + ")");
         }
         order.setStatus(OrderStatus.COMPLETED);
         orderRepository.save(order);

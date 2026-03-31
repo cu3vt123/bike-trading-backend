@@ -1,11 +1,10 @@
 package com.minhyun.quydu_be.controller;
 
-import com.minhyun.quydu_be.dto.ApiResponse;
 import com.minhyun.quydu_be.dto.request.InspectionNeedUpdateRequest;
 import com.minhyun.quydu_be.dto.request.InspectorApproveRequest;
 import com.minhyun.quydu_be.service.InspectorService;
+import com.minhyun.quydu_be.web.RestResponses;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,33 +28,33 @@ public class InspectorController {
 
     @GetMapping("/pending-listings")
     public ResponseEntity<Map<String, Object>> pendingListings() {
-        List<Map<String, Object>> content = inspectorService.pendingListings();
-        return ResponseEntity.ok(Map.of("content", content));
+        return RestResponses.okContent(inspectorService.pendingListings());
     }
 
     @GetMapping("/listings/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getListing(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched listing", inspectorService.getListing(id)));
+    public ResponseEntity<Map<String, Object>> getListing(@PathVariable Long id) {
+        return RestResponses.okData(inspectorService.getListing(id));
     }
 
     @PutMapping("/listings/{id}/approve")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> approve(
+    public ResponseEntity<Map<String, Object>> approve(
         @PathVariable Long id,
         @RequestBody(required = false) InspectorApproveRequest request
     ) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Approved listing", inspectorService.approve(id, request)));
+        return RestResponses.okData(inspectorService.approve(id, request));
     }
 
     @PutMapping("/listings/{id}/reject")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> reject(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Rejected listing", inspectorService.reject(id)));
+    public ResponseEntity<Map<String, Object>> reject(@PathVariable Long id) {
+        return RestResponses.okData(inspectorService.reject(id));
     }
 
     @PutMapping("/listings/{id}/need-update")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> needUpdate(
+    public ResponseEntity<Map<String, Object>> needUpdate(
         @PathVariable Long id,
         @Valid @RequestBody InspectionNeedUpdateRequest request
     ) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Need update", inspectorService.needUpdate(id, request.getReason())));
+        return RestResponses.okData(inspectorService.needUpdate(id, request.getReason()));
     }
 }
+

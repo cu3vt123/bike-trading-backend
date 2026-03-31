@@ -1,15 +1,13 @@
 package com.minhyun.quydu_be.controller;
 
-import com.minhyun.quydu_be.dto.ApiResponse;
 import com.minhyun.quydu_be.dto.request.CreateOrderRequest;
 import com.minhyun.quydu_be.dto.request.CreateReviewRequest;
 import com.minhyun.quydu_be.dto.request.InitiatePaymentRequest;
 import com.minhyun.quydu_be.exception.BadRequestException;
 import com.minhyun.quydu_be.service.BuyerService;
+import com.minhyun.quydu_be.web.RestResponses;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,66 +30,64 @@ public class BuyerController {
     }
 
     @PostMapping("/orders/vnpay-checkout")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> createOrderVnpayCheckout(@Valid @RequestBody CreateOrderRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new ApiResponse<>(true, "Order created", buyerService.createOrderVnpayCheckout(request)));
+    public ResponseEntity<Map<String, Object>> createOrderVnpayCheckout(@Valid @RequestBody CreateOrderRequest request) {
+        return RestResponses.createdData(buyerService.createOrderVnpayCheckout(request));
     }
 
     @PostMapping("/orders/{id}/vnpay-resume")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resumeOrderVnpay(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Resume VNPAY", buyerService.resumeOrderVnpay(id)));
+    public ResponseEntity<Map<String, Object>> resumeOrderVnpay(@PathVariable Long id) {
+        return RestResponses.okData(buyerService.resumeOrderVnpay(id));
     }
 
     @PostMapping("/orders/{id}/vnpay-pay-balance")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> payBalanceVnpay(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Pay balance", buyerService.payBalanceVnpay(id)));
+    public ResponseEntity<Map<String, Object>> payBalanceVnpay(@PathVariable Long id) {
+        return RestResponses.okData(buyerService.payBalanceVnpay(id));
     }
 
     @PostMapping("/orders")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> createOrder(@Valid @RequestBody CreateOrderRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new ApiResponse<>(true, "Order created", buyerService.createOrder(request)));
+    public ResponseEntity<Map<String, Object>> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        return RestResponses.createdData(buyerService.createOrder(request));
     }
 
     @GetMapping("/orders")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyOrders() {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched orders", buyerService.getMyOrders()));
+    public ResponseEntity<Map<String, Object>> getMyOrders() {
+        return RestResponses.okData(buyerService.getMyOrders());
     }
 
     @GetMapping("/orders/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched order", buyerService.getOrderById(id)));
+    public ResponseEntity<Map<String, Object>> getOrderById(@PathVariable Long id) {
+        return RestResponses.okData(buyerService.getOrderById(id));
     }
 
     @PutMapping("/orders/{id}/complete")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> completeOrder(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Order completed", buyerService.completeOrder(id)));
+    public ResponseEntity<Map<String, Object>> completeOrder(@PathVariable Long id) {
+        return RestResponses.okData(buyerService.completeOrder(id));
     }
 
     @PutMapping("/orders/{id}/cancel")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> cancelOrder(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Order cancelled", buyerService.cancelOrder(id)));
+    public ResponseEntity<Map<String, Object>> cancelOrder(@PathVariable Long id) {
+        return RestResponses.okData(buyerService.cancelOrder(id));
     }
 
     @PostMapping("/orders/{id}/review")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> createReviewForOrder(
+    public ResponseEntity<Map<String, Object>> createReviewForOrder(
         @PathVariable Long id,
         @Valid @RequestBody CreateReviewRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new ApiResponse<>(true, "Review created", buyerService.createReviewForOrder(id, request)));
+        return RestResponses.createdData(buyerService.createReviewForOrder(id, request));
     }
 
     @GetMapping("/reviews")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> listMyReviews() {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched reviews", buyerService.listMyReviews()));
+    public ResponseEntity<Map<String, Object>> listMyReviews() {
+        return RestResponses.okData(buyerService.listMyReviews());
     }
 
     @PostMapping("/payments/initiate")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> initiatePayment(@Valid @RequestBody InitiatePaymentRequest request) {
+    public ResponseEntity<Map<String, Object>> initiatePayment(@Valid @RequestBody InitiatePaymentRequest request) {
         if (!"CASH".equalsIgnoreCase(request.getMethod())) {
             throw new BadRequestException("Invalid payment payload (chi ho tro CASH)");
         }
-        return ResponseEntity.ok(new ApiResponse<>(true, "Payment initiated", buyerService.initiateCashPayment()));
+        return RestResponses.okData(buyerService.initiateCashPayment());
     }
 }
+

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
-/** Chuẩn hoá field listing trả về JSON — khớp FE bikeApi / Node serializeListing. */
+/** Chuẩn hoá field listing JSON cho FE ShopBike. */
 @Component
 public class ListingFieldSerializer {
 
