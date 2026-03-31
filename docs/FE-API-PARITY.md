@@ -19,6 +19,7 @@ Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trad
 | Bikes list / by id | Có |
 | Packages, brands (public) | Có |
 | Buyer: orders CRUD, vnpay-checkout, vnpay-resume, pay-balance, complete, cancel, review, payments/initiate | Có |
+| Buyer: chi tiết giao dịch theo listing (sau VNPAY) `GET /api/buyer/transactions/{listingId}?orderId=` hoặc `GET /api/buyer/orders/by-listing/{listingId}` | Có — path là **listingId**; `orderId` query tùy chọn; **không** dùng `GET /api/buyer/orders/{listingId}` (đó là order id) |
 | Seller: dashboard, orders, ship-to-buyer, ship-to-warehouse, listings, subscription, upload-images | Có |
 | Inspector: pending, listing by id, approve/reject/need-update | Có |
 | Admin: warehouse, re-inspection, stats, users, listings, reviews, brands, hide/unhide, revoke subscription | Có |

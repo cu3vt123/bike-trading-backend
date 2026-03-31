@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -57,6 +58,18 @@ public class BuyerController {
     @GetMapping("/orders/{id}")
     public ResponseEntity<Map<String, Object>> getOrderById(@PathVariable Long id) {
         return RestResponses.okData(buyerService.getOrderById(id));
+    }
+
+    /**
+     * Chi tiết giao dịch sau thanh toán — khớp route FE dạng {@code /transaction/{listingId}?orderId=}.
+     * Path là <strong>listingId</strong>, không phải orderId. Query {@code orderId} tùy chọn để chỉ định đơn.
+     */
+    @GetMapping(value = {"/orders/by-listing/{listingId}", "/transactions/{listingId}"})
+    public ResponseEntity<Map<String, Object>> getOrderForListingTransaction(
+        @PathVariable Long listingId,
+        @RequestParam(name = "orderId", required = false) Long orderId
+    ) {
+        return RestResponses.okData(buyerService.getOrderForListingTransaction(listingId, orderId));
     }
 
     @PutMapping("/orders/{id}/complete")

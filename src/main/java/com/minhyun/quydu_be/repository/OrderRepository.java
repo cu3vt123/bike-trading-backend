@@ -31,6 +31,9 @@ public interface OrderRepository extends BaseRepository<Order, Long> {
         List<OrderStatus> statuses
     );
 
+    /** Đơn mới nhất của buyer cho listing (mọi trạng thái) — dùng màn transaction sau thanh toán. */
+    Optional<Order> findTopByBuyerAndListingIdOrderByCreatedAtDesc(User buyer, Long listingId);
+
     Optional<Order> findTopByListingIdAndStatusInOrderByCreatedAtDesc(
         Long listingId,
         List<OrderStatus> statuses

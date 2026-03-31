@@ -13,6 +13,12 @@ public interface BuyerService {
     Map<String, Object> payBalanceVnpay(Long orderId);
     List<Map<String, Object>> getMyOrders();
     Map<String, Object> getOrderById(Long orderId);
+
+    /**
+     * Chi tiết giao dịch / đơn theo listing (khớp FE: /transaction/{listingId}?orderId=…).
+     * Nếu có orderId: trả đơn đó khi thuộc buyer và khớp listingId; không: đơn mới nhất của buyer cho listing.
+     */
+    Map<String, Object> getOrderForListingTransaction(Long listingId, Long orderId);
     Map<String, Object> completeOrder(Long orderId);
     Map<String, Object> cancelOrder(Long orderId);
     Map<String, Object> createReviewForOrder(Long orderId, CreateReviewRequest request);

@@ -50,6 +50,18 @@ Chi tiết: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 2. Gọi **`GET /api/auth/me`** với **cùng** header Bearer: trong JSON trả về phải có **`role`: `BUYER`**. Nếu là `SELLER` → token/session đang là seller (đăng xuất, đăng nhập lại đúng tài khoản buyer, xóa localStorage token cũ nếu cần).
 3. Body lỗi **403** từ BE (sau khi pull bản mới) có dòng *«Backend sees role: …»* — đó là role thật server đang dùng.
 
+## Chi tiết giao dịch / transaction (sau thanh toán)
+
+Route FE kiểu `/transaction/{listingId}?orderId=…` → BE:
+
+- **`GET /api/buyer/transactions/{listingId}`** (optional **`?orderId=15`**)
+
+hoặc tương đương **`GET /api/buyer/orders/by-listing/{listingId}`**.
+
+Path segment là **listingId** (vd. `3`), không phải id đơn. **`GET /api/buyer/orders/3`** là đọc **đơn có id=3**, dễ nhầm với listing — sẽ 404 / sai đơn.
+
+Kèm header **`Authorization: Bearer …`** (BUYER).
+
 ## Kiểm tra
 
 1. Chạy Spring: [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md).

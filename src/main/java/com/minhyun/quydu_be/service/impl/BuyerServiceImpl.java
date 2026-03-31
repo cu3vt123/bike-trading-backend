@@ -227,6 +227,25 @@ public class BuyerServiceImpl implements BuyerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getOrderForListingTransaction(Long listingId, Long orderId) {
+        User buyer = currentBuyer();
+        if (orderId != null) {
+            Order order = getOwnedOrder(orderId);
+            if (!order.getListing().getId().equals(listingId)) {
+                throw new BadRequestException("orderId does not belong to this listing");
+            }
+            Order withGraph = orderRepository.findByIdWithGraph(order.getId()).orElse(order);
+            return toOrderMap(withGraph);
+        }
+        Order latest = orderRepository
+            .findTopByBuyerAndListingIdOrderByCreatedAtDesc(buyer, listingId)
+            .orElseThrow(() -> new ResourceNotFoundException("No order for this listing"));
+        Order withGraph = orderRepository.findByIdWithGraph(latest.getId()).orElse(latest);
+        return toOrderMap(withGraph);
+    }
+
+    @Override
     @Transactional
     public Map<String, Object> completeOrder(Long orderId) {
         Order order = getOwnedOrder(orderId);
