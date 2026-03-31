@@ -2,9 +2,12 @@ package com.minhyun.quydu_be.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.minhyun.quydu_be.exception.ErrorResponse;
+import com.minhyun.quydu_be.security.CustomUserDetails;
 import com.minhyun.quydu_be.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -47,11 +50,20 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, accessDeniedException) -> {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                String message = MSG_BUYER_OR_ADMIN;
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null
+                    && auth.isAuthenticated()
+                    && auth.getPrincipal() instanceof CustomUserDetails ud) {
+                    message += " Backend sees role: " + ud.getRole().name()
+                        + " (from DB for this access token). If FE shows buyer but this is SELLER, log out and login"
+                        + " as buyer, or ensure the client sends the access token from that login (not refresh token only).";
+                }
                 ErrorResponse body = new ErrorResponse(
                     LocalDateTime.now(),
                     HttpStatus.FORBIDDEN.value(),
                     HttpStatus.FORBIDDEN.getReasonPhrase(),
-                    MSG_BUYER_OR_ADMIN,
+                    message,
                     request.getRequestURI()
                 );
                 objectMapper.writeValue(response.getWriter(), body);

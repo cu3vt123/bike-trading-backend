@@ -44,6 +44,12 @@ Chi tiết: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 
 `POST /api/buyer/orders/vnpay-checkout` (và các route `/api/buyer/**`) yêu cầu JWT của user có role **BUYER** hoặc **ADMIN**. Đăng nhập bằng tài khoản **SELLER** rồi vào checkout sẽ gặp **403 Forbidden** — dùng tài khoản buyer hoặc tạo user BUYER để test.
 
+**Bạn tin là BUYER nhưng vẫn 403?** Backend lấy role từ **DB theo `userId` trong access token**, không theo nhãn trên UI.
+
+1. Trong DevTools → request `vnpay-checkout` → **Request headers**: phải có `Authorization: Bearer <accessToken>` (token ngắn hạn sau login, **không** nhầm `refreshToken`).
+2. Gọi **`GET /api/auth/me`** với **cùng** header Bearer: trong JSON trả về phải có **`role`: `BUYER`**. Nếu là `SELLER` → token/session đang là seller (đăng xuất, đăng nhập lại đúng tài khoản buyer, xóa localStorage token cũ nếu cần).
+3. Body lỗi **403** từ BE (sau khi pull bản mới) có dòng *«Backend sees role: …»* — đó là role thật server đang dùng.
+
 ## Kiểm tra
 
 1. Chạy Spring: [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md).
