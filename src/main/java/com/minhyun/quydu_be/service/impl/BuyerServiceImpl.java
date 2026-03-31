@@ -179,7 +179,7 @@ public class BuyerServiceImpl implements BuyerService {
         return Map.of(
             "paymentUrl", paymentUrl,
             "txnRef", "ORDER_" + order.getId(),
-            "orderId", order.getId(),
+            "orderId", String.valueOf(order.getId()),
             "vnpayAmountVnd", order.getVnpayAmountVnd()
         );
     }
@@ -199,7 +199,7 @@ public class BuyerServiceImpl implements BuyerService {
         );
         return Map.of(
             "paymentUrl", paymentUrl,
-            "orderId", order.getId(),
+            "orderId", String.valueOf(order.getId()),
             "balanceAmount", balance,
             "txnRef", "BALANCE_" + order.getId()
         );
@@ -350,12 +350,16 @@ public class BuyerServiceImpl implements BuyerService {
         return order;
     }
 
+    private static String jsonId(Long id) {
+        return id == null ? null : String.valueOf(id);
+    }
+
     private Map<String, Object> toOrderMap(Order o) {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("id", o.getId());
-        out.put("listingId", o.getListing().getId());
-        out.put("buyerId", o.getBuyer().getId());
-        out.put("sellerId", o.getListing().getSeller() == null ? null : o.getListing().getSeller().getId());
+        out.put("id", jsonId(o.getId()));
+        out.put("listingId", jsonId(o.getListing().getId()));
+        out.put("buyerId", jsonId(o.getBuyer().getId()));
+        out.put("sellerId", o.getListing().getSeller() == null ? null : jsonId(o.getListing().getSeller().getId()));
         out.put("status", o.getStatus().name());
         out.put("plan", o.getPlan().name());
         out.put("fulfillmentType", o.getFulfillmentType() == null ? "WAREHOUSE" : o.getFulfillmentType().name());
@@ -372,7 +376,7 @@ public class BuyerServiceImpl implements BuyerService {
         ));
         out.put("expiresAt", o.getExpiresAt());
         Map<String, Object> listingMap = new LinkedHashMap<>();
-        listingMap.put("id", o.getListing().getId());
+        listingMap.put("id", jsonId(o.getListing().getId()));
         listingMap.put("title", safe(o.getListing().getTitle()));
         listingMap.put("brand", safe(o.getListing().getBrand()));
         listingMap.put("model", safe(o.getListing().getModel()));
@@ -381,7 +385,7 @@ public class BuyerServiceImpl implements BuyerService {
         listingMap.put("imageUrls", o.getListing().getImageUrls() == null ? List.of() : o.getListing().getImageUrls());
         listingMap.put("thumbnailUrl", safe(o.getListing().getThumbnailUrl()));
         Map<String, Object> seller = new LinkedHashMap<>();
-        seller.put("id", o.getListing().getSeller() == null ? null : o.getListing().getSeller().getId());
+        seller.put("id", o.getListing().getSeller() == null ? null : jsonId(o.getListing().getSeller().getId()));
         seller.put("name", o.getListing().getSeller() == null ? "" : safe(o.getListing().getSeller().getDisplayName()));
         seller.put("email", o.getListing().getSeller() == null ? "" : safe(o.getListing().getSeller().getEmail()));
         listingMap.put("seller", seller);
@@ -391,11 +395,11 @@ public class BuyerServiceImpl implements BuyerService {
 
     private Map<String, Object> toReviewMap(Review r) {
         return Map.of(
-            "id", r.getId(),
-            "orderId", r.getOrder().getId(),
-            "listingId", r.getListing().getId(),
-            "sellerId", r.getSeller().getId(),
-            "buyerId", r.getBuyer().getId(),
+            "id", jsonId(r.getId()),
+            "orderId", jsonId(r.getOrder().getId()),
+            "listingId", jsonId(r.getListing().getId()),
+            "sellerId", jsonId(r.getSeller().getId()),
+            "buyerId", jsonId(r.getBuyer().getId()),
             "rating", r.getRating(),
             "comment", safe(r.getComment()),
             "status", r.getStatus().name()
