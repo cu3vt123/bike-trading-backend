@@ -27,34 +27,27 @@ This system is designed to support a secure and reliable marketplace for used bi
 
 ### 1. Listing Creation
 <p align="center">
-  <img src="./images/imagechange.png" width="700" alt="Listing Creation"/>
+  <img src="./images/Swimlane_SellFlow.png" width="700" alt="Listing Creation"/>
 </p>
 
 ---
 
 ### 2. Order Placement
 <p align="center">
-  <img src="./images/image2.png" width="700" alt="Order Placement"/>
+  <img src="./images/Swimlane_BuyFlow.png" width="700" alt="Order Placement"/>
 </p>
 
 ---
 
-### 3. Payment Processing & Verification
+### 3. Shipment and Delivery
 <p align="center">
-  <img src="./images/image3.png" width="700" alt="Payment Processing & Verification"/>
+  <img src="./images/Swimlane_ShipmentFlow.png" width="700" alt="Shipment and Delivery"/>
 </p>
 
 ---
 
-### 4. Shipment and Delivery
+### 4. Post-Purchase Evaluation
 <p align="center">
-  <img src="./images/image4.png" width="700" alt="Shipment and Delivery"/>
-</p>
-
----
-
-### 5. Post-Purchase Evaluation
-<p align="center">
-  <img src="./images/image5.png" width="700" alt="Post-Purchase Evaluation"/>
+  <img src="./images/Swimlane_ReviewFlow.png" width="700" alt="Post-Purchase Evaluation"/>
 </p>
 ---
