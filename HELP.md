@@ -8,16 +8,15 @@
 
 | Mục | Link | Khi nào mở |
 |-----|------|------------|
-| **Chạy BE + FE, env, sự cố, bản đồ docs** | [README.md](README.md) | Luôn — điểm vào dự án |
-| **Mục lục `docs/`, lộ trình học 3 cấp** | [docs/README.md](docs/README.md) | Chọn đúng file theo tác vụ |
-| **Hướng dẫn Frontend chi tiết (một file)** | [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md) | Route, API, Query, i18n, checklist — ưu tiên khi làm FE |
-| **PM / QA / FE làm việc với Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu báo bug, không cần dạy lại BE |
+| **Chạy FE, env, sự cố** | [README.md](README.md) | Điểm vào dự án |
+| **Chạy API + nối FE (nhánh Bespring)** | [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md) | Worktree/clone, Swagger, `VITE_API_BASE_URL` |
+| **Mục lục `docs/`** | [docs/README.md](docs/README.md) | Chọn file theo tác vụ |
+| **Hướng dẫn Frontend (một file)** | [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md) | Route, API, Query, i18n |
 | **Tra cứu API, role, routes, env** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | Khi code hoặc debug API |
-| **Kiến trúc FE V1 vs V2** (Query, invalidate) | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Sau khi đọc STRUCTURE |
-| **Kiểm tra luồng & API V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md — Phụ lục](docs/FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Trước merge / sau đổi Query |
-| **Luồng code → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | Tìm đúng chỗ gọi axios/service |
-| **Backend sau clone/pull (Node + Spring)** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Full stack local, cổng 8081 |
-| **Backend (mã nguồn)** | Nhánh `Bespring` trên GitHub | Không nằm trong thư mục FE này |
+| **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, invalidate |
+| **Kiểm tra luồng** | [docs/FE-ARCHITECTURE-V1-VS-V2.md — Phụ lục](docs/FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Trước merge |
+| **Luồng code → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | axios/service |
+| **Backend (mã nguồn)** | Nhánh `Bespring` trên GitHub | Không nằm trong repo FE |
 
 ---
 

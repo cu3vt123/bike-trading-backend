@@ -6,11 +6,19 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [31-03-2026]
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Docs front-only** | Xóa các `.md` thuần backend trong `docs/` (`BACKEND-*`, `BE-FE-API-AUDIT*`, `ERD-*`). Thêm **`BACKEND-BESPRING-CHAY-API.md`** (hướng dẫn FE lấy nhánh Bespring, chạy API, `.env`). Viết lại **`docs/README.md`**, **`AI-CONTEXT-for-TEAM.md`** (chỉ FE + QA). Cập nhật README gốc, `HELP`, `QUICK-REFERENCE`. |
+
+---
+
 ## [30-03-2026]
 
 | Thay đổi | Chi tiết |
 |----------|----------|
-| **Nhánh Spring `Bespring`** | README + `BACKEND-LOCAL-SETUP`: backend chuẩn team theo [bike-trading-backend @ Bespring](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring); hướng dẫn `git worktree`, không checkout đè lên cây FE. |
+| **Nhánh Spring `Bespring`** | README: backend chuẩn team theo [bike-trading-backend @ Bespring](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring); `git worktree`. *(03-31: phần setup chi tiết chuyển sang `BACKEND-BESPRING-CHAY-API`; `BACKEND-LOCAL-SETUP` đã xóa.)* |
 | **Gộp tài liệu ít dùng** | Xóa `FE-V2-VERIFICATION-GUIDE.md`, `UI-UX-AUDIT-BY-ACTOR.md`, `AI-CONTEXT-for-BACKEND.md`. Nội dung lần lượt vào **`FE-ARCHITECTURE-V1-VS-V2.md`** (Phụ lục §8), **`BE-FE-API-AUDIT-BY-PAGE.md`** (Phụ lục §6 UI/UX), **`AI-CONTEXT-for-TEAM.md`** (mục **A.7**). Cập nhật liên kết trong README, `docs/README`, `HELP`, `QUICK-REFERENCE`, `FRONTEND-DEVELOPER-GUIDE`, `PROJECT-SUMMARY`, `AI-CONTEXT-for-TEAM`. |
 | **`docs/README.md`** | Lọc mục lục: thêm **Phân loại — tránh đọc trùng**; thay bảng “mục lục đầy đủ” phẳng bằng **mục lục theo nhóm** (FE / BE / audit / DB / vận hành). |
 | **`docs/QUICK-REFERENCE.md`** | Làm rõ link README gốc repo vs `docs/README`. |

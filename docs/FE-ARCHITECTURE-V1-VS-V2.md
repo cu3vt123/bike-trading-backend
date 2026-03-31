@@ -139,7 +139,7 @@ Tài liệu mô tả **điểm khác biệt** giữa cách tổ chức dữ li�
 
 > Dùng cho **dev FE**, **QA**, **review PR**. **Lint/typecheck/build không thay** việc chạy app và gọi API thật.
 
-**Tham chiếu nhanh:** [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) · [BE-FE-API-AUDIT-BY-PAGE.md](./BE-FE-API-AUDIT-BY-PAGE.md) · [FRONTEND-API-FLOWS.md](./FRONTEND-API-FLOWS.md)
+**Tham chiếu nhanh:** [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) · [FRONTEND-API-FLOWS.md](./FRONTEND-API-FLOWS.md) · [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md)
 
 ### 8.1 Mục đích & phạm vi
 
@@ -151,7 +151,7 @@ Tài liệu mô tả **điểm khác biệt** giữa cách tổ chức dữ li�
 ### 8.2 Chuẩn bị môi trường
 
 1. `npm install` ở root; `.env`: `VITE_USE_MOCK_API`, `VITE_API_BASE_URL` — xem [README.md](../README.md).  
-2. BE (Spring hoặc Node) chạy — không hai BE **cùng cổng**: [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md).
+2. API nhánh **Bespring** chạy — một cổng: [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
 
 ### 8.3 Bước A — Kiểm tra tự động (trước merge)
 
@@ -189,7 +189,7 @@ Swagger (Spring) so với QUICK-REFERENCE; body/status với FRONTEND-API-FLOWS.
 
 ### 8.8 Báo lỗi team
 
-Mẫu: [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md).
+Ghi rõ endpoint + payload (xem [QUICK-REFERENCE.md](./QUICK-REFERENCE.md)).
 
 ### 8.9 Checklist copy vào PR
 

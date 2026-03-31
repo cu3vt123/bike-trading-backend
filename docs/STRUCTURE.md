@@ -91,7 +91,7 @@ Dự án **có** đầy đủ luồng gọi API liên quan **đơn mua xe** (buy
 | **Review theo đơn** | `src/apis/reviewApi.ts` | `POST .../buyer/orders/:orderId/review` (path trong `API_PATHS.REVIEWS`) |
 | **Kiểu dữ liệu** | `src/types/order.ts` | `Order`, `CreateOrderRequest`, enum status / `fulfillmentType` khớp BE |
 
-**Trang (UI) gọi service/API:** chủ yếu `features/buyer/` (Checkout, Transaction, Finalize, Success), `features/seller/` (dashboard đơn), các trang `admin/*` — chi tiết mapping: [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md), luồng xử lý: [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md).
+**Trang (UI) gọi service/API:** chủ yếu `features/buyer/` (Checkout, Transaction, Finalize, Success), `features/seller/` (dashboard đơn), các trang `admin/*` — luồng xử lý: [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md), bảng path: [QUICK-REFERENCE.md](QUICK-REFERENCE.md).
 
 **Backend tham chiếu (Node demo):** `backend/src/controllers/buyerController.js`, `sellerController.js`, `adminController.js` (không nằm trong cây `src/` FE ở trên).
 
