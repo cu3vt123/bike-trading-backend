@@ -784,6 +784,7 @@
     "waitPaymentDone": "Payment done, waiting for seller to deliver.",
     "waitSellerShip": "Waiting for seller to ship to warehouse.",
     "waitSellerShipDirect": "Waiting for the seller to deliver to your address.",
+    "buyerProgressWarehouseStagesComplete": "Warehouse intake & checks complete",
     "bikeEnRoute": "Bike arriving at warehouse / awaiting admin confirmation.",
     "reInspectionAtWarehouse": "Re-inspecting at warehouse.",
     "orderInProgress": "Order is being processed. Platform will update when there's progress.",

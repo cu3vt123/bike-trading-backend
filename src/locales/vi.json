@@ -783,6 +783,7 @@
     "waitPaymentDone": "Thanh toán xong, chờ seller giao xe.",
     "waitSellerShip": "Chờ seller gửi xe tới kho.",
     "waitSellerShipDirect": "Chờ seller giao xe đến địa chỉ của bạn.",
+    "buyerProgressWarehouseStagesComplete": "Đã hoàn tất nhận & kiểm tra tại kho",
     "bikeEnRoute": "Xe đang tới kho / chờ admin xác nhận.",
     "reInspectionAtWarehouse": "Đang kiểm định lại tại kho.",
     "orderInProgress": "Đơn đang được xử lý. Sàn sẽ cập nhật khi có thông tin mới.",

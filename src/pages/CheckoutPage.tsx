@@ -278,9 +278,9 @@ export default function CheckoutPage() {
                       : "border-input hover:border-primary/50",
                   )}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-semibold">{t(titleKey)}</span>
                         {badgeKey && (
                           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
@@ -292,7 +292,7 @@ export default function CheckoutPage() {
                         {t(descKey)}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold">
+                    <span className="shrink-0 whitespace-nowrap text-right text-sm font-semibold tabular-nums">
                       {formatMoney(price, currency)}
                     </span>
                   </div>
