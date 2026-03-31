@@ -20,7 +20,10 @@ Tránh lộ secret:
 
 File `application-local.properties` đã được thêm vào `.gitignore`.
 
-## Bước 2 — Kích hoạt profile `local`
+## Bước 2 — Profile `local`
+
+Trong `application.properties` đã có **`spring.profiles.default=local`**: chỉ cần có `application-local.properties` rồi **Run** bình thường (IntelliJ không bắt buộc nhập Active profiles).  
+Muốn tắt local: đặt biến môi trường **`SPRING_PROFILES_ACTIVE`** khác (vd. `prod`) hoặc VM option `-Dspring.profiles.active=prod`.
 
 **Cách A — biến môi trường (PowerShell, session hiện tại):**
 

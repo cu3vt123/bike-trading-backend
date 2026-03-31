@@ -18,14 +18,16 @@ Backend **Spring Boot** (REST, JWT, MySQL, VNPay sandbox). Repository **Java/Mav
 1. **JDK 17** (khuyến nghị theo `pom.xml`; JDK mới hơn có thể cảnh báo Tomcat native — bỏ qua hoặc thêm `--enable-native-access=ALL-UNNAMED` trong Run config).
 2. **Bắt buộc:** sao chép `src/main/resources/application-local.properties.example` → `src/main/resources/application-local.properties`.
 3. Sửa trong file local: `spring.datasource.password`, `app.jwt-secret`. File example đã có **sandbox VNPAY TEST** (`vnpay.tmnCode`, `vnpay.hashSecret`, …); giữ nguyên hoặc thay credential merchant riêng.
-4. Chạy với **profile `local`** (để Spring nạp `application-local.properties`):
+4. Chạy app: **`application.properties` đã đặt `spring.profiles.default=local`** — Spring nạp `application-local.properties` tự động (không cần chỉnh Active profiles trong IDE).
 
 ```powershell
 cd D:\SWP392\quydu_be
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
+.\mvnw.cmd spring-boot:run
 ```
 
-**IntelliJ:** Run → *Edit Configurations* → *Spring Boot* → **Active profiles:** `local`.
+(Tuỳ chọn: vẫn có thể truyền `-Dspring-boot.run.profiles=local` để rõ ràng. Production: đặt `SPRING_PROFILES_ACTIVE=prod`.)
+
+**IntelliJ:** Run bình thường; nếu từng đặt Active profiles rỗng hoặc khác, xóa/để mặc định để dùng `spring.profiles.default=local`.
 
 5. Health: [http://localhost:8081/api/health](http://localhost:8081/api/health)  
 6. Swagger: [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html)
