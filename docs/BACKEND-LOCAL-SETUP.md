@@ -66,25 +66,34 @@ Chi tiết code Node: [BACKEND-GUIDE.md](./BACKEND-GUIDE.md), [backend/README.md
 
 ---
 
-### 2.3 Frontend + Spring Boot (BE2 — trong cùng repo)
+### 2.3 Frontend + Spring Boot (BE2)
 
-Phù hợp: nhánh BE2, API Java + MySQL.
+**Nhánh backend chuẩn:** **`Bespring`** trên [bike-trading-backend](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) (README + `docs/` trong repo đó: local setup, FE integration). Nếu máy bạn chỉ clone nhánh frontend (Vite), tạo thêm worktree hoặc clone thứ hai:
+
+```bash
+git fetch origin
+git worktree add ../bike-trading-bespring Bespring
+```
+
+Làm việc Spring trong `../bike-trading-bespring` (Maven); làm việc React trong repo hiện tại — **không** cần hai thư mục trùng nội dung nếu dùng hai worktree.
 
 **Yêu cầu**
 
-- **JDK** (theo `pom.xml` / team — thường JDK 21–24).
-- **MySQL** chạy local; tạo **database trống** — **tên DB và user/mật khẩu** phải khớp `spring.datasource.*` trong `src/main/resources/application.properties` (mỗi máy dev nên dùng **credential riêng**, không commit mật khẩu thật lên Git).
+- **JDK** (theo `pom.xml` / team — thường JDK 17–21 trên Bespring; kiểm tra file trên nhánh bạn chạy).
+- **MySQL** chạy local; tạo **database trống** — **tên DB và user/mật khẩu** phải khớp `spring.datasource.*` trong `application-local.properties` hoặc `application.properties` (xem `application-local.properties.example` trên nhánh Bespring).
 
 **Chạy Spring**
 
-- IntelliJ: Run `BikeTradingBackendApplication` (`src/main/java/com/biketrading/backend/...`), **hoặc**
-- CLI (tại root repo, nơi có `pom.xml`):
+- IntelliJ: mở thư mục có `pom.xml`, Run `BikeTradingBackendApplication`, **hoặc**
+- CLI (tại thư mục có `pom.xml`):
 
 ```bash
-mvn spring-boot:run
+./mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
-- Swagger: thường **`http://localhost:8081/swagger-ui/index.html`** (kiểm tra `server.port` trong `application.properties`).
+(Câu lệnh chính xác có thể khác theo README trên **Bespring** — ưu tiên đọc file đó.)
+
+- Swagger: thường **`http://localhost:8081/swagger-ui/index.html`** (kiểm tra `server.port`).
 
 **Frontend**
 

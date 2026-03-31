@@ -4,6 +4,8 @@ Repo **nhánh mặc định BE2** gồm backend **Spring Boot** (Java) và front
 
 **Monorepo:** cùng thư mục `src/` — **Vite/React** (`src/app/`, `src/features/`, `src/pages/`, …) và **Spring** (`src/main/java/`, `src/main/resources/`). Maven/IDE dùng `src/main/java`; Vite bundle phần TypeScript/TSX ở `src/` (không đụng Java).
 
+**Backend Spring chuẩn team — nhánh `Bespring`:** mã nguồn Java/API cập nhật theo [bike-trading-backend @ **Bespring**](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) (cùng remote GitHub). Trên remote, nhánh `Bespring` là cây Maven **chỉ backend**; nhánh làm frontend (ví dụ `quydu12`) có thể là monorepo FE + `pom.xml` — khi đồng bộ Spring, lấy thay đổi từ `Bespring` (merge/cherry-pick/worktree). **Không** checkout `Bespring` đè lên thư mục đang làm React nếu bạn không dùng worktree — sẽ mất cây Vite. Cách an toàn: `git fetch origin && git worktree add ../bike-trading-bespring Bespring`, mở thư mục mới trong IntelliJ để chạy API; FE giữ nguyên repo hiện tại với `VITE_API_BASE_URL=http://localhost:8081/api`.
+
 ---
 
 ## Sau khi clone hoặc pull (setup)
@@ -93,7 +95,7 @@ Mở trình duyệt: **http://localhost:5173** (hoặc cổng Vite in ra trong t
 
 ## Dành cho Backend (Java Spring Boot, IntelliJ)
 
-Mục này dành cho **dev backend Java / Spring Boot**: bạn clone **cùng repo** với frontend (monorepo BE2), chạy API trong **IntelliJ IDEA** (hoặc `mvn`), rồi chạy Vite để FE gọi API thật. FE và BE dùng chung thư mục gốc (`pom.xml` + `package.json`); code Java nằm dưới `src/main/java/`, không đụng tới bundle React.
+Mục này dành cho **dev backend Java / Spring Boot**: chạy API trong **IntelliJ IDEA** (hoặc `mvn`), rồi chạy Vite để FE gọi API thật. **Nguồn backend đang theo nhánh `Bespring`** (xem khối ngay dưới phần đầu README). Nếu clone monorepo có sẵn `pom.xml` + `package.json`, mở **cùng thư mục gốc**; nếu tách repo/worktree `Bespring`, mở thư mục đó cho Maven và giữ FE ở repo Vite riêng — cùng cổng **8081** và cùng `VITE_API_BASE_URL`.
 
 ### Bạn cần đọc gì (tóm tắt)
 
