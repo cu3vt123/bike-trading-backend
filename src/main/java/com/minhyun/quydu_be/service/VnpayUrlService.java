@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -41,8 +42,19 @@ public class VnpayUrlService {
      * @param amountVnd whole VND (not multiplied by 100 yet)
      */
     public String buildPaymentUrl(String txnRef, String orderInfo, long amountVnd) {
-        if (vnpTmnCode == null || vnpTmnCode.isBlank() || vnpHashSecret == null || vnpHashSecret.isBlank()) {
-            throw new IllegalStateException("VNPAY is not configured");
+        List<String> missing = new ArrayList<>();
+        if (vnpTmnCode == null || vnpTmnCode.isBlank()) {
+            missing.add("vnpay.tmnCode");
+        }
+        if (vnpHashSecret == null || vnpHashSecret.isBlank()) {
+            missing.add("vnpay.hashSecret");
+        }
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException(
+                "VNPAY is not configured: missing or blank " + String.join(", ", missing)
+                    + ". Set them in src/main/resources/application-local.properties and run with Spring profile \"local\" "
+                    + "(copy from application-local.properties.example; see README.md)."
+            );
         }
         Map<String, String> vnp = new LinkedHashMap<>();
         vnp.put("vnp_Version", "2.1.0");

@@ -33,7 +33,7 @@ Bản mẫu có sẵn sandbox TEST (credential công khai): `src/main/resources/
 
 **Lưu ý:** Hầu hết REST trong project dùng prefix **`/api`**. Các route **`/payment/*`** nằm **ngoài** `/api` — FE thường cấu hình `VITE_PAYMENT_API_ORIGIN=http://localhost:8081` (xem [FRONTEND-INTEGRATION.md](FRONTEND-INTEGRATION.md)).
 
-Luồng buyer: `POST /api/buyer/orders/vnpay-checkout` trả `paymentUrl` đã ký (redirect thẳng sang VNPAY), không cần GET `/payment/create`.
+Luồng buyer: `POST /api/buyer/orders/vnpay-checkout` (JWT **BUYER**) trả `paymentUrl` đã ký (redirect thẳng sang VNPAY), không cần GET `/payment/create`. Body JSON: `listingId` có thể là **số hoặc chuỗi** (vd `"5"`) — Spring parse về `Long`.
 
 ## Thẻ test sandbox (NCB)
 

@@ -1,5 +1,7 @@
 package com.minhyun.quydu_be.dto.request;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.minhyun.quydu_be.dto.json.FlexibleLongDeserializer;
 import com.minhyun.quydu_be.entity.OrderPlan;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -7,7 +9,9 @@ import jakarta.validation.constraints.NotNull;
 
 public class CreateOrderRequest {
 
+    /** FE có thể gửi số hoặc chuỗi số — cùng parse được. */
     @NotNull
+    @JsonDeserialize(using = FlexibleLongDeserializer.class)
     private Long listingId;
 
     @NotNull

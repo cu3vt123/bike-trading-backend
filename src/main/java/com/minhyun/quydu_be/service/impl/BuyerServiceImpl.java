@@ -345,6 +345,7 @@ public class BuyerServiceImpl implements BuyerService {
         out.put("depositPaid", o.isDepositPaid());
         out.put("balancePaid", o.isBalancePaid());
         out.put("vnpayAmountVnd", o.getVnpayAmountVnd());
+        out.put("vnpayPaymentStatus", o.getVnpayPaymentStatus() == null ? null : o.getVnpayPaymentStatus().name());
         out.put("shippingAddress", Map.of(
             "street", o.getShippingAddress() == null ? "" : safe(o.getShippingAddress().getStreet()),
             "city", o.getShippingAddress() == null ? "" : safe(o.getShippingAddress().getCity()),

@@ -45,6 +45,23 @@ Nếu thiếu `vnpay.tmnCode` / `vnpay.hashSecret`: HTTP **503** (*Service Unava
 
 Chi tiết path `/payment/*` vs `/api/*`: [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md), [docs/FRONTEND-INTEGRATION.md](docs/FRONTEND-INTEGRATION.md).
 
+### Xác minh luồng giống FE (POST `/api/buyer/orders/vnpay-checkout`)
+
+Cần tài khoản **BUYER** và JWT. Lấy token: **POST** `/api/auth/login`, copy `data.accessToken`.
+
+Thay `LISTING_ID` bằng ID tin đăng **PUBLISHED** trong DB; thay `YOUR_ACCESS_TOKEN`:
+
+```powershell
+curl -s -X POST "http://localhost:8081/api/buyer/orders/vnpay-checkout" -H "Authorization: Bearer YOUR_ACCESS_TOKEN" -H "Content-Type: application/json" -d "{\"listingId\":\"5\",\"plan\":\"DEPOSIT\",\"shippingAddress\":{\"street\":\"1 Le Loi\",\"city\":\"Ho Chi Minh City\"},\"acceptedUnverifiedDisclaimer\":true}"
+```
+
+(`listingId` có thể là **số** hoặc **chuỗi số** — backend parse cùng được.)
+
+Kỳ vọng: HTTP **201**, body dạng `{ "data": { "id", "status", "paymentUrl", "txnRef", "vnpayAmountVnd", "vnpayPaymentStatus", "listingId", ... } }`.  
+Hoặc dùng Swagger → **Authorize** Bearer → `POST /api/buyer/orders/vnpay-checkout` với body mẫu trên.
+
+Nếu VNPAY chưa cấu hình: HTTP **503**, `message` nêu rõ key thiếu (vd `vnpay.tmnCode`, `vnpay.hashSecret`).
+
 ## Tài liệu trong repo
 
 | File | Nội dung |

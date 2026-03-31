@@ -34,3 +34,8 @@ Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trad
 ## Cấu hình local
 
 Không dùng mật khẩu/secret **production** trong `application.properties` đã push Git — dùng `application-local.properties` + profile **`local`** (xem `application-local.properties.example`, có sandbox VNPAY TEST).
+
+## Checkout VNPAY
+
+- `POST /api/buyer/orders/vnpay-checkout`: `listingId` trong JSON có thể gửi **string** (`"5"`) hoặc number — không trả 400 chỉ vì kiểu chuỗi.
+- Phản hồi `data` gồm `paymentUrl`, `txnRef`, `id`, `status`, `vnpayAmountVnd`, `vnpayPaymentStatus`, … (khớp unwrap FE).
