@@ -54,6 +54,15 @@ cd D:\SWP392\quydu_be
 
 Entrypoint Java: `com.minhyun.quydu_be.QuyduBeApplication`.
 
+### Tài khoản BUYER mẫu (chỉ profile `local`)
+
+Lần đầu start với profile `local`, ứng dụng **tự tạo** user **BUYER** nếu email `buyer@local.dev` chưa tồn tại:
+
+- **Email:** `buyer@local.dev`
+- **Mật khẩu:** `Buyer@123`
+
+Dùng tài khoản này cho `POST /api/auth/login` và **`vnpay-checkout`**. Nếu bạn đăng nhập **SELLER** mà vào checkout vẫn bị **403**, đó là đúng theo rule bảo mật — hãy login buyer (hoặc user trên).
+
 ## Cổng, health, Swagger
 
 - API: **http://localhost:8081** (xem `server.port`).

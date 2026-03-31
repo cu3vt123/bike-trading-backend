@@ -32,6 +32,8 @@ cd D:\SWP392\quydu_be
 5. Health: [http://localhost:8081/api/health](http://localhost:8081/api/health)  
 6. Swagger: [http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html)
 
+**Tài khoản BUYER dev (profile `local`):** lần đầu chạy, BE tự tạo **`buyer@local.dev` / `Buyer@123`** nếu chưa có. Đăng nhập bằng tài khoản này rồi checkout — tránh 403 do đang dùng session **SELLER**.
+
 ### Xác minh VNPAY (không còn `VNPAY is not configured`)
 
 Sau khi có `application-local.properties` + profile `local`, tạo đơn buyer (hoặc dùng `orderId` đã có trong DB), rồi **POST** (không dùng GET trên trình duyệt):
