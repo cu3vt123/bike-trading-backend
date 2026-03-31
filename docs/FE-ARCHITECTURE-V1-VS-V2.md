@@ -129,8 +129,79 @@ Tài liệu mô tả **điểm khác biệt** giữa cách tổ chức dữ li�
 
 ### 7.6 Kiểm tra luồng & API sau khi sửa
 
-- Checklist đầy đủ (lint, build, thủ công theo vai, invalidate): [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md).
+- Checklist đầy đủ: xem **[Phụ lục — Kiểm tra luồng & API](#phu-luc-kiem-tra-luong-api)**.
 
 ---
 
-*Tài liệu này đi kèm cập nhật mục lục [docs/README.md](README.md). Phiên bản V2 align với refactor trong repo (2026-Q1). §7 bổ sung hướng dẫn thực hành (2026-03-26). §7.6 trỏ tới hướng dẫn verify V2.*
+<a id="phu-luc-kiem-tra-luong-api"></a>
+
+## 8. Phụ lục — Kiểm tra luồng & API (checklist PR)
+
+> Dùng cho **dev FE**, **QA**, **review PR**. **Lint/typecheck/build không thay** việc chạy app và gọi API thật.
+
+**Tham chiếu nhanh:** [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) · [BE-FE-API-AUDIT-BY-PAGE.md](./BE-FE-API-AUDIT-BY-PAGE.md) · [FRONTEND-API-FLOWS.md](./FRONTEND-API-FLOWS.md)
+
+### 8.1 Mục đích & phạm vi
+
+| Câu hỏi | Trả lời |
+|---------|---------|
+| **Tài liệu này để làm gì?** | Thứ tự: **lint → typecheck (`tsc`) → build** → chạy local → kiểm tra theo vai → đối chiếu request/response. |
+| **Không đảm bảo gì?** | Không thay **E2E tự động**; không chứng minh BE production an toàn. |
+
+### 8.2 Chuẩn bị môi trường
+
+1. `npm install` ở root; `.env`: `VITE_USE_MOCK_API`, `VITE_API_BASE_URL` — xem [README.md](../README.md).  
+2. BE (Spring hoặc Node) chạy — không hai BE **cùng cổng**: [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md).
+
+### 8.3 Bước A — Kiểm tra tự động (trước merge)
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
+
+- **Lint:** sửa theo ESLint.  
+- **Typecheck:** `tsc --noEmit` — Vite build **không** thay bước này.  
+- **Build:** bundle production.
+
+### 8.4 Bước B — Dev nhanh
+
+`npm run dev` — DevTools → Network (XHR), Preserve log nếu theo VNPay.
+
+### 8.5 Bước C — Theo vai (thủ công)
+
+**Chung:** Console sạch; theme/i18n không vỡ; sau **401** → login hoặc refresh ([apiClient](../src/lib/apiClient.ts)).
+
+**Guest:** Home `/bikes`; detail `/bikes/:id`; đăng ký/đăng nhập thành công.
+
+**Buyer:** Checkout → `POST .../vnpay-checkout`; Transaction `GET .../orders/:id`; hủy đơn → `PUT .../cancel` và **invalidate** danh sách; Profile orders khớp chi tiết.
+
+**Seller / Inspector / Admin:** Đúng role; dashboard gọi đúng `GET` trong QUICK-REFERENCE; sau mutation **invalidate** đúng `queryKeys`.
+
+### 8.6 TanStack Query
+
+Sau mutation: kiểm tra `queryClient.invalidateQueries({ queryKey: ... })` — [queryKeys](../src/lib/queryKeys.ts). UI màn khác phải khớp server sau refetch.
+
+### 8.7 Đối chiếu API
+
+Swagger (Spring) so với QUICK-REFERENCE; body/status với FRONTEND-API-FLOWS. Lệch contract → sửa một nguồn + [CHANGELOG.md](./CHANGELOG.md).
+
+### 8.8 Báo lỗi team
+
+Mẫu: [BACKEND-COLLABORATION.md](./BACKEND-COLLABORATION.md).
+
+### 8.9 Checklist copy vào PR
+
+```
+[ ] npm run lint
+[ ] npm run typecheck
+[ ] npm run build
+[ ] Dev + ít nhất 1 luồng Buyer (list → detail → checkout hoặc profile orders)
+[ ] Sau mutation: cache không lệch
+[ ] (Tùy PR) Seller / Admin / Inspector: 1 luồng chính
+```
+
+---
+
+*Tài liệu này đi kèm cập nhật mục lục [docs/README.md](README.md). Phiên bản V2 align với refactor trong repo (2026-Q1). §7 bổ sung hướng dẫn thực hành (2026-03-26). §8 = kiểm tra luồng (gộp 2026-03-31).*

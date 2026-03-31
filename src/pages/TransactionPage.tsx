@@ -6,9 +6,11 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Clock, CheckCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import {
   Dialog,
   DialogContent,
@@ -338,7 +340,6 @@ export default function TransactionPage() {
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
   const [vnpayResuming, setVnpayResuming] = useState(false);
   const [vnpayResumeError, setVnpayResumeError] = useState<string | null>(null);
 
@@ -921,13 +922,14 @@ export default function TransactionPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("transaction.support24_7")}
                 </p>
-                <Button
-                  variant="outline"
-                  className="mt-3 w-full"
-                  onClick={() => setSupportOpen(true)}
-                >
-                  {t("transaction.chatWithSupport")}
-                </Button>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  <a
+                    href="mailto:support@shopbike.example.com"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    support@shopbike.example.com
+                  </a>
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -1006,23 +1008,6 @@ export default function TransactionPage() {
         </Dialog>
       )}
 
-      {/* Support Chat Dialog */}
-      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("transaction.contactSupport")}</DialogTitle>
-            <DialogDescription>
-              {t("transaction.supportChatNote")}{" "}
-              <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
-                support@shopbike.example.com
-              </a>.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setSupportOpen(false)}>{t("transaction.close")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

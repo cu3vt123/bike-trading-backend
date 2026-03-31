@@ -21,7 +21,7 @@ Tài liệu này tập trung **100% vào dev frontend** (React + Vite + TypeScri
 | **Tailwind CSS 3** + **shadcn/ui** (Radix) | `src/components/ui/*`, `cn()` |
 | **lucide-react** | Icon |
 
-**Lệnh thường dùng:** `npm install`, `npm run dev`, `npm run build`, `npm run lint`, `npm run preview`.
+**Lệnh thường dùng:** `npm install`, `npm run dev`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run preview`.
 
 ### 1.1 TypeScript path alias và Vite
 
@@ -264,7 +264,7 @@ await queryClient.invalidateQueries({ queryKey: queryKeys.buyer.orders });
 - [ ] `queryKeys` (nếu dùng query mới) + hook + `invalidateQueries` sau mutation
 - [ ] i18n mọi chuỗi user-facing
 - [ ] Xử lý lỗi với `getApiErrorMessage` hoặc toast
-- [ ] `npm run lint` + `npm run build`
+- [ ] `npm run lint` + `npm run typecheck` + `npm run build`
 
 **Chỉ UI:**
 
@@ -302,7 +302,8 @@ Thêm: [README.md](../README.md), [QUICK-REFERENCE.md](QUICK-REFERENCE.md) §10.
 | Việc | Lệnh / ghi chú |
 |------|----------------|
 | **Lint** | `npm run lint` — ESLint 9, plugin React Hooks / Refresh |
-| **Build** | `npm run build` — phải pass trước khi merge (bắt lỗi TS + bundle) |
+| **Typecheck** | `npm run typecheck` — `tsc --noEmit` (strict); **Vite build không chạy bước này** |
+| **Build** | `npm run build` — bundle production; nên kết hợp với `typecheck` trước merge |
 | **Preview build** | `npm run preview` — kiểm tra bản production local |
 
 Sửa cảnh báo ESLint trong file đang chạm; tránh `@ts-ignore` trừ khi có lý do ghi chú ngắn.
@@ -316,7 +317,7 @@ Sửa cảnh báo ESLint trong file đang chạm; tránh `@ts-ignore` trừ khi 
 | [STRUCTURE.md](STRUCTURE.md) | Cây thư mục, luồng order trên FE |
 | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | So sánh V1/V2, cache, invalidate |
 | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng API chi tiết |
-| [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) | Checklist kiểm tra thủ công |
+| [FE-ARCHITECTURE-V1-VS-V2 — Phụ lục kiểm tra](FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Checklist kiểm tra thủ công |
 | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Endpoint, role, route |
 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Trước khi deploy |
 | [README.md](../README.md) | Hướng dẫn gốc repo |

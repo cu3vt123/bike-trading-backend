@@ -159,7 +159,7 @@ function toDetail(dto: BikeDto): BikeDetail {
       dto,
       ["specs", "specifications"],
       undefined,
-    ),
+    ) as BikeDetail["specs"],
     inspectionSummary: pick(
       dto,
       ["inspectionSummary", "inspection"],

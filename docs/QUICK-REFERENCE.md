@@ -2,7 +2,7 @@
 
 > Tài liệu tra cứu nhanh: thuật ngữ, API, routes, biến môi trường, vị trí file. Dùng khi onboard, port BE, hoặc tra cứu thông tin.
 
-**Nguồn chi tiết:** [README.md](README.md) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | [ERD-SPEC.md](ERD-SPEC.md)
+**Nguồn chi tiết:** [README gốc repo](../README.md) (cài đặt, chạy) · [Mục lục docs](README.md) · [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) · [BACKEND-GUIDE.md](BACKEND-GUIDE.md) · [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) · [ERD-SPEC.md](ERD-SPEC.md)
 
 **Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A. **Spring Boot (IntelliJ) + MySQL:** [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) — intro + mục **Thiết kế SQL**.
 
@@ -230,7 +230,7 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |
 | Cấu trúc FE | [STRUCTURE.md](STRUCTURE.md) |
 | So sánh kiến trúc FE V1 vs V2 (Query, RHF, refresh) | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) |
-| Kiểm tra luồng & API V2 (lint, checklist, invalidate) | [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) |
+| Kiểm tra luồng & API V2 (lint, checklist, invalidate) | [FE-ARCHITECTURE-V1-VS-V2 — Phụ lục](FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) |
 | Luồng gọi API trên FE | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 
 ---

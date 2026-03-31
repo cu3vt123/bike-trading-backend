@@ -5,14 +5,14 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShoppingBag, Store } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/common/Logo";
@@ -21,10 +21,13 @@ import { cn } from "@/lib/utils";
 import { registerFormSchema, type RegisterFormValues } from "@/lib/authSchemas";
 import { useRegisterMutation } from "@/hooks/useAuthMutations";
 
-const REGISTER_ROLES: Role[] = ["BUYER", "SELLER"];
+/** Chỉ hai vai trò được phép đăng ký công khai — không dùng `Role[]` để tránh Record<Role> suy ra thiếu key. */
+const REGISTER_ROLES = ["BUYER", "SELLER"] as const satisfies readonly Role[];
+
+type RegisterRole = (typeof REGISTER_ROLES)[number];
 
 const ROLE_CONFIG: Record<
-  (typeof REGISTER_ROLES)[number],
+  RegisterRole,
   { labelKey: string; icon: React.ElementType }
 > = {
   BUYER: { labelKey: "auth.roleBuyer", icon: ShoppingBag },

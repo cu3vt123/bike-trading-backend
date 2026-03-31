@@ -8,14 +8,30 @@
 
 ## Mục lục tài liệu này
 
-1. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
-2. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
-3. [AI: gợi ý tài liệu cho cả team](#ai-context-team-md)
-4. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
-5. [Team phối hợp BE (BA, Tester, PM / QA / FE)](#team-phối-hợp-be)
-6. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
-7. [Lịch sử](#lịch-sử)
-8. [Mục lục đầy đủ (theo tên file)](#mục-lục-đầy-đủ-theo-tên-file)
+1. [Phân loại tài liệu — tránh đọc trùng](#phân-loại-tài-liệu--tránh-đọc-trùng)
+2. [Đọc nhanh (ưu tiên)](#đọc-nhanh-ưu-tiên)
+3. [Backend: Java Spring Boot (hướng dẫn & tài liệu)](#backend-java-spring-boot-hướng-dẫn--tài-liệu)
+4. [AI: gợi ý tài liệu cho cả team](#ai-context-team-md)
+5. [Lộ trình học 3 cấp](#lộ-trình-học-3-cấp)
+6. [Team phối hợp BE (BA, Tester, PM / QA / FE)](#team-phối-hợp-be)
+7. [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán)
+8. [Lịch sử](#lịch-sử)
+9. [Mục lục theo nhóm (file trong `docs/`)](#mục-lục-theo-nhóm-file-trong-docs)
+
+---
+
+## Phân loại tài liệu — tránh đọc trùng
+
+| Nhu cầu | Đọc file này | Không nhầm với |
+|---------|----------------|-----------------|
+| **Chạy repo, `.env`, mock/API** | [README.md](../README.md) (gốc repo) | `docs/README.md` = mục lục tài liệu, không thay README gốc |
+| **Tra cứu API, role, route, env** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) = luồng code + file TS cụ thể |
+| **BR đầy đủ, BR-ID** | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) = tóm tắt dài + màn hình, không thay BR |
+| **Audit API theo endpoint** | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) = theo màn/actor — **hai file bổ sung** |
+| **Làm FE hằng ngày** | [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) + [STRUCTURE.md](STRUCTURE.md) | [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) = so sánh/migrate Query |
+| **FAQ ngắn** | [HELP.md](../HELP.md) | Chi tiết đầy đủ vẫn ở README + bảng trên |
+
+**Chất lượng code:** `npm run typecheck` (`tsc --noEmit`) bổ sung cho `npm run build` — xem [README.md](../README.md) mục **Lệnh npm & chất lượng**.
 
 ---
 
@@ -23,14 +39,14 @@
 
 | Nhu cầu | Tài liệu | Mô tả ngắn |
 |---------|----------|------------|
-| **Chạy dự án, env, lint/build, sự cố** | [README.md](../README.md) | Hướng dẫn gốc — bắt buộc khi onboard. |
+| **Chạy dự án, env, lint/typecheck/build, sự cố** | [README.md](../README.md) | Hướng dẫn gốc — bắt buộc khi onboard. |
 | **Hướng dẫn Frontend tổng hợp (stack, route, API, Query, i18n, checklist)** | **[FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md)** | **Đọc đầu tiên khi làm FE** — chi tiết một file. |
 | **API, routes, thuật ngữ, env, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tra cứu nhanh khi code hoặc port API. |
 | **Luồng gọi API trên FE** (axios, `apis/`, `services/`, VNPay) | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Đi từ request đến đúng file TypeScript. |
 | **So sánh kiến trúc FE cũ / mới** (Query, RHF, refresh, invalidate) | **[FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md)** | Hiểu V2 và cách chỉnh code không lệch cache. |
 | **Cấu trúc thư mục FE, quy ước import** | [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, `queryKeys`, hooks `queries/`. |
 | **Checklist ship / hardening** | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Trước khi deploy production. |
-| **Kiểm tra luồng + API (V2, thủ công)** | **[FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md)** | Lint/build, checklist theo vai, Query invalidate, Network. |
+| **Kiểm tra luồng + API (V2, thủ công)** | **[FE-ARCHITECTURE-V1-VS-V2 — Phụ lục §8](FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api)** | Lint/typecheck/build, checklist theo vai, Query invalidate, Network. |
 
 ---
 
@@ -49,7 +65,7 @@ Dành cho **dev backend** làm việc với API Spring Boot trong repo này (Int
 | **Làm việc với PM/QA/FE** | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket. |
 | **Backend Node (demo)** | [BACKEND-GUIDE.md](BACKEND-GUIDE.md), [../backend/README.md](../backend/README.md) | Không chạy cùng cổng với Spring. |
 | **Tra cứu nhanh env, auth, order status** | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Hỗ trợ cả FE và khi đối chiếu API. |
-| **Gợi ý tài liệu đính kèm cho AI (dev backend)** | [AI-CONTEXT-for-TEAM.md — Phần A](AI-CONTEXT-for-TEAM.md#phan-a-backend), [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | **TEAM** = bản đầy đủ; **BACKEND** = tóm tắt Spring+MySQL, gói file, ràng buộc không dùng Mongo cho Spring. |
+| **Gợi ý tài liệu đính kèm cho AI (dev backend)** | [AI-CONTEXT-for-TEAM.md — Phần A](AI-CONTEXT-for-TEAM.md#phan-a-backend), [mục A.7 — tóm tắt](AI-CONTEXT-for-TEAM.md#phan-a7-backend-ai) | **TEAM** = bản đầy đủ; **A.7** = một trang Spring+MySQL, gói file, ràng buộc không dùng Mongo cho Spring. |
 
 ---
 
@@ -108,8 +124,8 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 |---------|----------|---------|
 | Business rules đầy đủ | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md), [business-rules/README.md](business-rules/README.md) | Source of truth + script Excel. |
 | Tổng quan dự án | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Chức năng, stack, luồng tóm tắt, BR. |
-| UI/UX audit theo actor | [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md) | Đánh giá UX; bổ sung cho audit API theo page. |
-| ERD / MySQL / đặc tả cột | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md), [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | DB & vẽ ERD; mục lục + **Cách đọc** trong từng file; đối chiếu màn hình/API — [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md). |
+| UI/UX audit theo actor | [BE-FE-API-AUDIT-BY-PAGE — Phụ lục §6](BE-FE-API-AUDIT-BY-PAGE.md#phu-luc-ui-ux-theo-actor) | Đánh giá UX; cùng file với audit API theo page. |
+| ERD / MySQL / đặc tả cột | [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md), [sql/shopbike_mysql_schema.sql](sql/shopbike_mysql_schema.sql) | DB & vẽ ERD; mục lục + **Cách đọc** trong từng file; đối chiếu màn hình/API — [FE-ARCHITECTURE — Phụ lục kiểm tra](FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api). |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | Luồng thanh toán. |
 
 ---
@@ -122,31 +138,56 @@ Các tài liệu dưới đây phục vụ **người không chỉ code Spring**
 
 ---
 
-## Mục lục đầy đủ (theo tên file)
+## Mục lục theo nhóm (file trong `docs/`)
 
-| File | Ghi chú ngắn |
-|------|----------------|
-| [STRUCTURE.md](STRUCTURE.md) | Cây thư mục FE, providers, apis/services |
-| [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) | Hướng dẫn dev FE đầy đủ (routing, guard, env, Query, form, i18n) |
-| [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng API chi tiết, Mermaid |
-| [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | So sánh V1/V2 + hướng dẫn thực hành |
-| [FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md) | Kiểm tra luồng & API (checklist) |
-| [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi docs/code |
-| [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng kết |
-| [UI-UX-AUDIT-BY-ACTOR.md](UI-UX-AUDIT-BY-ACTOR.md) | Audit UI |
-| [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Audit theo endpoint |
-| [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Audit theo page |
-| [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Clone/pull, chạy Node hoặc Spring + FE |
-| [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | PM/QA/FE hỗ trợ BE, thuật ngữ, mẫu ticket |
-| [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node backend |
-| [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Spring + IntelliJ + SQL |
-| [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Gói `.md` đính kèm cho AI (BE / FE / QA) |
-| [AI-CONTEXT-for-BACKEND.md](AI-CONTEXT-for-BACKEND.md) | Tóm tắt AI cho backend + link Phần A trong `AI-CONTEXT-for-TEAM` |
-| [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Ship-ready checklist |
+Các file không liệt kê ở đây (ví dụ `sql/*.sql`, `.mmd`) vẫn thuộc `docs/` — mở thư mục hoặc xem mục [Nghiệp vụ, DB, thanh toán](#nghiệp-vụ-db-thanh-toán).
+
+### Frontend & kiểm thử FE
+
+| File | Vai trò |
+|------|---------|
+| [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, router, `queryKeys` |
+| [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) | Hướng dẫn FE một file |
+| [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) | Luồng axios/service, Mermaid |
+| [FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md) | Query, invalidate, migration |
+| [FE-ARCHITECTURE-V1-VS-V2 — Phụ lục kiểm tra](FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Checklist manual |
+| [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tra cứu API, route, env |
+
+### Backend & phối hợp
+
+| File | Vai trò |
+|------|---------|
+| [BACKEND-LOCAL-SETUP.md](BACKEND-LOCAL-SETUP.md) | Clone/pull, cổng, sau `git pull` |
+| [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) | Spring + MySQL + contract |
+| [BACKEND-GUIDE.md](BACKEND-GUIDE.md) | Node (demo / đối chiếu) |
+| [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) | PM / QA / FE ↔ BE |
 | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) | VNPay |
-| [QUICK-REFERENCE.md](QUICK-REFERENCE.md) | Tham chiếu nhanh |
-| [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | ERD / MySQL / hướng dẫn vẽ |
-| [sql/](sql/) | Script SQL |
+
+### Audit & tổng quan sản phẩm
+
+| File | Vai trò |
+|------|---------|
+| [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) | Theo nhóm endpoint |
+| [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) | Theo màn / actor + [phụ lục UI/UX](BE-FE-API-AUDIT-BY-PAGE.md#phu-luc-ui-ux-theo-actor) |
+| [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md) | Tổng hợp chức năng + BR tóm tắt |
+
+### Dữ liệu & nghiệp vụ chuẩn
+
+| File | Vai trò |
+|------|---------|
+| [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) | Source of truth BR |
+| [business-rules/README.md](business-rules/README.md) | Excel, script append |
+| [ERD-SPEC.md](ERD-SPEC.md), [ERD-MYSQL.md](ERD-MYSQL.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) | ERD / MySQL |
+| [sql/](sql/) | Script & sơ đồ |
+
+### Vận hành, lịch sử, AI
+
+| File | Vai trò |
+|------|---------|
+| [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Trước production |
+| [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi ghi nhận trong docs |
+| [AI-CONTEXT-for-TEAM.md](AI-CONTEXT-for-TEAM.md) | Gói tài liệu cho AI — cả team (gồm [A.7 backend](AI-CONTEXT-for-TEAM.md#phan-a7-backend-ai)) |
+
 ---
 
-*Cập nhật: mục lục có **[AI: gợi ý tài liệu cho cả team](#ai-context-team-md)** → `AI-CONTEXT-for-TEAM.md`; bảng Backend vẫn có hàng AI cho dev backend.*
+*Cập nhật: thêm **[Phân loại tài liệu](#phân-loại-tài-liệu--tránh-đọc-trùng)** và mục lục nhóm; `npm run typecheck` — xem README gốc.*

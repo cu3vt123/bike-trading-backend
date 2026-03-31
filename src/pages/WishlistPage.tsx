@@ -5,8 +5,8 @@ import { useWishlistStore } from "@/stores/useWishlistStore";
 import { useWishlistListingsQuery } from "@/hooks/queries/useWishlistListingsQuery";
 import ListingCard from "@/components/listing/ListingCard";
 import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
 
 export default function WishlistPage() {
   const { t } = useTranslation();

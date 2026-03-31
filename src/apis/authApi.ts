@@ -33,25 +33,42 @@ export type SignupRequest = {
 export type ForgotPasswordResponse = { message?: string };
 export type ResetPasswordRequest = { token: string; newPassword: string };
 
+/** Backend có thể trả trực tiếp payload hoặc bọc `{ data: T }`. */
+type MaybeWrapped<T> = T | { data: T };
+
+function unwrapAuthBody<T>(body: MaybeWrapped<T>): T {
+  if (body !== null && typeof body === "object" && "data" in body) {
+    const inner = (body as { data: T }).data;
+    if (inner !== undefined) return inner;
+  }
+  return body as T;
+}
+
 export const authApi = {
   login: (data: LoginRequest) =>
     apiClient
-      .post<LoginResponse>(API_PATHS.AUTH.LOGIN, data)
-      .then((r) => r.data?.data ?? r.data),
+      .post<MaybeWrapped<LoginResponse>>(API_PATHS.AUTH.LOGIN, data)
+      .then((r) => unwrapAuthBody(r.data)),
   signup: (data: SignupRequest) =>
     apiClient
-      .post<LoginResponse>(API_PATHS.AUTH.SIGNUP, data)
-      .then((r) => (r.data?.data ?? r.data) as LoginResponse),
+      .post<MaybeWrapped<LoginResponse>>(API_PATHS.AUTH.SIGNUP, data)
+      .then((r) => unwrapAuthBody(r.data)),
   getProfile: () =>
     apiClient
-      .get<MeResponse>(API_PATHS.AUTH.ME)
-      .then((r) => (r.data?.data ?? r.data) as MeResponse),
+      .get<MaybeWrapped<MeResponse>>(API_PATHS.AUTH.ME)
+      .then((r) => unwrapAuthBody(r.data)),
   forgotPassword: (email: string) =>
     apiClient
-      .post<ForgotPasswordResponse>(API_PATHS.AUTH.FORGOT_PASSWORD, { email })
-      .then((r) => r.data?.data ?? r.data),
+      .post<MaybeWrapped<ForgotPasswordResponse>>(
+        API_PATHS.AUTH.FORGOT_PASSWORD,
+        { email },
+      )
+      .then((r) => unwrapAuthBody(r.data)),
   resetPassword: (data: ResetPasswordRequest) =>
     apiClient
-      .post<ForgotPasswordResponse>(API_PATHS.AUTH.RESET_PASSWORD, data)
-      .then((r) => r.data?.data ?? r.data),
+      .post<MaybeWrapped<ForgotPasswordResponse>>(
+        API_PATHS.AUTH.RESET_PASSWORD,
+        data,
+      )
+      .then((r) => unwrapAuthBody(r.data)),
 };

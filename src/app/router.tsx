@@ -69,7 +69,6 @@ const AdminDashboardPage = lazy(() => import("@/pages/AdminDashboardPage"));
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
 const VnpayDemoPage = lazy(() => import("@/pages/VnpayDemoPage"));
 const VnpayResultPage = lazy(() => import("@/pages/VnpayResultPage"));
-
 const withSuspense = (children: ReactNode) => (
   <Suspense fallback={<RouteFallback />}>{children}</Suspense>
 );

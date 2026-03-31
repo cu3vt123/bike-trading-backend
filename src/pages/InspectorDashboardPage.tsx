@@ -14,9 +14,9 @@ import {
   confirmWarehouseReInspectionListing,
 } from "@/services/adminService";
 import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/input";
 import { BicycleLoader, BicycleLoadingBlock } from "@/components/common/BicycleLoader";
 import { Label } from "@/components/ui/label";

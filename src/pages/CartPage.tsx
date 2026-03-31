@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 
 export default function CartPage() {
-  const title = "Giỏ hàng";
-  const subtitle =
-    "Bạn sẽ có thể thêm xe vào giỏ trong các bản cập nhật sau. Hiện tại, hãy thanh toán trực tiếp từ từng tin đăng.";
-  const backLabel = "← Về trang chủ";
+  const { t } = useTranslation();
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -19,21 +17,19 @@ export default function CartPage() {
           </div>
           <div>
             <CardTitle className="text-lg font-semibold text-foreground">
-              {title}
+              {t("cart.title")}
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              {isEn
-                ? "Cart experience (multi-bike checkout) is on the roadmap."
-                : "Trải nghiệm giỏ hàng (thanh toán nhiều xe cùng lúc) đang được phát triển."}
+              {t("cart.roadmapHint")}
             </p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-6 text-sm text-muted-foreground">
-            {subtitle}
+            {t("cart.subtitle")}
           </div>
           <Button asChild variant="outline">
-            <Link to="/">{backLabel}</Link>
+            <Link to="/">{t("cart.backHome")}</Link>
           </Button>
         </CardContent>
       </Card>

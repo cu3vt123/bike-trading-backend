@@ -1,6 +1,6 @@
-export { Button } from "@/components/ui/button";
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-export { Badge } from "@/components/ui/badge";
+export { Button } from "@/components/ui/Button";
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
+export { Badge } from "@/components/ui/Badge";
 export { Input } from "@/components/ui/input";
 export { Label } from "@/components/ui/label";
 export { Checkbox } from "@/components/ui/checkbox";

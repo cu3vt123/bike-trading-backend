@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Bike } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import {
   Select,

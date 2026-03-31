@@ -4,8 +4,8 @@ import { isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useTranslation } from "react-i18next";
 import { CreditCard } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,15 +56,16 @@ export default function CheckoutPage() {
   const [checkoutPolicyOpen, setCheckoutPolicyOpen] = useState(false);
   const [checkoutPolicyAccepted, setCheckoutPolicyAccepted] = useState(false);
   const checkoutPolicyAcceptedRef = useRef(false);
+  /** Giá trị `value` giữ tiếng Anh để khớp dữ liệu / BE hiện có; nhãn hiển thị theo locale. */
   const CITY_OPTIONS = [
-    "Ho Chi Minh City",
-    "Ha Noi",
-    "Da Nang",
-    "Hai Phong",
-    "Can Tho",
-    "Nha Trang",
-    "Hue",
-    "Da Lat",
+    { value: "Ho Chi Minh City", optKey: "hcm" },
+    { value: "Ha Noi", optKey: "hn" },
+    { value: "Da Nang", optKey: "dn" },
+    { value: "Hai Phong", optKey: "hp" },
+    { value: "Can Tho", optKey: "ct" },
+    { value: "Nha Trang", optKey: "nt" },
+    { value: "Hue", optKey: "hue" },
+    { value: "Da Lat", optKey: "dl" },
   ] as const;
 
   const [ship, setShip] = useState({ street: "", city: "" });
@@ -141,6 +142,11 @@ export default function CheckoutPage() {
       return;
     }
     setFieldErrors({});
+
+    if (!listing) {
+      setApiError(t("checkout.listingMissing"));
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -364,9 +370,9 @@ export default function CheckoutPage() {
                   }}
                 >
                   <option value="">{t("checkout.selectCity")}</option>
-                  {CITY_OPTIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {CITY_OPTIONS.map(({ value, optKey }) => (
+                    <option key={value} value={value}>
+                      {t(`checkout.cityOpt.${optKey}`)}
                     </option>
                   ))}
                 </select>
