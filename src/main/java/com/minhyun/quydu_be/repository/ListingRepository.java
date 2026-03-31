@@ -31,4 +31,17 @@ public interface ListingRepository extends BaseRepository<Listing, Long> {
     List<Listing> findByStateInAndHiddenFalseOrderByUpdatedAtDesc(List<ListingState> states);
 
     List<Listing> findAllByOrderByCreatedAtDesc();
+
+    /** Mỗi tin không ẩn = 1 lượt đăng (mọi trạng thái, kể cả SOLD). */
+    long countBySeller_IdAndHiddenFalse(Long sellerId);
+
+    /**
+     * Lượt đăng đang “chiếm” quota: không tính tin {@link com.minhyun.quydu_be.entity.ListingState#REJECTED}
+     * (inspector từ chối — seller không bị mất slot vĩnh viễn vì tin đó).
+     */
+    @Query("""
+        SELECT COUNT(l) FROM Listing l
+        WHERE l.seller.id = :sellerId AND l.hidden = false AND l.state <> :excluded
+        """)
+    long countOccupyingPostingSlots(@Param("sellerId") Long sellerId, @Param("excluded") ListingState excluded);
 }

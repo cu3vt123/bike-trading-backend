@@ -24,6 +24,9 @@ public class ListingFieldSerializer {
         if (listing.getInspectionResult() != null && !listing.getInspectionResult().isBlank()) {
             target.put("inspectionResult", listing.getInspectionResult());
         }
+        if (listing.getInspectionNeedUpdateReason() != null && !listing.getInspectionNeedUpdateReason().isBlank()) {
+            target.put("inspectionNeedUpdateReason", listing.getInspectionNeedUpdateReason());
+        }
         if (listing.getInspectionScore() != null) {
             target.put("inspectionScore", listing.getInspectionScore());
         }

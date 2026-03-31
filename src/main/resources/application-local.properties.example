@@ -35,11 +35,17 @@ vnpay.tmnCode=4L74HW0O
 vnpay.hashSecret=7OXW4K2CTI7NOHE0KIV62E1SPH1USG2D
 vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 vnpay.returnUrl=http://localhost:8081/payment/vnpay-return
-vnpay.bankCode=NCB
+# Để trống hoặc xóa dòng: cổng VNPAY cho chọn ATM / QR / ví…  Gán NCB chỉ khi muốn ép thẻ nội địa NCB (test nhanh).
+vnpay.bankCode=
 
 # Tuỳ chọn: IPN — VNPAY gọi server-to-server; localhost thường không reachable → cần HTTPS public (ngrok).
 # Khi để trống, luồng vẫn test được qua returnUrl trên trình duyệt.
 # vnpay.ipnUrl=https://YOUR_SUBDOMAIN.ngrok-free.app/payment/vnpay-ipn
+
+# ---------------------------------------------------------------------------
+# Tuỳ chọn: không tự tạo tin demo "Trek Emonda…" sau khi xóa hết listings (TRUNCATE)
+# ---------------------------------------------------------------------------
+# app.seed-demo-listing=false
 
 # ---------------------------------------------------------------------------
 # Tuỳ chọn: CORS thêm origin (phẩy)

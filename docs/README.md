@@ -6,6 +6,8 @@
 2. **[PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md)** — VNPAY sandbox: property Spring, `returnUrl`, `/payment/create` (POST), thẻ test.
 3. **[FRONTEND-INTEGRATION.md](FRONTEND-INTEGRATION.md)** — Cấu hình Vite: `VITE_API_BASE_URL`, `VITE_PAYMENT_API_ORIGIN`, CORS.
 4. **[FE-API-PARITY.md](FE-API-PARITY.md)** — Đối chiếu path/method với `apiConfig.ts` và BE–FE audit.
+5. **[BACKEND-ARCHITECTURE-AND-FLOWS.md](BACKEND-ARCHITECTURE-AND-FLOWS.md)** — Cấu trúc package, bảo mật JWT, chuẩn REST, bảng DB, enum, luồng Auth / Seller / Buyer–VNPAY / Inspector / Admin (có sơ đồ).
+6. **[DEMO-SCRIPT-NHOM.md](DEMO-SCRIPT-NHOM.md)** — Kịch bản demo chia 4 người (Quân / Bảo / Quang / Hoàng) + bảng tài khoản demo và thẻ VNPAY test.
 
 ## Liên kết upstream (quydu12)
 

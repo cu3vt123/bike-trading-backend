@@ -1,6 +1,7 @@
 package com.minhyun.quydu_be.controller;
 
 import com.minhyun.quydu_be.dto.request.InspectionNeedUpdateRequest;
+import com.minhyun.quydu_be.dto.request.InspectorRejectRequest;
 import com.minhyun.quydu_be.dto.request.InspectorApproveRequest;
 import com.minhyun.quydu_be.service.InspectorService;
 import com.minhyun.quydu_be.web.RestResponses;
@@ -45,8 +46,11 @@ public class InspectorController {
     }
 
     @PutMapping("/listings/{id}/reject")
-    public ResponseEntity<Map<String, Object>> reject(@PathVariable Long id) {
-        return RestResponses.okData(inspectorService.reject(id));
+    public ResponseEntity<Map<String, Object>> reject(
+        @PathVariable Long id,
+        @Valid @RequestBody InspectorRejectRequest request
+    ) {
+        return RestResponses.okData(inspectorService.reject(id, request.getReason()));
     }
 
     @PutMapping("/listings/{id}/need-update")

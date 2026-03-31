@@ -23,30 +23,24 @@ import com.minhyun.quydu_be.repository.PackageOrderRepository;
 import com.minhyun.quydu_be.repository.ReviewRepository;
 import com.minhyun.quydu_be.repository.UserRepository;
 import com.minhyun.quydu_be.service.SellerService;
+import com.minhyun.quydu_be.service.VnpayUrlService;
+import com.minhyun.quydu_be.subscription.SubscriptionPostingQuota;
 import com.minhyun.quydu_be.util.ListingFieldSerializer;
 import com.minhyun.quydu_be.util.SecurityUtils;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,14 +55,7 @@ public class SellerServiceImpl implements SellerService {
     private final ReviewRepository reviewRepository;
     private final PackageOrderRepository packageOrderRepository;
     private final ListingFieldSerializer listingFieldSerializer;
-    @Value("${vnpay.tmnCode:}")
-    private String vnpTmnCode;
-    @Value("${vnpay.hashSecret:}")
-    private String vnpHashSecret;
-    @Value("${vnpay.url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
-    private String vnpPayUrl;
-    @Value("${vnpay.returnUrl:http://localhost:8081/payment/vnpay-return}")
-    private String vnpReturnUrl;
+    private final VnpayUrlService vnpayUrlService;
     @Value("${app.upload-dir:uploads}")
     private String appUploadDir;
     @Value("${app.public-base-url:http://localhost:8081}")
@@ -80,7 +67,8 @@ public class SellerServiceImpl implements SellerService {
         UserRepository userRepository,
         ReviewRepository reviewRepository,
         PackageOrderRepository packageOrderRepository,
-        ListingFieldSerializer listingFieldSerializer
+        ListingFieldSerializer listingFieldSerializer,
+        VnpayUrlService vnpayUrlService
     ) {
         this.listingRepository = listingRepository;
         this.orderRepository = orderRepository;
@@ -88,6 +76,7 @@ public class SellerServiceImpl implements SellerService {
         this.reviewRepository = reviewRepository;
         this.packageOrderRepository = packageOrderRepository;
         this.listingFieldSerializer = listingFieldSerializer;
+        this.vnpayUrlService = vnpayUrlService;
     }
 
     @Override
@@ -95,7 +84,8 @@ public class SellerServiceImpl implements SellerService {
         Long sellerId = SecurityUtils.currentUserId();
         List<Listing> listings = listingRepository.findBySellerIdOrderByUpdatedAtDesc(sellerId);
         Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("total", listings.size());
+        long slotRows = listings.stream().filter(l -> l.getState() != ListingState.REJECTED).count();
+        stats.put("total", slotRows);
         stats.put("published", listings.stream().filter(l -> l.getState() == ListingState.PUBLISHED).count());
         stats.put("inReview", listings.stream().filter(l -> l.getState() == ListingState.PENDING_INSPECTION).count());
         stats.put("awaitingWarehouse", listings.stream().filter(l -> l.getState() == ListingState.AWAITING_WAREHOUSE).count());
@@ -148,7 +138,7 @@ public class SellerServiceImpl implements SellerService {
         if (order.getFulfillmentType() != OrderFulfillmentType.WAREHOUSE) {
             throw new BadRequestException("Chi ap dung cho don qua kho.");
         }
-        if (order.getStatus() != OrderStatus.RESERVED) {
+        if (order.getStatus() != OrderStatus.RESERVED && order.getStatus() != OrderStatus.PENDING_SELLER_SHIP) {
             throw new BadRequestException("Khong the xac nhan gui kho (trang thai: " + order.getStatus() + ")");
         }
         order.setStatus(OrderStatus.SELLER_SHIPPED);
@@ -239,6 +229,7 @@ public class SellerServiceImpl implements SellerService {
     public Map<String, Object> createListing(UpsertListingRequest request) {
         User seller = mustUser(SecurityUtils.currentUserId());
         ensureActiveSubscription(seller);
+        ensurePostingQuotaAvailable(seller);
         Listing listing = new Listing();
         applyListingData(listing, request);
         listing.setSeller(seller);
@@ -287,6 +278,8 @@ public class SellerServiceImpl implements SellerService {
     @Transactional
     public Map<String, Object> submitForInspection(Long id) {
         Listing listing = sellerOwnedListing(id);
+        User seller = mustUser(SecurityUtils.currentUserId());
+        ensureActiveSubscription(seller);
         listing.setState(ListingState.PENDING_INSPECTION);
         listing.setCertificationStatus("PENDING_CERTIFICATION");
         listing.setPublishedAt(null);
@@ -301,12 +294,6 @@ public class SellerServiceImpl implements SellerService {
         if (!"VNPAY".equalsIgnoreCase(request.getProvider())) {
             throw new BadRequestException("Only VNPAY provider is supported");
         }
-        if (vnpTmnCode == null || vnpTmnCode.isBlank() || vnpHashSecret == null || vnpHashSecret.isBlank()) {
-            throw new BadRequestException(
-                "VNPAY config missing: set vnpay.tmnCode and vnpay.hashSecret in application-local.properties "
-                    + "and run with Spring profile \"local\" (see README / application-local.properties.example)."
-            );
-        }
         User seller = mustUser(SecurityUtils.currentUserId());
         BigDecimal amount = request.getPlan() == SubscriptionPlan.VIP ? new BigDecimal("199000") : new BigDecimal("99000");
         PackageOrder order = new PackageOrder();
@@ -317,7 +304,20 @@ public class SellerServiceImpl implements SellerService {
         order.setStatus(PackageOrderStatus.PENDING);
         packageOrderRepository.save(order);
         String txnRef = "PACKAGE_" + order.getId();
-        String paymentUrl = buildVnpayPaymentUrl(txnRef, amount);
+        String paymentUrl;
+        try {
+            paymentUrl = vnpayUrlService.buildPaymentUrl(
+                txnRef,
+                "Thanh toan goi dang tin " + txnRef,
+                amount.setScale(0, RoundingMode.UNNECESSARY).longValue()
+            );
+        } catch (IllegalStateException e) {
+            throw new BadRequestException(
+                "VNPAY config missing: set vnpay.tmnCode and vnpay.hashSecret in application-local.properties "
+                    + "and run with Spring profile \"local\" (see README / application-local.properties.example). "
+                    + e.getMessage()
+            );
+        }
         order.setPaymentUrl(paymentUrl);
         // Sandbox fallback: activate package immediately so seller can continue testing
         // even if VNPAY page does not return to localhost callback.
@@ -334,64 +334,6 @@ public class SellerServiceImpl implements SellerService {
             "paymentUrl", order.getPaymentUrl(),
             "paymentKind", "VNPAY_SANDBOX"
         );
-    }
-
-    private String buildVnpayPaymentUrl(String txnRef, BigDecimal amountVnd) {
-        String createDate = java.time.ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
-            .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String expireDate = java.time.ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusMinutes(15)
-            .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        long amount = amountVnd.multiply(new BigDecimal("100")).longValue();
-
-        Map<String, String> params = new HashMap<>();
-        params.put("vnp_Version", "2.1.0");
-        params.put("vnp_Command", "pay");
-        params.put("vnp_TmnCode", vnpTmnCode);
-        params.put("vnp_Amount", String.valueOf(amount));
-        params.put("vnp_CurrCode", "VND");
-        params.put("vnp_TxnRef", txnRef);
-        params.put("vnp_OrderInfo", "Thanh toan goi dang tin " + txnRef);
-        params.put("vnp_OrderType", "other");
-        params.put("vnp_Locale", "vn");
-        params.put("vnp_ReturnUrl", vnpReturnUrl);
-        params.put("vnp_IpAddr", "127.0.0.1");
-        params.put("vnp_CreateDate", createDate);
-        params.put("vnp_ExpireDate", expireDate);
-
-        List<String> fieldNames = new ArrayList<>(params.keySet());
-        Collections.sort(fieldNames);
-
-        StringBuilder hashData = new StringBuilder();
-        StringBuilder query = new StringBuilder();
-        for (int i = 0; i < fieldNames.size(); i++) {
-            String key = fieldNames.get(i);
-            String value = params.get(key);
-            if (value == null || value.isEmpty()) continue;
-            if (hashData.length() > 0) hashData.append('&');
-            hashData.append(key).append('=').append(URLEncoder.encode(value, StandardCharsets.US_ASCII));
-            if (query.length() > 0) query.append('&');
-            query.append(key).append('=').append(URLEncoder.encode(value, StandardCharsets.US_ASCII));
-        }
-
-        String secureHash = hmacSHA512(vnpHashSecret, hashData.toString());
-        query.append("&vnp_SecureHash=").append(secureHash);
-        return vnpPayUrl + "?" + query;
-    }
-
-    private String hmacSHA512(String key, String data) {
-        try {
-            Mac hmac512 = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-            hmac512.init(secretKey);
-            byte[] bytes = hmac512.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder(bytes.length * 2);
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b & 0xff));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            throw new BadRequestException("Cannot sign VNPAY request");
-        }
     }
 
     @Override
@@ -469,10 +411,27 @@ public class SellerServiceImpl implements SellerService {
 
     private Map<String, Object> subscriptionSummary(User user) {
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("plan", user.getSubscriptionPlan() == null ? null : user.getSubscriptionPlan().name());
+        SubscriptionPlan plan = user.getSubscriptionPlan();
+        boolean active = user.getSubscriptionExpiresAt() != null && user.getSubscriptionExpiresAt().isAfter(LocalDateTime.now());
+        int limit = SubscriptionPostingQuota.limitForPlan(plan);
+        long used = plan == null ? 0 : listingRepository.countOccupyingPostingSlots(user.getId(), ListingState.REJECTED);
+        out.put("plan", plan == null ? null : plan.name());
         out.put("expiresAt", user.getSubscriptionExpiresAt());
-        out.put("active", user.getSubscriptionExpiresAt() != null && user.getSubscriptionExpiresAt().isAfter(LocalDateTime.now()));
+        out.put("active", active);
+        out.put("publishedSlotsUsed", used);
+        out.put("publishedSlotsLimit", limit);
+        out.put("listingDurationDays", 30);
         return out;
+    }
+
+    /** Mỗi tin mới (không ẩn) = 1 lượt; kiểm tra trước khi tạo bản ghi. */
+    private void ensurePostingQuotaAvailable(User seller) {
+        SubscriptionPlan plan = seller.getSubscriptionPlan();
+        int limit = SubscriptionPostingQuota.limitForPlan(plan);
+        long used = listingRepository.countOccupyingPostingSlots(seller.getId(), ListingState.REJECTED);
+        if (used >= limit) {
+            throw new ForbiddenException("LISTING_SLOT_LIMIT");
+        }
     }
 
     private Map<String, Object> toListingMap(Listing l) {

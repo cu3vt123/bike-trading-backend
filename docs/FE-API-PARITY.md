@@ -1,6 +1,8 @@
 # Khớp API Spring ↔ FE ShopBike (`apiConfig.ts`)
 
-Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trading-backend/blob/quydu12/docs/BE-FE-API-AUDIT-BY-PAGE.md) và `src/lib/apiConfig.ts` trên monorepo FE.
+**Chuẩn hợp đồng FE:** nhánh Git **`quydu12`** trên [bike-trading-backend](https://github.com/cu3vt123/bike-trading-backend/tree/quydu12) — `src/lib/apiConfig.ts`, các `src/apis/*.ts`, và audit trong `docs/`.
+
+Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trading-backend/blob/quydu12/docs/BE-FE-API-AUDIT-BY-PAGE.md).
 
 ## Hợp đồng chung
 
@@ -29,7 +31,7 @@ Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trad
 ## Ghi chú nghiệp vụ đã chỉnh
 
 - **Cọc VNPAY:** 8% giá listing, làm tròn **số nguyên VND** (`RoundingMode.HALF_UP`, 0 chữ số thập phân), giống `Math.round` trên FE/Node. **FULL** = giá xe làm tròn VND.
-- **Sau thanh toán cọc (RESERVED):** `DIRECT` → `PENDING_SELLER_SHIP`; có kho → `AT_WAREHOUSE_PENDING_ADMIN`.
+- **Sau thanh toán cọc (RESERVED):** cả **DIRECT** và **WAREHOUSE** → **`PENDING_SELLER_SHIP`** (khớp luồng seller gửi hàng / gửi kho trên FE `quydu12`). Đơn `AT_WAREHOUSE_PENDING_ADMIN` còn dùng cho dữ liệu cũ hoặc bước “chờ admin kho” đặc biệt.
 - **Order JSON:** `findByIdWithGraph` / `findByBuyerWithGraphOrderByCreatedAtDesc` để tránh lỗi Lazy khi trả listing + seller.
 
 ## Cấu hình local

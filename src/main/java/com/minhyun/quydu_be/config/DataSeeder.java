@@ -12,6 +12,7 @@ import com.minhyun.quydu_be.repository.UserRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,8 @@ public class DataSeeder {
         UserRepository userRepository,
         BrandRepository brandRepository,
         ListingRepository listingRepository,
-        PasswordEncoder passwordEncoder
+        PasswordEncoder passwordEncoder,
+        @Value("${app.seed-demo-listing:true}") boolean seedDemoListing
     ) {
         return args -> {
             upsertDemoUser(userRepository, passwordEncoder, "admin@demo.com", "Admin Demo", UserRole.ADMIN, false);
@@ -55,7 +57,7 @@ public class DataSeeder {
                 }
             }
 
-            if (listingRepository.count() == 0) {
+            if (seedDemoListing && listingRepository.count() == 0) {
                 User seller = userRepository.findByEmailIgnoreCase("seller@demo.com").orElse(null);
                 if (seller != null) {
                     Listing l = new Listing();

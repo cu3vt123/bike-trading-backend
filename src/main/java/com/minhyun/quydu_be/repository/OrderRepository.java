@@ -19,7 +19,11 @@ public interface OrderRepository extends BaseRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.listing.seller.id = :sellerId ORDER BY o.createdAt DESC")
     List<Order> findSellerOrders(@Param("sellerId") Long sellerId);
 
-    long countByBuyerAndStatusAndUpdatedAtAfter(User buyer, OrderStatus status, java.time.LocalDateTime since);
+    @Query(
+        "SELECT COUNT(o) FROM Order o WHERE o.buyer = :buyer "
+            + "AND o.buyerCancelledAt IS NOT NULL AND o.buyerCancelledAt >= :since"
+    )
+    long countBuyerInitiatedCancellationsSince(@Param("buyer") User buyer, @Param("since") java.time.LocalDateTime since);
 
     List<Order> findByStatusInOrderByCreatedAtDesc(List<OrderStatus> statuses);
 

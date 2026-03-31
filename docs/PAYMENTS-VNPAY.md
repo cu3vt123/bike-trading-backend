@@ -11,6 +11,7 @@ Chú thích cho dev chạy **sandbox TEST** local (nhánh Bespring). Chi tiết 
 | URL cổng thanh toán TEST | `vnpay.url` |
 | URL app nhận redirect sau thanh toán | `vnpay.returnUrl` |
 | (Tuỳ chọn) URL IPN server-to-server | `vnpay.ipnUrl` |
+| (Tuỳ chọn) Cố định kênh thanh toán | `vnpay.bankCode` — **để trống** để VNPAY hiển thị đầy đủ lựa chọn (ATM / QR / ví…). Chỉ gán ví dụ `NCB` khi muốn đi thẳng trang thẻ nội địa NCB (test nhanh). |
 
 **Return URL** không phải domain sandbox VNPAY. Giá trị chuẩn trong repo (khớp `PaymentController`):
 
@@ -42,7 +43,9 @@ Luồng buyer: `POST /api/buyer/orders/vnpay-checkout` (JWT **BUYER**) trả `pa
 | Ngân hàng | NCB |
 | Số thẻ | `9704198526191432198` |
 | Tên chủ thẻ | NGUYEN VAN A |
+| Ngày hết hạn (MM/YY) | `07/15` |
 | OTP | `123456` |
+| CVV (nếu form yêu cầu) | Thử `123` hoặc theo gợi ý trên cổng TEST |
 
 ## Liên kết
 

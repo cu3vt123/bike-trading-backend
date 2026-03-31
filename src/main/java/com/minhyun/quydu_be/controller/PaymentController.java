@@ -219,10 +219,13 @@ public class PaymentController {
         order.setDepositPaid(true);
         order.setVnpayPaymentStatus(VnpayPaymentStatus.PAID);
         if (order.getStatus() == OrderStatus.RESERVED) {
-            if (order.getFulfillmentType() == OrderFulfillmentType.DIRECT) {
-                order.setStatus(OrderStatus.PENDING_SELLER_SHIP);
-            } else {
+            // DIRECT: seller giao thẳng — buyer chờ seller.
+            // WAREHOUSE (xe đã CERTIFIED trên sàn): coi như vận hành tại kho — buyer thấy trạng thái kho (FE: order.statusAT_WAREHOUSE_*),
+            // không còn nhãn "chờ seller gửi xe". Admin xác nhận giao từ kho → SHIPPING.
+            if (order.getFulfillmentType() == OrderFulfillmentType.WAREHOUSE) {
                 order.setStatus(OrderStatus.AT_WAREHOUSE_PENDING_ADMIN);
+            } else {
+                order.setStatus(OrderStatus.PENDING_SELLER_SHIP);
             }
         }
         orderRepository.save(order);

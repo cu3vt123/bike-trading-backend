@@ -1,5 +1,7 @@
 # Nối frontend Vite/React với Quydu BE
 
+**FE chuẩn so khớp:** checkout nhánh **[`quydu12`](https://github.com/cu3vt123/bike-trading-backend/tree/quydu12)** (cùng repo monorepo với `apiConfig.ts` / Vite).
+
 Cấu hình tham chiếu [README quydu12 — Phần B + biến môi trường](https://github.com/cu3vt123/bike-trading-backend/blob/quydu12/README.md). REST dùng tiền tố **`/api`** trên cổng backend (mặc định **8081**).
 
 ## Base URL API

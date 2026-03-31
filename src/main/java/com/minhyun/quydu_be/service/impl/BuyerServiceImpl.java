@@ -36,6 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BuyerServiceImpl implements BuyerService {
 
+    /** Khớp copy FE: tối đa số lần hủy đặt chỗ trong cửa sổ ngày. */
+    private static final int BUYER_CANCEL_WINDOW_DAYS = 7;
+    private static final int BUYER_CANCEL_MAX_IN_WINDOW = 3;
+
     private final OrderRepository orderRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
@@ -281,7 +285,20 @@ public class BuyerServiceImpl implements BuyerService {
         if (!cancellable.contains(order.getStatus())) {
             throw new BadRequestException("Không thể hủy đơn ở trạng thái " + order.getStatus());
         }
+        User buyer = order.getBuyer();
+        LocalDateTime since = LocalDateTime.now().minusDays(BUYER_CANCEL_WINDOW_DAYS);
+        long recentBuyerCancels = orderRepository.countBuyerInitiatedCancellationsSince(buyer, since);
+        if (recentBuyerCancels >= BUYER_CANCEL_MAX_IN_WINDOW) {
+            throw new BadRequestException(
+                "Đã đạt giới hạn hủy đặt chỗ: tối đa "
+                    + BUYER_CANCEL_MAX_IN_WINDOW
+                    + " lần trong "
+                    + BUYER_CANCEL_WINDOW_DAYS
+                    + " ngày gần nhất."
+            );
+        }
         order.setStatus(OrderStatus.CANCELLED);
+        order.setBuyerCancelledAt(LocalDateTime.now());
         orderRepository.save(order);
 
         Listing listing = order.getListing();
@@ -369,6 +386,11 @@ public class BuyerServiceImpl implements BuyerService {
         out.put("balancePaid", o.isBalancePaid());
         out.put("vnpayAmountVnd", o.getVnpayAmountVnd());
         out.put("vnpayPaymentStatus", o.getVnpayPaymentStatus() == null ? null : o.getVnpayPaymentStatus().name());
+        out.put("createdAt", o.getCreatedAt());
+        out.put("updatedAt", o.getUpdatedAt());
+        out.put("shippedAt", o.getShippedAt());
+        out.put("warehouseConfirmedAt", o.getWarehouseConfirmedAt());
+        out.put("reInspectionDoneAt", o.getReInspectionDoneAt());
         out.put("shippingAddress", Map.of(
             "street", o.getShippingAddress() == null ? "" : safe(o.getShippingAddress().getStreet()),
             "city", o.getShippingAddress() == null ? "" : safe(o.getShippingAddress().getCity()),

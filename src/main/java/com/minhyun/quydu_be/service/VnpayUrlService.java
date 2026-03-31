@@ -33,7 +33,8 @@ public class VnpayUrlService {
     private String vnpReturnUrl;
     @Value("${vnpay.ipnUrl:}")
     private String vnpIpnUrl;
-    @Value("${vnpay.bankCode:NCB}")
+    /** Để trống → VNPAY hiển thị chọn phương thức (ATM/QR/…). Chỉ set ví dụ {@code NCB} khi cần test thẻ nội địa trực tiếp. */
+    @Value("${vnpay.bankCode:}")
     private String vnpBankCode;
 
     /**

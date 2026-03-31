@@ -7,9 +7,12 @@ import com.minhyun.quydu_be.dto.request.ResetPasswordRequest;
 import com.minhyun.quydu_be.dto.request.SignupRequest;
 import com.minhyun.quydu_be.dto.response.AuthResponse;
 import com.minhyun.quydu_be.dto.response.MeResponse;
+import com.minhyun.quydu_be.entity.ListingState;
 import com.minhyun.quydu_be.entity.SubscriptionPlan;
 import com.minhyun.quydu_be.entity.User;
 import com.minhyun.quydu_be.entity.UserRole;
+import com.minhyun.quydu_be.repository.ListingRepository;
+import com.minhyun.quydu_be.subscription.SubscriptionPostingQuota;
 import com.minhyun.quydu_be.exception.BadRequestException;
 import com.minhyun.quydu_be.exception.UnauthorizedException;
 import com.minhyun.quydu_be.repository.UserRepository;
@@ -31,11 +34,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final ListingRepository listingRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    public AuthServiceImpl(
+        UserRepository userRepository,
+        ListingRepository listingRepository,
+        PasswordEncoder passwordEncoder,
+        JwtTokenProvider jwtTokenProvider
+    ) {
         this.userRepository = userRepository;
+        this.listingRepository = listingRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
     }
@@ -172,11 +182,16 @@ public class AuthServiceImpl implements AuthService {
         boolean active = plan != null
             && user.getSubscriptionExpiresAt() != null
             && user.getSubscriptionExpiresAt().isAfter(LocalDateTime.now());
+        int limit = SubscriptionPostingQuota.limitForPlan(plan);
+        long used = 0;
+        if (user.getRole() == UserRole.SELLER && active && plan != null) {
+            used = listingRepository.countOccupyingPostingSlots(user.getId(), ListingState.REJECTED);
+        }
         out.put("active", active);
         out.put("plan", plan == null ? null : plan.name());
         out.put("expiresAt", user.getSubscriptionExpiresAt() == null ? null : user.getSubscriptionExpiresAt().toString());
-        out.put("publishedSlotsUsed", 0);
-        out.put("publishedSlotsLimit", plan == SubscriptionPlan.VIP ? 20 : 3);
+        out.put("publishedSlotsUsed", used);
+        out.put("publishedSlotsLimit", limit);
         out.put("listingDurationDays", 30);
         return out;
     }

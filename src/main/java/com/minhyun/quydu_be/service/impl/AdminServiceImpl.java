@@ -4,6 +4,7 @@ import com.minhyun.quydu_be.entity.Listing;
 import com.minhyun.quydu_be.entity.ListingState;
 import com.minhyun.quydu_be.entity.Order;
 import com.minhyun.quydu_be.entity.OrderFulfillmentType;
+import com.minhyun.quydu_be.entity.OrderPlan;
 import com.minhyun.quydu_be.entity.OrderStatus;
 import com.minhyun.quydu_be.entity.PackageOrder;
 import com.minhyun.quydu_be.entity.Review;
@@ -20,6 +21,7 @@ import com.minhyun.quydu_be.repository.PackageOrderRepository;
 import com.minhyun.quydu_be.repository.ReviewRepository;
 import com.minhyun.quydu_be.repository.UserRepository;
 import com.minhyun.quydu_be.service.AdminService;
+import com.minhyun.quydu_be.subscription.SubscriptionPostingQuota;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,7 +58,7 @@ public class AdminServiceImpl implements AdminService {
         List<OrderStatus> statuses = List.of(OrderStatus.SELLER_SHIPPED, OrderStatus.AT_WAREHOUSE_PENDING_ADMIN);
         return orderRepository.findByStatusInOrderByCreatedAtDesc(statuses).stream()
             .filter(o -> o.getFulfillmentType() != OrderFulfillmentType.DIRECT)
-            .filter(o -> "CERTIFIED".equals(o.getListing().getCertificationStatus()))
+            .filter(this::orderEligibleForWarehousePendingQueue)
             .map(this::toOrderMap)
             .collect(Collectors.toList());
     }
@@ -68,8 +70,16 @@ public class AdminServiceImpl implements AdminService {
         if (order.getFulfillmentType() == OrderFulfillmentType.DIRECT) {
             throw new BadRequestException("Đơn giao trực tiếp không qua kho");
         }
-        if (!"CERTIFIED".equals(order.getListing().getCertificationStatus())) {
-            throw new BadRequestException("Chỉ xe đã kiểm định CERTIFIED mới xác nhận tại kho");
+        if (order.getStatus() == OrderStatus.SELLER_SHIPPED) {
+            if (!listingCertAllowsSellerShippedWarehouseConfirm(order.getListing())) {
+                throw new BadRequestException(
+                    "Xe chưa đủ điều kiện: cần certification PENDING_WAREHOUSE (sau kiểm định) hoặc CERTIFIED."
+                );
+            }
+        } else if (order.getStatus() == OrderStatus.AT_WAREHOUSE_PENDING_ADMIN) {
+            if (!listingCertAllowsAtWarehousePendingAdminConfirm(order.getListing())) {
+                throw new BadRequestException("Trạng thái này chỉ xác nhận khi tin đã CERTIFIED tại kho.");
+            }
         }
         if (
             order.getStatus() == OrderStatus.AT_WAREHOUSE_PENDING_ADMIN
@@ -124,13 +134,19 @@ public class AdminServiceImpl implements AdminService {
         long pendingWarehouseListings = listingRepository.findByStateInAndHiddenFalseOrderByUpdatedAtDesc(
             List.of(ListingState.AT_WAREHOUSE_PENDING_VERIFY, ListingState.AT_WAREHOUSE_PENDING_RE_INSPECTION)
         ).size();
+        long ordersPendingWarehouse = orderRepository
+            .findByStatusInOrderByCreatedAtDesc(List.of(OrderStatus.SELLER_SHIPPED, OrderStatus.AT_WAREHOUSE_PENDING_ADMIN))
+            .stream()
+            .filter(o -> o.getFulfillmentType() != OrderFulfillmentType.DIRECT)
+            .filter(this::orderEligibleForWarehousePendingQueue)
+            .count();
         return Map.of(
             "totalUsers", totalUsers,
             "totalBuyers", totalBuyers,
             "totalSellers", totalSellers,
             "totalListings", totalListings,
             "totalOrders", totalOrders,
-            "ordersPendingWarehouse", 0,
+            "ordersPendingWarehouse", ordersPendingWarehouse,
             "ordersReInspection", ordersReInspection,
             "listingsPendingWarehouseIntake", pendingWarehouseListings
         );
@@ -288,18 +304,72 @@ public class AdminServiceImpl implements AdminService {
         return listingRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Listing not found"));
     }
 
+    /** Inspector duyệt lần 1 đặt {@code PENDING_WAREHOUSE}; sau kiểm định lại tại kho mới {@code CERTIFIED}. */
+    private static boolean listingCertAllowsSellerShippedWarehouseConfirm(Listing listing) {
+        String c = listing.getCertificationStatus();
+        return "CERTIFIED".equals(c) || "PENDING_WAREHOUSE".equals(c);
+    }
+
+    /** Luồng cũ: đơn {@code AT_WAREHOUSE_PENDING_ADMIN} chỉ nhảy SHIPPING khi xe đã CERTIFIED tại kho. */
+    private static boolean listingCertAllowsAtWarehousePendingAdminConfirm(Listing listing) {
+        return "CERTIFIED".equals(listing.getCertificationStatus());
+    }
+
+    private boolean orderEligibleForWarehousePendingQueue(Order o) {
+        if (o.getStatus() == OrderStatus.SELLER_SHIPPED) {
+            return listingCertAllowsSellerShippedWarehouseConfirm(o.getListing());
+        }
+        if (o.getStatus() == OrderStatus.AT_WAREHOUSE_PENDING_ADMIN) {
+            return listingCertAllowsAtWarehousePendingAdminConfirm(o.getListing());
+        }
+        return false;
+    }
+
+    /**
+     * Khớp FE admin (AdminDashboardPage): cần {@code depositPaid} / {@code vnpayPaymentStatus} để bật nút xác nhận kho,
+     * và {@code listing.brand}/{@code model} để hiển thị.
+     */
     private Map<String, Object> toOrderMap(Order o) {
-        return Map.of(
-            "id", o.getId(),
-            "listingId", o.getListing().getId(),
-            "buyerId", o.getBuyer().getId(),
-            "status", o.getStatus().name(),
-            "fulfillmentType", (o.getFulfillmentType() == null ? "WAREHOUSE" : o.getFulfillmentType().name()),
-            "expiresAt", o.getExpiresAt(),
-            "shippedAt", o.getShippedAt(),
-            "warehouseConfirmedAt", o.getWarehouseConfirmedAt(),
-            "reInspectionDoneAt", o.getReInspectionDoneAt()
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", jsonId(o.getId()));
+        out.put("listingId", jsonId(o.getListing().getId()));
+        out.put("buyerId", jsonId(o.getBuyer().getId()));
+        out.put(
+            "sellerId",
+            o.getListing().getSeller() == null ? null : jsonId(o.getListing().getSeller().getId())
         );
+        out.put("status", o.getStatus().name());
+        out.put("plan", o.getPlan().name());
+        out.put("fulfillmentType", o.getFulfillmentType() == null ? "WAREHOUSE" : o.getFulfillmentType().name());
+        out.put("totalPrice", o.getTotalPrice());
+        out.put("depositAmount", o.getDepositAmount());
+        out.put("depositPaid", o.isDepositPaid());
+        out.put("balancePaid", o.isBalancePaid());
+        out.put("vnpayPaymentStatus", o.getVnpayPaymentStatus() == null ? null : o.getVnpayPaymentStatus().name());
+        out.put("vnpayAmountVnd", o.getVnpayAmountVnd());
+        out.put("createdAt", o.getCreatedAt());
+        out.put("updatedAt", o.getUpdatedAt());
+        out.put("expiresAt", o.getExpiresAt());
+        out.put("shippedAt", o.getShippedAt());
+        out.put("warehouseConfirmedAt", o.getWarehouseConfirmedAt());
+        out.put("reInspectionDoneAt", o.getReInspectionDoneAt());
+        Map<String, Object> listingMap = new LinkedHashMap<>();
+        listingMap.put("id", jsonId(o.getListing().getId()));
+        listingMap.put("title", safe(o.getListing().getTitle()));
+        listingMap.put("brand", safe(o.getListing().getBrand()));
+        listingMap.put("model", safe(o.getListing().getModel()));
+        listingMap.put("certificationStatus", o.getListing().getCertificationStatus());
+        listingMap.put("state", o.getListing().getState().name());
+        out.put("listing", listingMap);
+        return out;
+    }
+
+    private static String jsonId(Long id) {
+        return id == null ? null : String.valueOf(id);
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
     }
     private Map<String, Object> toUserMap(User u) {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -326,15 +396,15 @@ public class AdminServiceImpl implements AdminService {
         return m;
     }
     private Map<String, Object> toPackageOrderMap(PackageOrder o) {
-        return Map.of(
-            "id", o.getId(),
-            "sellerId", o.getSeller().getId(),
-            "plan", o.getPlan().name(),
-            "provider", o.getProvider(),
-            "amountVnd", o.getAmountVnd(),
-            "status", o.getStatus().name(),
-            "createdAt", o.getCreatedAt()
-        );
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", jsonId(o.getId()));
+        m.put("sellerId", jsonId(o.getSeller().getId()));
+        m.put("plan", o.getPlan().name());
+        m.put("provider", o.getProvider());
+        m.put("amountVnd", o.getAmountVnd());
+        m.put("status", o.getStatus().name());
+        m.put("createdAt", o.getCreatedAt());
+        return m;
     }
     private Map<String, Object> toReviewMap(Review r) {
         return Map.of(
@@ -350,10 +420,16 @@ public class AdminServiceImpl implements AdminService {
     }
     private Map<String, Object> subscriptionSummary(User u) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("plan", u.getSubscriptionPlan() == null ? null : u.getSubscriptionPlan().name());
+        SubscriptionPlan plan = u.getSubscriptionPlan();
+        m.put("plan", plan == null ? null : plan.name());
         m.put("expiresAt", u.getSubscriptionExpiresAt());
         m.put("active", u.getSubscriptionExpiresAt() != null && u.getSubscriptionExpiresAt().isAfter(LocalDateTime.now()));
-        m.put("slotsLimit", u.getSubscriptionPlan() == SubscriptionPlan.VIP ? 20 : 3);
+        int limit = SubscriptionPostingQuota.limitForPlan(plan);
+        m.put("slotsLimit", limit);
+        long used = listingRepository.countOccupyingPostingSlots(u.getId(), ListingState.REJECTED);
+        m.put("publishedSlotsUsed", used);
+        m.put("publishedSlotsLimit", limit);
+        m.put("listingDurationDays", 30);
         return m;
     }
 }
