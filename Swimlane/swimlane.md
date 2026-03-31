@@ -16,9 +16,8 @@ This system is designed to support a secure and reliable marketplace for used bi
 ## 🔄 Workflow
 1. Seller Bike Listing and Selling Workflow with Inspection
 2. Buyer browses listings and places an order  
-3. Payment Processing & Verification
-4. Seller arranges shipment and delivery  
-5. Buyer submits post-purchase evaluation  
+3. Seller arranges shipment and delivery  
+4. Buyer submits post-purchase evaluation  
 
 ---
 
