@@ -302,7 +302,10 @@ public class SellerServiceImpl implements SellerService {
             throw new BadRequestException("Only VNPAY provider is supported");
         }
         if (vnpTmnCode == null || vnpTmnCode.isBlank() || vnpHashSecret == null || vnpHashSecret.isBlank()) {
-            throw new BadRequestException("VNPAY config missing: please set vnpay.tmnCode and vnpay.hashSecret");
+            throw new BadRequestException(
+                "VNPAY config missing: set vnpay.tmnCode and vnpay.hashSecret in application-local.properties "
+                    + "and run with Spring profile \"local\" (see README / application-local.properties.example)."
+            );
         }
         User seller = mustUser(SecurityUtils.currentUserId());
         BigDecimal amount = request.getPlan() == SubscriptionPlan.VIP ? new BigDecimal("199000") : new BigDecimal("99000");

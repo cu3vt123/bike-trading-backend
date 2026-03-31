@@ -12,10 +12,11 @@ Tài liệu này tương đương phần **“Phần A — Backend Spring Boot�
 
 ## Bước 1 — Bản sao cấu hình local (khuyến nghị)
 
-Tránh commit mật khẩu / JWT / VNPay thật:
+Tránh commit mật khẩu / JWT / VNPAY **production**:
 
 1. Sao chép `src/main/resources/application-local.properties.example` → `src/main/resources/application-local.properties`.
-2. Sửa `spring.datasource.username`, `spring.datasource.password`, `app.jwt-secret` (chuỗi dài, ngẫu nhiên).
+2. Sửa `spring.datasource.password`, `app.jwt-secret` (chuỗi dài, ngẫu nhiên).
+3. **VNPAY sandbox:** file `.example` đã map sẵn credential TEST (`vnpay.tmnCode`, `vnpay.hashSecret`, `vnpay.url`) và **`vnpay.returnUrl=http://localhost:8081/payment/vnpay-return`** — khớp `PaymentController` (`GET /payment/vnpay-return`). Merchant thật: thay bằng key riêng, không commit vào Git.
 
 File `application-local.properties` đã được thêm vào `.gitignore`.
 
@@ -63,12 +64,19 @@ BE cấu hình `app.cors.allowed-origins` (mặc định Vite `5173`). Có thể
 
 Repo này **chỉ backend Java**; frontend Vite chạy ở folder/repo riêng (hai terminal: `mvnw spring-boot:run` + `npm run dev` tại FE).
 
+## VNPAY sandbox — kiểm tra nhanh
+
+- Bật profile **`local`** và đảm bảo `application-local.properties` có `vnpay.tmnCode` + `vnpay.hashSecret` không rỗng.
+- `POST http://localhost:8081/payment/create` với body `{"orderId":1}` (thay `1` bằng ID đơn có trong DB) phải trả `paymentUrl` ký VNPAY, không báo *VNPAY is not configured*.
+- **GET** `/payment/create` cố ý trả **405** — chỉ dùng POST; xem [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
+
 ## Xử lý sự cố (Windows)
 
 | Hiện tượng | Hướng xử lý |
 |------------|------------|
 | Không kết nối MySQL | Kiểm tra service, firewall, user/password, `jdbc:mysql://...` trong profile `local`. |
 | `app.jwt-secret` / placeholder | Phải có giá trị không rỗng; HS256 cần đủ độ dài an toàn (secret mạnh). |
+| `VNPAY is not configured` / HTTP 503 | Chưa nạp secret: kiểm tra profile `local`, file `application-local.properties`, xem README mục Verify. |
 | CORS | Đảm bảo FE đúng origin đã liệt kê trong `app.cors.allowed-origins`; thêm origin nếu đổi cổng Vite. |
 | PowerShell + `npm` (khi chạy FE) | Lỗi `npm.ps1` → `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` hoặc dùng `npm.cmd`, hoặc CMD. |
 

@@ -49,6 +49,20 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
+        if ("VNPAY is not configured".equals(ex.getMessage())) {
+            return buildResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "VNPAY is not configured: set vnpay.tmnCode and vnpay.hashSecret in "
+                    + "src/main/resources/application-local.properties, run with Spring profile \"local\" "
+                    + "(see README.md and docs/BACKEND-LOCAL-SETUP.md). Copy from application-local.properties.example.",
+                request.getRequestURI()
+            );
+        }
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());

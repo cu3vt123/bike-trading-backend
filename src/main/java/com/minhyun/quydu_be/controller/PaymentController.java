@@ -9,33 +9,28 @@ import com.minhyun.quydu_be.entity.PackageOrderStatus;
 import com.minhyun.quydu_be.entity.SubscriptionPlan;
 import com.minhyun.quydu_be.entity.User;
 import com.minhyun.quydu_be.entity.VnpayPaymentStatus;
+import com.minhyun.quydu_be.exception.ErrorResponse;
 import com.minhyun.quydu_be.repository.OrderRepository;
 import com.minhyun.quydu_be.repository.PackageOrderRepository;
 import com.minhyun.quydu_be.repository.UserRepository;
+import com.minhyun.quydu_be.service.VnpayUrlService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/payment")
@@ -44,31 +39,27 @@ public class PaymentController {
     private final OrderRepository orderRepository;
     private final PackageOrderRepository packageOrderRepository;
     private final UserRepository userRepository;
+    private final VnpayUrlService vnpayUrlService;
+
     @Value("${app.frontend-base-url:http://localhost:5173}")
     private String frontendBaseUrl;
-    @Value("${vnpay.tmnCode:}")
-    private String vnpTmnCode;
-    @Value("${vnpay.hashSecret:}")
-    private String vnpHashSecret;
-    @Value("${vnpay.url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
-    private String vnpPayUrl;
-    @Value("${vnpay.returnUrl:http://localhost:8081/payment/vnpay-return}")
-    private String vnpReturnUrl;
-    @Value("${vnpay.ipnUrl:}")
-    private String vnpIpnUrl;
-    @Value("${vnpay.bankCode:NCB}")
-    private String vnpBankCode;
 
     public PaymentController(
         OrderRepository orderRepository,
         PackageOrderRepository packageOrderRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        VnpayUrlService vnpayUrlService
     ) {
         this.orderRepository = orderRepository;
         this.packageOrderRepository = packageOrderRepository;
         this.userRepository = userRepository;
+        this.vnpayUrlService = vnpayUrlService;
     }
 
+    /**
+     * Create a signed VNPAY payment URL for an existing order (deposit/full step).
+     * <p><b>GET is not supported</b> on {@code /payment/create} — use this POST with JSON body.</p>
+     */
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> create(@RequestBody(required = false) Map<String, Object> request) {
         if (request == null || request.get("orderId") == null) {
@@ -91,36 +82,23 @@ public class PaymentController {
         if (amountVnd <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "invalid payment amount"));
         }
-        String url = buildVnpaySandboxPaymentUrl(txnRef, "ShopBike order " + orderId, amountVnd);
+        String url = vnpayUrlService.buildPaymentUrl(txnRef, "ShopBike order " + orderId, amountVnd);
         return RestResponses.okData(Map.of("paymentUrl", url));
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public ResponseEntity<Void> createByGet(
-        @RequestParam(name = "orderId", required = false) Long orderId,
-        @RequestParam(name = "kind", required = false) String kind
-    ) {
-        if (orderId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        Order order = orderRepository.findById(orderId).orElse(null);
-        if (order == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        boolean isBalance = "BALANCE".equalsIgnoreCase(kind);
-        String txnRef = (isBalance ? "BALANCE_" : "ORDER_") + orderId;
-        long amountVnd;
-        if (isBalance) {
-            BigDecimal deposit = order.getDepositAmount() == null ? BigDecimal.ZERO : order.getDepositAmount();
-            BigDecimal balance = order.getTotalPrice().subtract(deposit).max(BigDecimal.ZERO).setScale(0, RoundingMode.HALF_UP);
-            amountVnd = balance.longValue();
-        } else {
-            BigDecimal amount = order.getVnpayAmountVnd() == null ? order.getTotalPrice() : order.getVnpayAmountVnd();
-            amountVnd = amount.setScale(0, RoundingMode.HALF_UP).longValue();
-        }
-        String orderInfo = isBalance ? ("ShopBike balance " + orderId) : ("ShopBike order " + orderId);
-        String url = buildVnpaySandboxPaymentUrl(txnRef, orderInfo, amountVnd);
-        return ResponseEntity.status(302).header(HttpHeaders.LOCATION, url).build();
+    @GetMapping("/create")
+    public ResponseEntity<ErrorResponse> createGetNotAllowed(HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.METHOD_NOT_ALLOWED.value(),
+            HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase(),
+            "Use POST with Content-Type: application/json and body {\"orderId\": <long>}. "
+                + "Opening /payment/create in a browser (GET) is not supported; use Swagger, curl, or the FE calling POST.",
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+            .header(HttpHeaders.ALLOW, "POST")
+            .body(body);
     }
 
     @GetMapping("/vnpay-return")
@@ -176,25 +154,33 @@ public class PaymentController {
     }
 
     private boolean processTxnRef(String txnRef) {
-        if (txnRef == null || txnRef.isBlank()) return false;
+        if (txnRef == null || txnRef.isBlank()) {
+            return false;
+        }
         try {
             if (txnRef.startsWith("ORDER_")) {
                 Long orderId = extractNumericId(txnRef.substring("ORDER_".length()));
-                if (orderId == null) return false;
+                if (orderId == null) {
+                    return false;
+                }
                 return orderRepository.findById(orderId).map(o -> {
                     markDepositPaid(o);
                     return true;
                 }).orElse(false);
             } else if (txnRef.startsWith("BALANCE_")) {
                 Long orderId = extractNumericId(txnRef.substring("BALANCE_".length()));
-                if (orderId == null) return false;
+                if (orderId == null) {
+                    return false;
+                }
                 return orderRepository.findById(orderId).map(o -> {
                     markBalancePaid(o);
                     return true;
                 }).orElse(false);
             } else if (txnRef.startsWith("PACKAGE_")) {
                 Long packageOrderId = extractNumericId(txnRef.substring("PACKAGE_".length()));
-                if (packageOrderId == null) return false;
+                if (packageOrderId == null) {
+                    return false;
+                }
                 return packageOrderRepository.findById(packageOrderId).map(p -> {
                     markPackagePaid(p);
                     return true;
@@ -202,13 +188,14 @@ public class PaymentController {
             }
             return false;
         } catch (Exception ignored) {
-            // Keep endpoint resilient for sandbox callbacks.
             return false;
         }
     }
 
     private Long extractNumericId(String raw) {
-        if (raw == null || raw.isBlank()) return null;
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
         StringBuilder digits = new StringBuilder();
         for (int i = 0; i < raw.length(); i++) {
             char c = raw.charAt(i);
@@ -218,7 +205,9 @@ public class PaymentController {
                 break;
             }
         }
-        if (digits.isEmpty()) return null;
+        if (digits.isEmpty()) {
+            return null;
+        }
         try {
             return Long.parseLong(digits.toString());
         } catch (NumberFormatException ex) {
@@ -280,55 +269,4 @@ public class PaymentController {
     private String encode(String value) {
         return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
-
-    private String buildVnpaySandboxPaymentUrl(String txnRef, String orderInfo, long amountVnd) {
-        if (vnpTmnCode == null || vnpTmnCode.isBlank() || vnpHashSecret == null || vnpHashSecret.isBlank()) {
-            throw new IllegalStateException("VNPAY is not configured");
-        }
-        Map<String, String> vnp = new LinkedHashMap<>();
-        vnp.put("vnp_Version", "2.1.0");
-        vnp.put("vnp_Command", "pay");
-        vnp.put("vnp_TmnCode", vnpTmnCode);
-        vnp.put("vnp_Locale", "vn");
-        vnp.put("vnp_CurrCode", "VND");
-        vnp.put("vnp_TxnRef", txnRef);
-        vnp.put("vnp_OrderInfo", orderInfo);
-        vnp.put("vnp_OrderType", "other");
-        vnp.put("vnp_Amount", String.valueOf(Math.round(amountVnd) * 100));
-        vnp.put("vnp_ReturnUrl", vnpReturnUrl);
-        vnp.put("vnp_IpAddr", "127.0.0.1");
-        vnp.put("vnp_CreateDate", LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
-        if (vnpIpnUrl != null && !vnpIpnUrl.isBlank()) {
-            vnp.put("vnp_IpnUrl", vnpIpnUrl);
-        }
-        if (vnpBankCode != null && !vnpBankCode.isBlank()) {
-            vnp.put("vnp_BankCode", vnpBankCode);
-        }
-        var keys = new ArrayList<>(vnp.keySet());
-        keys.sort(Comparator.naturalOrder());
-        StringBuilder query = new StringBuilder();
-        for (int i = 0; i < keys.size(); i++) {
-            String k = keys.get(i);
-            if (i > 0) query.append("&");
-            query.append(encode(k)).append("=").append(encode(vnp.get(k)));
-        }
-        String secureHash = hmacSha512(vnpHashSecret, query.toString());
-        return vnpPayUrl + "?" + query + "&vnp_SecureHash=" + secureHash;
-    }
-
-    private String hmacSha512(String key, String data) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA512");
-            mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
-            byte[] bytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot sign VNPAY request", e);
-        }
-    }
 }
-

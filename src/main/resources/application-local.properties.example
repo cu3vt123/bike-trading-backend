@@ -1,18 +1,40 @@
-# Sao chép file này thành application-local.properties (file đó không commit).
-# Kích hoạt: SPRING_PROFILES_ACTIVE=local hoặc:
+# Sao chép file này thành: src/main/resources/application-local.properties
+# (file đó đã được .gitignore — không commit secret production).
+#
+# Chạy với profile local (một trong các cách):
 #   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
-
-# --- MySQL (ghi đè mặc định trong application.properties) ---
+#   hoặc IntelliJ: Active profiles = local
+#
+# ---------------------------------------------------------------------------
+# MySQL
+# ---------------------------------------------------------------------------
 spring.datasource.url=jdbc:mysql://localhost:3306/quydu_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
 spring.datasource.username=root
 spring.datasource.password=your_mysql_password_here
 
-# --- JWT (bắt buộc có, đủ dài, không dùng giá trị mẫu ngắn trên production) ---
+# ---------------------------------------------------------------------------
+# JWT (đủ dài, ngẫu nhiên; không dùng trên production các giá trị mẫu ngắn)
+# ---------------------------------------------------------------------------
 app.jwt-secret=CHANGE_ME_to_a_long_random_secret_at_least_32_bytes
 
-# --- Tuỳ chọn: CORS (thêm origin, ngăn cách phẩy) ---
-# app.cors.extra-origins=http://localhost:3000,http://192.168.1.5:5173
+# ---------------------------------------------------------------------------
+# VNPAY sandbox (TEST — credential demo công khai của VNPAY; merchant production tách config riêng)
+# Mapping: TMN Code → vnpay.tmnCode; Secret Key → vnpay.hashSecret; Pay URL TEST → vnpay.url
+#
+# returnUrl = URL backend nhận redirect sau khi user trả tiền (KHÔNG phải URL sandbox vnpayment.vn).
+# Phải khớp @GetMapping("/vnpay-return") trên PaymentController: /payment/vnpay-return
+# ---------------------------------------------------------------------------
+vnpay.tmnCode=4L74HW0O
+vnpay.hashSecret=7OXW4K2CTI7NOHE0KIV62E1SPH1USG2D
+vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+vnpay.returnUrl=http://localhost:8081/payment/vnpay-return
+vnpay.bankCode=NCB
 
-# --- Tuỳ chọn: VNPay sandbox (không commit secret thật) ---
-# vnpay.tmnCode=
-# vnpay.hashSecret=
+# Tuỳ chọn: IPN — VNPAY gọi server-to-server; localhost thường không reachable → cần HTTPS public (ngrok).
+# Khi để trống, luồng vẫn test được qua returnUrl trên trình duyệt.
+# vnpay.ipnUrl=https://YOUR_SUBDOMAIN.ngrok-free.app/payment/vnpay-ipn
+
+# ---------------------------------------------------------------------------
+# Tuỳ chọn: CORS thêm origin (phẩy)
+# ---------------------------------------------------------------------------
+# app.cors.extra-origins=http://localhost:3000

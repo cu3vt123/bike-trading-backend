@@ -20,6 +20,7 @@ import com.minhyun.quydu_be.repository.OrderRepository;
 import com.minhyun.quydu_be.repository.ReviewRepository;
 import com.minhyun.quydu_be.repository.UserRepository;
 import com.minhyun.quydu_be.service.BuyerService;
+import com.minhyun.quydu_be.service.VnpayUrlService;
 import com.minhyun.quydu_be.util.SecurityUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,17 +40,20 @@ public class BuyerServiceImpl implements BuyerService {
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final VnpayUrlService vnpayUrlService;
 
     public BuyerServiceImpl(
         OrderRepository orderRepository,
         ListingRepository listingRepository,
         UserRepository userRepository,
-        ReviewRepository reviewRepository
+        ReviewRepository reviewRepository,
+        VnpayUrlService vnpayUrlService
     ) {
         this.orderRepository = orderRepository;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
+        this.vnpayUrlService = vnpayUrlService;
     }
 
     @Override
@@ -78,7 +82,12 @@ public class BuyerServiceImpl implements BuyerService {
                 Order existing = orderRepository.findByIdWithGraph(mine.get().getId()).orElse(mine.get());
                 // Buyer bấm lại thanh toán cho cùng đơn: trả lại paymentUrl cũ để resume.
                 Map<String, Object> out = toOrderMap(existing);
-                out.put("paymentUrl", "http://localhost:8081/payment/create?orderId=" + existing.getId());
+                long amountVnd = orderVnpayAmountVnd(existing);
+                out.put("paymentUrl", vnpayUrlService.buildPaymentUrl(
+                    "ORDER_" + existing.getId(),
+                    "ShopBike order " + existing.getId(),
+                    amountVnd
+                ));
                 out.put("txnRef", "ORDER_" + existing.getId());
                 return out;
             }
@@ -148,7 +157,12 @@ public class BuyerServiceImpl implements BuyerService {
 
         Order forJson = orderRepository.findByIdWithGraph(order.getId()).orElse(order);
         Map<String, Object> out = toOrderMap(forJson);
-        out.put("paymentUrl", "http://localhost:8081/payment/create?orderId=" + order.getId());
+        long amountVnd = orderVnpayAmountVnd(forJson);
+        out.put("paymentUrl", vnpayUrlService.buildPaymentUrl(
+            "ORDER_" + order.getId(),
+            "ShopBike order " + order.getId(),
+            amountVnd
+        ));
         out.put("txnRef", "ORDER_" + order.getId());
         return out;
     }
@@ -156,8 +170,14 @@ public class BuyerServiceImpl implements BuyerService {
     @Override
     public Map<String, Object> resumeOrderVnpay(Long orderId) {
         Order order = getOwnedOrder(orderId);
+        long amountVnd = orderVnpayAmountVnd(order);
+        String paymentUrl = vnpayUrlService.buildPaymentUrl(
+            "ORDER_" + order.getId(),
+            "ShopBike order " + order.getId(),
+            amountVnd
+        );
         return Map.of(
-            "paymentUrl", "http://localhost:8081/payment/create?orderId=" + order.getId(),
+            "paymentUrl", paymentUrl,
             "txnRef", "ORDER_" + order.getId(),
             "orderId", order.getId(),
             "vnpayAmountVnd", order.getVnpayAmountVnd()
@@ -171,12 +191,23 @@ public class BuyerServiceImpl implements BuyerService {
             throw new BadRequestException("Chỉ đơn đặt cọc mới thanh toán số dư.");
         }
         BigDecimal balance = order.getTotalPrice().subtract(order.getDepositAmount() == null ? BigDecimal.ZERO : order.getDepositAmount());
+        long balanceVnd = balance.setScale(0, RoundingMode.HALF_UP).longValue();
+        String paymentUrl = vnpayUrlService.buildPaymentUrl(
+            "BALANCE_" + order.getId(),
+            "ShopBike balance " + order.getId(),
+            balanceVnd
+        );
         return Map.of(
-            "paymentUrl", "http://localhost:8081/payment/create?orderId=" + order.getId() + "&kind=BALANCE",
+            "paymentUrl", paymentUrl,
             "orderId", order.getId(),
             "balanceAmount", balance,
             "txnRef", "BALANCE_" + order.getId()
         );
+    }
+
+    private static long orderVnpayAmountVnd(Order order) {
+        BigDecimal amountBd = order.getVnpayAmountVnd() != null ? order.getVnpayAmountVnd() : order.getTotalPrice();
+        return amountBd.setScale(0, RoundingMode.HALF_UP).longValue();
     }
 
     @Override

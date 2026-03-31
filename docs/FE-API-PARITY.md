@@ -22,7 +22,7 @@ Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trad
 | Seller: dashboard, orders, ship-to-buyer, ship-to-warehouse, listings, subscription, upload-images | Có |
 | Inspector: pending, listing by id, approve/reject/need-update | Có |
 | Admin: warehouse, re-inspection, stats, users, listings, reviews, brands, hide/unhide, revoke subscription | Có |
-| Payment (VNPay): `/payment/create` GET/POST, return, ipn | Có; POST `/payment/create` **bắt buộc** `orderId` để lấy đúng số tiền từ đơn |
+| Payment (VNPay): `/payment/create`, return, ipn | Có; **POST** `/payment/create` JSON `{"orderId": n}` — **GET trả 405**; base URL **không** có `/api` (dùng `http://localhost:8081`). Checkout buyer/seller trả `paymentUrl` ký sẵn (redirect VNPAY). |
 | GET `/api/health` | Có |
 
 ## Ghi chú nghiệp vụ đã chỉnh
@@ -33,4 +33,4 @@ Tham chiếu: [BE-FE-API-AUDIT-BY-PAGE.md](https://github.com/cu3vt123/bike-trad
 
 ## Cấu hình local
 
-Không dùng mật khẩu/secret thật trong `application.properties` đã push Git — dùng `application-local.properties` (xem `application-local.properties.example`).
+Không dùng mật khẩu/secret **production** trong `application.properties` đã push Git — dùng `application-local.properties` + profile **`local`** (xem `application-local.properties.example`, có sandbox VNPAY TEST).

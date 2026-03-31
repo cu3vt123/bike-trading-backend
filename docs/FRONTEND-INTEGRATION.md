@@ -26,15 +26,19 @@ Backend đọc `app.cors.allowed-origins` trong `application.properties`. Mặc 
 
 Nếu FE chạy origin khác (cổng `3000`, LAN, preview): thêm vào `app.cors.extra-origins` hoặc mở rộng `app.cors.allowed-origins` trong `application-local.properties`.
 
-## Thanh toán VNPay (nếu FE demo redirect)
+## Thanh toán VNPay
 
-Upstream có thể dùng `VITE_PAYMENT_API_ORIGIN` (origin BE **không** có `/api`). Với repo này, origin thường là:
+Các route **`/payment/*`** (`/payment/create`, `/payment/vnpay-return`, …) nằm **ngoài** prefix `/api`. Cấu hình origin backend **không** có suffix `/api`:
 
 ```env
 VITE_PAYMENT_API_ORIGIN=http://localhost:8081
 ```
 
-Chỉ thêm nếu code FE của bạn thực sự đọc biến này.
+- **`POST /payment/create`** — JSON `{"orderId": <number>}`; phản hồi có URL sang VNPAY.
+- **GET `/payment/create`** — **không hỗ trợ** (405); không mở trực tiếp trên trình duyệt như một link thanh toán.
+- Checkout qua API buyer: `POST /api/buyer/orders/vnpay-checkout` trả sẵn **`paymentUrl`** (redirect VNPAY đã ký).
+
+Chi tiết: [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md).
 
 ## Kiểm tra
 
