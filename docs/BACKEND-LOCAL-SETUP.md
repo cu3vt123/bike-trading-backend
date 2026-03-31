@@ -12,11 +12,11 @@ Tài liệu này tương đương phần **“Phần A — Backend Spring Boot�
 
 ## Bước 1 — Bản sao cấu hình local (khuyến nghị)
 
-Tránh commit mật khẩu / JWT / VNPAY **production**:
+Tránh lộ secret:
 
 1. Sao chép `src/main/resources/application-local.properties.example` → `src/main/resources/application-local.properties`.
-2. Sửa `spring.datasource.password`, `app.jwt-secret` (chuỗi dài, ngẫu nhiên).
-3. **VNPAY sandbox:** file `.example` đã map sẵn credential TEST (`vnpay.tmnCode`, `vnpay.hashSecret`, `vnpay.url`) và **`vnpay.returnUrl=http://localhost:8081/payment/vnpay-return`** — khớp `PaymentController` (`GET /payment/vnpay-return`). Merchant thật: thay bằng key riêng, không commit vào Git.
+2. Điền **trên máy bạn** `spring.datasource.url` / `username` / `password` và **`app.jwt-secret`** (tên key trong Bespring **phải** là `app.jwt-secret`, khớp `JwtTokenProvider`). **Đừng** commit file local; **đừng** dán block chứa mật khẩu DB hay JWT lên GitHub / Discord công khai.
+3. **VNPAY sandbox:** `.example` có credential TEST và **`vnpay.returnUrl=http://localhost:8081/payment/vnpay-return`** — khớp `PaymentController`. `vnpay.ipnUrl` chỉ cần khi test IPN qua HTTPS public (ngrok).
 
 File `application-local.properties` đã được thêm vào `.gitignore`.
 
@@ -29,7 +29,8 @@ $env:SPRING_PROFILES_ACTIVE = "local"
 .\mvnw.cmd spring-boot:run
 ```
 
-**Cách B — VS Code / Run:** thêm VM option hoặc env `SPRING_PROFILES_ACTIVE=local` trong launch configuration (Extension Pack for Java).
+**Cách B — IntelliJ / VS Code:** trong Run configuration của Spring Boot, đặt **Active profiles:** `local`, hoặc biến môi trường `SPRING_PROFILES_ACTIVE=local`, hoặc VM options `-Dspring.profiles.active=local`.  
+(Lưu ý: `-Dspring-boot.run.profiles=local` chỉ dùng khi chạy qua **`mvn spring-boot:run`**, không phải tên VM option chuẩn cho main class trực tiếp.)
 
 **Cách C — một dòng Maven:**
 

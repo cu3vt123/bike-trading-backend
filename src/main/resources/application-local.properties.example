@@ -1,19 +1,26 @@
 # Sao chép file này thành: src/main/resources/application-local.properties
-# (file đó đã được .gitignore — không commit secret production).
+# (file đó đã .gitignore — KHÔNG commit file local lên Git).
 #
-# Chạy với profile local (một trong các cách):
+# BẢO MẬT: Không dán block chứa mật khẩu MySQL hoặc app.jwt-secret lên GitHub / Discord công khai.
+# Chỉ điền secret thật trên máy bạn hoặc trao qua kênh riêng.
+#
+# Chạy với profile local:
 #   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
-#   hoặc IntelliJ: Active profiles = local
+#   IntelliJ: Active profiles = local
 #
 # ---------------------------------------------------------------------------
-# MySQL
+# MySQL (sửa url / user / password cho đúng máy bạn)
 # ---------------------------------------------------------------------------
-spring.datasource.url=jdbc:mysql://localhost:3306/quydu_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+spring.datasource.url=jdbc:mysql://localhost:3306/quydu_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
 spring.datasource.username=root
 spring.datasource.password=your_mysql_password_here
 
+# Tuỳ chọn: thêm createDatabaseIfNotExist=true nếu cần tự tạo DB, ví dụ:
+# spring.datasource.url=jdbc:mysql://localhost:3306/quydu_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+
 # ---------------------------------------------------------------------------
-# JWT (đủ dài, ngẫu nhiên; không dùng trên production các giá trị mẫu ngắn)
+# JWT — tên property trong Bespring phải là app.jwt-secret (xem JwtTokenProvider)
+# Đủ dài, ngẫu nhiên; đổi secret → token cũ hết hiệu lực
 # ---------------------------------------------------------------------------
 app.jwt-secret=CHANGE_ME_to_a_long_random_secret_at_least_32_bytes
 

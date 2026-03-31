@@ -74,6 +74,6 @@ Nếu VNPAY chưa cấu hình: HTTP **503**, `message` nêu rõ key thiếu (vd 
 
 ## Bảo mật
 
-- **Không** commit `application-local.properties` (đã `.gitignore`) với mật khẩu MySQL/JWT **production** hoặc merchant VNPAY thật.
-- File **`application-local.properties.example`** được phép chứa credential **sandbox TEST** công khai để onboard team.
-- `application.properties` trong Git chỉ giữ placeholder / giá trị mặc định không nhạy cảm.
+- **Không** commit `application-local.properties` (đã `.gitignore`). **Không** dán block chứa mật khẩu DB hay `app.jwt-secret` lên GitHub / Discord công khai — chỉ file local hoặc chat riêng.
+- File **`application-local.properties.example`** chỉ là mẫu (password/JWT placeholder; VNPAY có thể là sandbox TEST công khai).
+- `application.properties` trong Git chỉ giữ giá trị không nhạy cảm.
