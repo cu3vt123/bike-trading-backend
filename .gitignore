@@ -1,4 +1,5 @@
 HELP.md
+!bike-trading-admin-page/HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
