@@ -4,6 +4,8 @@ Repo **nhánh mặc định BE2** gồm backend **Spring Boot** (Java) và front
 
 **Monorepo:** cùng thư mục `src/` — **Vite/React** (`src/app/`, `src/features/`, `src/pages/`, …) và **Spring** (`src/main/java/`, `src/main/resources/`). Maven/IDE dùng `src/main/java`; Vite bundle phần TypeScript/TSX ở `src/` (không đụng Java).
 
+**Backend Spring chuẩn team — nhánh `Bespring`:** mã nguồn Java/API cập nhật theo [bike-trading-backend @ **Bespring**](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) (cùng remote GitHub). Trên remote, nhánh `Bespring` là cây Maven **chỉ backend**; nhánh làm frontend (ví dụ `quydu12`) có thể là monorepo FE + `pom.xml` — khi đồng bộ Spring, lấy thay đổi từ `Bespring` (merge/cherry-pick/worktree). **Không** checkout `Bespring` đè lên thư mục đang làm React nếu bạn không dùng worktree — sẽ mất cây Vite. Cách an toàn: `git fetch origin && git worktree add ../bike-trading-bespring Bespring`, mở thư mục mới trong IntelliJ để chạy API; FE giữ nguyên repo hiện tại với `VITE_API_BASE_URL=http://localhost:8081/api`.
+
 ---
 
 ## Sau khi clone hoặc pull (setup)
@@ -30,7 +32,7 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 
 **Hướng dẫn backend từng bước (Node vs Spring, xử lý cổng trùng, sau `git pull`):** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md).  
 **Code & env Node chi tiết:** [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md).  
-**Spring, contract API, CORS:** [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md).
+**Spring Boot (IntelliJ) + MySQL, contract API, CORS:** [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md).
 
 > **Cảnh báo:** Không chạy đồng thời **Node** và **Spring** trên **cùng cổng 8081**. Tắt một bên hoặc đổi cổng + cập nhật `VITE_API_BASE_URL`.
 
@@ -95,21 +97,21 @@ Mở trình duyệt: **http://localhost:5173** (hoặc cổng Vite in ra trong t
 
 ## Dành cho Backend (Java Spring Boot, IntelliJ)
 
-Mục này dành cho **dev backend Java / Spring Boot**: bạn clone **cùng repo** với frontend (monorepo BE2), chạy API trong **IntelliJ IDEA** (hoặc `mvn`), rồi chạy Vite để FE gọi API thật. FE và BE dùng chung thư mục gốc (`pom.xml` + `package.json`); code Java nằm dưới `src/main/java/`, không đụng tới bundle React.
+Mục này dành cho **dev backend Java / Spring Boot**: chạy API trong **IntelliJ IDEA** (hoặc `mvn`), rồi chạy Vite để FE gọi API thật. **Nguồn backend đang theo nhánh `Bespring`** (xem khối ngay dưới phần đầu README). Nếu clone monorepo có sẵn `pom.xml` + `package.json`, mở **cùng thư mục gốc**; nếu tách repo/worktree `Bespring`, mở thư mục đó cho Maven và giữ FE ở repo Vite riêng — cùng cổng **8081** và cùng `VITE_API_BASE_URL`.
 
 ### Bạn cần đọc gì (tóm tắt)
 
 | Nhu cầu | Tài liệu | Ghi chú |
 |---------|----------|---------|
 | **Cài repo, MySQL, IntelliJ, chạy Spring + FE từng bước** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Sau `clone` / `git pull`, cổng 8081, xử lý trùng cổng với Node. |
-| **Chuyển đổi / đối chiếu Node → Spring** (map endpoint, JWT, enum, VNPay, CORS) | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Tài liệu “port” stack và hợp đồng API — khi đọc code Express trong `backend/` và cần khớp Spring. |
+| **Spring Boot + MySQL** (IntelliJ, map endpoint, JWT, enum, VNPay, CORS) | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Hợp đồng API + ERD/SQL; `backend/` (Express) chỉ tham chiếu HTTP tùy chọn. |
 | **API mà FE gọi** (theo nhóm / theo màn) | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Tránh lệch method/path so với `src/apis/`. |
 | **Nghiệp vụ & rule** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Không chỉ nằm trong entity — đọc khi sửa luồng đơn, thanh toán, kiểm định. |
 | **Schema DB / ERD** | [docs/ERD-SPEC.md](docs/ERD-SPEC.md), [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | 17 bảng chính; JPA/Hibernate cần khớp đặc tả. |
 | **VNPay & thanh toán** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Return URL, IPN, khớp với `order_payment` / `vnpay_transaction_log`. |
 | **Làm việc chung PM/QA/FE** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket — khi BE không phải đọc hết doc FE. |
 | **Backend Node (demo, đối chiếu)** | [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md) | Chỉ khi cần chạy/so sánh với Node — **không** chạy đồng thời cùng cổng Spring. |
-| **Gửi tài liệu cho AI (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) | Backend / Frontend / QA: gói file, thứ tự, mẫu prompt — [mục lục](#readme-ai-context-team). ([Alias](docs/AI-CONTEXT-for-BACKEND.md) trỏ về cùng bộ hướng dẫn.) |
+| **Gửi tài liệu cho AI (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) | Backend / Frontend / QA: gói file, thứ tự, mẫu prompt — [mục lục](#readme-ai-context-team). Dev backend: [mục A.7 — tóm tắt Spring](docs/AI-CONTEXT-for-TEAM.md#phan-a7-backend-ai). |
 
 ### Luồng gợi ý: clone FE về máy → chạy Spring (IntelliJ) → chạy FE
 
@@ -132,7 +134,7 @@ Nếu kẹt CORS, cổng, hoặc sau `git pull`: xem [docs/BACKEND-LOCAL-SETUP.m
 Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời, **đừng** chỉ nói miệng “đọc project giúp” — nên đính kèm **gói tài liệu** theo **vai** (dev backend, dev frontend, tester/QA) và theo thứ tự trong bài hướng dẫn.
 
 **Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA; bảng tổng hợp; lỗi prompt thường gặp.  
-File [docs/AI-CONTEXT-for-BACKEND.md](docs/AI-CONTEXT-for-BACKEND.md) chỉ còn **chuyển hướng** về file trên (giữ link cũ không gãy).
+Trong [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md), **[mục A.7](docs/AI-CONTEXT-for-TEAM.md#phan-a7-backend-ai)** tóm tắt gói đính kèm và ràng buộc Spring/MySQL cho dev backend; chi tiết đầy đủ ở Phần A (A.1–A.6).
 
 ---
 
@@ -254,8 +256,9 @@ npm run preview
 | `npm run build` | Build production (`dist/`) |
 | `npm run preview` | Phục vụ `dist/` để kiểm tra build |
 | `npm run lint` | ESLint toàn project |
+| `npm run typecheck` | TypeScript `strict` — **`tsc --noEmit`** (Vite build mặc định không chạy bước này) |
 
-Trước khi merge/PR: nên chạy **`npm run lint`** và **`npm run build`** thành công.
+Trước khi merge/PR: nên chạy **`npm run lint`**, **`npm run typecheck`** và **`npm run build`** thành công.
 
 ---
 
@@ -279,7 +282,8 @@ Trước khi merge/PR: nên chạy **`npm run lint`** và **`npm run build`** th
 | **401 ngay sau khi đăng nhập** | Kiểm tra token; với Spring cần đúng `/auth` và JWT. Xem [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) § Auth. |
 | **Trang danh sách lệch trang chi tiết** | Thường do cache Query — sau mutation cần `invalidateQueries` đúng `queryKeys`. |
 | **Mock không đổi** | `VITE_USE_MOCK_API=true` và restart dev server. |
-| **Build lỗi TypeScript/ESLint** | Chạy `npm run lint` xem file/dòng; sửa theo báo lỗi. |
+| **Build xanh nhưng TypeScript lỗi** | Chạy **`npm run typecheck`** — Vite có thể bundle dù `tsc` báo lỗi. |
+| **Build lỗi ESLint** | Chạy `npm run lint` xem file/dòng. |
 
 Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) § 10.
 
@@ -297,11 +301,11 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **Onboard & tra cứu** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | API, role, routes, env, order status |
 | **Luồng code FE → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | axios, services, VNPay, upload |
 | **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, RHF, Zod, refresh, invalidate |
-| **Kiểm tra luồng & API (checklist)** | [docs/FE-V2-VERIFICATION-GUIDE.md](docs/FE-V2-VERIFICATION-GUIDE.md) | Lint/build, thủ công theo vai, Query |
+| **Kiểm tra luồng & API (checklist)** | [docs/FE-ARCHITECTURE-V1-VS-V2.md — Phụ lục §8](docs/FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Lint/typecheck/build, thủ công theo vai, Query |
 | **Cấu trúc thư mục** | [docs/STRUCTURE.md](docs/STRUCTURE.md) | Cây `src/`, import, hooks |
 | **Ship / hardening** | [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) | Checklist trước production |
 | **Rà soát API BE–FE** | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Theo endpoint / theo màn hình |
-| **Spring port** | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Map endpoint Node → Spring |
+| **Spring + SQL** | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | IntelliJ, JPA, contract REST |
 | **Cài đặt backend sau clone/pull** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Node vs Spring, cổng, sau `git pull` |
 | **PM / QA / FE + Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ chung, mẫu báo bug, ai đọc gì |
 | **ERD / SQL** | [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | Schema DB |
@@ -338,6 +342,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | Ngày | Nội dung |
 |------|----------|
 | **2026-04-01** | **Docs:** nhánh **`front-only`** đồng bộ gói **`docs/fe-hoc-tu-dau/`** + guides; **BE2** cherry-pick ghi nhận trong CHANGELOG (monorepo). Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
+| **2026-03-30** | **`npm run typecheck`** (`tsc --noEmit`) trong [package.json](package.json); README / HELP / guides nhắc dùng cùng lint + build. **docs/README:** phân loại tài liệu (tránh đọc trùng), mục lục theo nhóm; sửa link trong QUICK-REFERENCE; STRUCTURE ghi chú `CartPage`. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-26** | **README:** mục **[Sau khi clone hoặc pull (setup)]** — bảng 3 kịch bản (mock / Node / Spring); cập nhật **Phần A Spring** (DB khớp `application.properties`, `mvn spring-boot:run`). **Mới:** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md); mở rộng [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md). |
 | **2026-03-26** | **README:** mục lục, hướng dẫn chi tiết FE, biến môi trường, luồng dev, xử lý sự cố, bản đồ docs, lộ trình đọc. **docs/README, HELP,** các guide hỗ trợ onboard (xem [CHANGELOG.md](docs/CHANGELOG.md)). |
 | **2026-03-26** | Docs: mục lục `docs/README.md`; [FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md); cập nhật STRUCTURE, PRODUCTION-HARDENING, QUICK-REFERENCE, CHANGELOG. |

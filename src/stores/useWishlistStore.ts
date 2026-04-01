@@ -26,10 +26,13 @@ export const useWishlistStore = create<WishlistState>()(
     {
       name: "wishlist-storage",
       partialize: (s) => ({ ids: Array.from(s.ids) }),
-      merge: (persisted: { ids?: string[] }, current) => ({
-        ...current,
-        ids: new Set((persisted?.ids ?? [])),
-      }),
+      merge: (persistedState, current) => {
+        const persisted = persistedState as { ids?: string[] } | undefined;
+        return {
+          ...current,
+          ids: new Set(persisted?.ids ?? []),
+        };
+      },
     },
   ),
 );

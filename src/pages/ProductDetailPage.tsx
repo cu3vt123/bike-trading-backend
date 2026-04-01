@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight, Shield, Heart, MessageCircle } from "lucide-
 import type { BikeDetail, BikeCondition } from "@/types/shopbike";
 import { isListingCertified, isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useListingDetailQuery } from "@/hooks/queries/useListingDetailQuery";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import {
   Dialog,
   DialogContent,
@@ -355,7 +355,16 @@ export default function ProductDetailPage() {
                 <SpecRow label={t("listing.model")} value={listing.model ?? "—"} />
                 <SpecRow label={t("listing.year")} value={listing.year ? String(listing.year) : "—"} />
                 <SpecRow label={t("listing.frameSize")} value={listing.frameSize ?? "—"} />
-                <SpecRow label={t("listing.condition")} value={listing.condition ? (CONDITION_KEYS[listing.condition] ? t(CONDITION_KEYS[listing.condition]) : listing.condition) : "—"} />
+                <SpecRow
+                  label={t("listing.condition")}
+                  value={
+                    listing.condition
+                      ? CONDITION_KEYS[listing.condition]
+                        ? t(CONDITION_KEYS[listing.condition]!)
+                        : listing.condition
+                      : "—"
+                  }
+                />
                 <SpecRow label={t("listing.area")} value={listing.location ?? "—"} />
                 {specs.map((s, idx) => (
                   <SpecRow key={`${s.label}-${idx}`} label={s.label} value={String(s.value)} />
@@ -531,6 +540,7 @@ export default function ProductDetailPage() {
                 </div>
               </DialogContent>
             </Dialog>
+
           </div>
         </div>
       </div>

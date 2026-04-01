@@ -4,8 +4,8 @@ import { isBuyerUnverifiedRisk } from "@/types/shopbike";
 import { useTranslation } from "react-i18next";
 import { CreditCard } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,15 +56,16 @@ export default function CheckoutPage() {
   const [checkoutPolicyOpen, setCheckoutPolicyOpen] = useState(false);
   const [checkoutPolicyAccepted, setCheckoutPolicyAccepted] = useState(false);
   const checkoutPolicyAcceptedRef = useRef(false);
+  /** Giá trị `value` giữ tiếng Anh để khớp dữ liệu / BE hiện có; nhãn hiển thị theo locale. */
   const CITY_OPTIONS = [
-    "Ho Chi Minh City",
-    "Ha Noi",
-    "Da Nang",
-    "Hai Phong",
-    "Can Tho",
-    "Nha Trang",
-    "Hue",
-    "Da Lat",
+    { value: "Ho Chi Minh City", optKey: "hcm" },
+    { value: "Ha Noi", optKey: "hn" },
+    { value: "Da Nang", optKey: "dn" },
+    { value: "Hai Phong", optKey: "hp" },
+    { value: "Can Tho", optKey: "ct" },
+    { value: "Nha Trang", optKey: "nt" },
+    { value: "Hue", optKey: "hue" },
+    { value: "Da Lat", optKey: "dl" },
   ] as const;
 
   const [ship, setShip] = useState({ street: "", city: "" });
@@ -141,6 +142,11 @@ export default function CheckoutPage() {
       return;
     }
     setFieldErrors({});
+
+    if (!listing) {
+      setApiError(t("checkout.listingMissing"));
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -272,9 +278,9 @@ export default function CheckoutPage() {
                       : "border-input hover:border-primary/50",
                   )}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-semibold">{t(titleKey)}</span>
                         {badgeKey && (
                           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
@@ -286,7 +292,7 @@ export default function CheckoutPage() {
                         {t(descKey)}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold">
+                    <span className="shrink-0 whitespace-nowrap text-right text-sm font-semibold tabular-nums">
                       {formatMoney(price, currency)}
                     </span>
                   </div>
@@ -364,9 +370,9 @@ export default function CheckoutPage() {
                   }}
                 >
                   <option value="">{t("checkout.selectCity")}</option>
-                  {CITY_OPTIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {CITY_OPTIONS.map(({ value, optKey }) => (
+                    <option key={value} value={value}>
+                      {t(`checkout.cityOpt.${optKey}`)}
                     </option>
                   ))}
                 </select>

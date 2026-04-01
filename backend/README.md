@@ -12,7 +12,7 @@ Backend demo using **Express + MongoDB (Mongoose)**. Cấu trúc theo `03-shoppi
 | **[docs/README.md](../docs/README.md)** | Mục lục toàn bộ tài liệu `docs/` (FE, BE, ERD, UR, …). |
 | **[docs/BACKEND-GUIDE.md](../docs/BACKEND-GUIDE.md)** | **Hướng dẫn backend đầy đủ:** cấu trúc thư mục, Mongo, env, auth, thêm API, VNPAY Sandbox, kiểm tra nhanh |
 | [docs/PROJECT-SUMMARY.md](../docs/PROJECT-SUMMARY.md) | Tổng quan chức năng & nghiệp vụ |
-| [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Port flow Express → Spring Boot |
+| [docs/BACKEND-NODE-TO-SPRING-BOOT.md](../docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Chuẩn đồ án: **Spring Boot + MySQL** (IntelliJ); Express ở đây chỉ demo/đối chiếu HTTP |
 | **[docs/BACKEND-LOCAL-SETUP.md](../docs/BACKEND-LOCAL-SETUP.md)** | **Sau clone/pull:** chạy FE + Node hoặc FE + Spring, cổng, `git pull` |
 | **[docs/BACKEND-COLLABORATION.md](../docs/BACKEND-COLLABORATION.md)** | **PM / QA / FE:** làm việc chung với BE, thuật ngữ, mẫu ticket |
 | `docs/ERD-MYSQL.md`, `docs/PROJECT-SUMMARY.md` | Thiết kế DB MySQL, tổng quan luồng |

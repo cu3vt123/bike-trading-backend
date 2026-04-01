@@ -18,7 +18,14 @@
     "verifiedAndInspected": "Verified & inspected",
     "viewBikes": "View bikes",
     "loading": "Loading...",
-    "loadingPage": "Loading page"
+    "loadingPage": "Loading page",
+    "back": "Back"
+  },
+  "cart": {
+    "title": "Cart",
+    "roadmapHint": "Multi-bike cart checkout is on the roadmap.",
+    "subtitle": "You will be able to add bikes to your cart in a future update. For now, please check out from each listing.",
+    "backHome": "← Back to home"
   },
   "aboutUs": {
     "title": "About us",
@@ -566,6 +573,7 @@
     "loading": "Loading checkout...",
     "notFound": "Listing not found",
     "loadError": "Could not load checkout. Listing may be invalid.",
+    "listingMissing": "Listing data is missing. Reload the page or go back to choose a bike.",
     "goHome": "Go home",
     "selectPaymentPlan": "Select payment plan",
     "fullPayment": "Full Payment",
@@ -608,6 +616,16 @@
     "streetPlaceholder": "House number, street name",
     "city": "City *",
     "selectCity": "Select city",
+    "cityOpt": {
+      "hcm": "Ho Chi Minh City",
+      "hn": "Ha Noi",
+      "dn": "Da Nang",
+      "hp": "Hai Phong",
+      "ct": "Can Tho",
+      "nt": "Nha Trang",
+      "hue": "Hue",
+      "dl": "Da Lat"
+    },
     "postalCode": "Postal code",
     "cardInfo": "Card information (Visa / Mastercard)",
     "cardInfoHint": "As per card issuer. Test cards: 4242 4242 4242 4242, 5555 5555 5555 4444",
@@ -766,6 +784,7 @@
     "waitPaymentDone": "Payment done, waiting for seller to deliver.",
     "waitSellerShip": "Waiting for seller to ship to warehouse.",
     "waitSellerShipDirect": "Waiting for the seller to deliver to your address.",
+    "buyerProgressWarehouseStagesComplete": "Warehouse intake & checks complete",
     "bikeEnRoute": "Bike arriving at warehouse / awaiting admin confirmation.",
     "reInspectionAtWarehouse": "Re-inspecting at warehouse.",
     "orderInProgress": "Order is being processed. Platform will update when there's progress.",

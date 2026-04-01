@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuthMeQuery } from "@/hooks/queries/useAuthMeQuery";
 import { useSellerDashboardQueries } from "@/hooks/queries/useSellerDashboardQueries";

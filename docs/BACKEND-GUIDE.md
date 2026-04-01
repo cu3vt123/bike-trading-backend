@@ -1,6 +1,6 @@
 # Hướng dẫn Backend — ShopBike (Node.js + Express)
 
-Tài liệu dành cho dev/backend port (Spring Boot xem thêm [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md)).
+Tài liệu **Node (Express + Mongo demo trong `backend/`)**. Chuẩn triển khai đồ án: **Spring Boot + MySQL** — xem [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) (IntelliJ, JPA, SQL).
 
 **Sau khi `clone` hoặc `git pull` — chạy full stack local:** [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md) (bắt buộc đọc nếu lần đầu setup).  
 **README monorepo (FE + lệnh chung):** [README.md](../README.md) — mục **Sau khi clone hoặc pull (setup)**.
@@ -61,7 +61,7 @@ npm run dev
 ```
 
 - API: **`http://localhost:8081/api`** (đổi `PORT` trong `.env`).
-- Frontend trỏ tới API: biến **`VITE_API_BASE_URL`** (vd. `http://localhost:8081/api`) — xem `frontend/.env.example` nếu có.
+- Frontend trỏ tới API: biến **`VITE_API_BASE_URL`** (vd. `http://localhost:8081/api`) — tạo từ **`.env.example` ở root repo** (cùng cấp `package.json`).
 
 ---
 
@@ -222,6 +222,8 @@ Dùng `accessToken` trả về cho các request `/api/buyer/*`, `/api/vietqr/*`,
 
 ## 11. Tài liệu liên quan
 
+**Inspector / Spring:** `GET /api/inspector/listings/:id` (Bearer + role INSPECTOR hoặc ADMIN) — chi tiết tin khi duyệt từ UI; bắt buộc đối chiếu với FE (trang `/bikes/:id`). Xem [BACKEND-NODE-TO-SPRING-BOOT.md](./BACKEND-NODE-TO-SPRING-BOOT.md) mục **11.5 (Inspector)** và [QUICK-REFERENCE.md](./QUICK-REFERENCE.md).
+
 | File | Nội dung |
 |------|----------|
 | [BACKEND-LOCAL-SETUP.md](./BACKEND-LOCAL-SETUP.md) | Clone/pull, Node vs Spring, xử lý cổng trùng |
@@ -236,4 +238,4 @@ Dùng `accessToken` trả về cho các request `/api/buyer/*`, `/api/vietqr/*`,
 
 ---
 
-*Tài liệu này mô tả trạng thái codebase tại thời điểm cập nhật; khi refactor, nên chỉnh lại mục 3 và 6 cho khớp.*
+*Tài liệu này mô tả trạng thái codebase tại thời điểm cập nhật; khi refactor, nên chỉnh lại mục 3 và 6 cho khớp. Cập nhật 30-03-2026: đường dẫn `.env` FE, ghi chú Inspector `GET /api/inspector/listings/:id`.*

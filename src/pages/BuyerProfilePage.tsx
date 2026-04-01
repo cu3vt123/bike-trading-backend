@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { BicycleLoader } from "@/components/common/BicycleLoader";
 import type { Order, OrderStatus } from "@/types/order";
 import { useBuyerOrdersQuery } from "@/hooks/queries/useBuyerOrdersQuery";

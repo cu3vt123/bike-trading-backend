@@ -3,7 +3,7 @@
 > Tài liệu đầy đủ các quy tắc nghiệp vụ (business rules) áp dụng cho hệ thống ShopBike. Đồng bộ với codebase và docs hiện tại (2026-03).
 
 **Tra cứu nhanh:** [QUICK-REFERENCE.md](../QUICK-REFERENCE.md) — thuật ngữ, API, luồng.  
-**Tham chiếu:** [PROJECT-SUMMARY.md](../PROJECT-SUMMARY.md) §2, [BACKEND-NODE-TO-SPRING-BOOT.md](../BACKEND-NODE-TO-SPRING-BOOT.md) §5, [PAYMENTS-VNPAY.md](../PAYMENTS-VNPAY.md).
+**Tham chiếu:** [PROJECT-SUMMARY.md](../PROJECT-SUMMARY.md) §2, [BACKEND-NODE-TO-SPRING-BOOT.md](../BACKEND-NODE-TO-SPRING-BOOT.md) mục **15**, [PAYMENTS-VNPAY.md](../PAYMENTS-VNPAY.md).
 
 ### Cấu trúc tài liệu
 

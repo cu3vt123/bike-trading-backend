@@ -17,7 +17,7 @@ Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/reso
 src/
 ├── app/                    # App root, router, providers
 │   ├── App.tsx
-│   ├── router.tsx         # createBrowserRouter (không có route /cart)
+│   ├── router.tsx         # createBrowserRouter — không mount `/cart` (component `CartPage` vẫn có trong `pages/`, export qua features/buyer)
 │   └── providers/
 │       ├── index.ts
 │       ├── RouterProvider.tsx

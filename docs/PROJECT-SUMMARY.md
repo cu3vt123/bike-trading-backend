@@ -342,10 +342,9 @@ Chi tiết: `docs/STRUCTURE.md`
 |------|----------|
 | `docs/README.md` | Mục lục toàn bộ tài liệu |
 | `docs/BE-FE-API-AUDIT.md` | Rà soát API BE–FE theo khu vực — endpoint, logic, dead code đã xóa |
-| `docs/BE-FE-API-AUDIT-BY-PAGE.md` | Rà soát API theo từng trang/actor — mapping Page → API → BE route |
+| `docs/BE-FE-API-AUDIT-BY-PAGE.md` | Rà soát API theo từng trang/actor — mapping Page → API → BE route; [phụ lục UI/UX theo vai](BE-FE-API-AUDIT-BY-PAGE.md#phu-luc-ui-ux-theo-actor) |
 | `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
 | `docs/ERD-MYSQL.md` | Thiết kế MySQL 17 bảng — ERD Mermaid, SQL schema |
-| `docs/UI-UX-AUDIT-BY-ACTOR.md` | Rà soát UI/UX theo vai |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |
 | `backend/README.md` | Chạy backend Node demo |
 

@@ -18,7 +18,14 @@
     "verifiedAndInspected": "Đã xác minh & kiểm định",
     "viewBikes": "Xem xe",
     "loading": "Đang tải...",
-    "loadingPage": "Đang tải trang"
+    "loadingPage": "Đang tải trang",
+    "back": "Quay lại"
+  },
+  "cart": {
+    "title": "Giỏ hàng",
+    "roadmapHint": "Trải nghiệm giỏ hàng (thanh toán nhiều xe cùng lúc) đang được phát triển.",
+    "subtitle": "Bạn sẽ có thể thêm xe vào giỏ trong các bản cập nhật sau. Hiện tại, hãy thanh toán trực tiếp từ từng tin đăng.",
+    "backHome": "← Về trang chủ"
   },
   "aboutUs": {
     "title": "Về chúng tôi",
@@ -420,7 +427,6 @@
     "tabReviews": "Đánh giá sau mua",
     "tabCategories": "Danh mục xe & Thương hiệu",
     "tabTransactions": "Giao dịch & Phí dịch vụ",
-    "tabStats": "Thống kê & Báo cáo",
     "warehouseTitle": "Xác nhận xe đã tới kho",
     "warehouseDesc": "Tin đăng: sau khi inspector duyệt online, seller gửi xe tới kho → admin xác nhận xe đã tới → inspector xác nhận lại → tin lên sàn với mác đã kiểm định.",
     "noWarehouseItems": "Không có tin đăng nào chờ xác nhận tại kho.",
@@ -513,7 +519,8 @@
     "statsTitle": "Thống kê & Báo cáo hệ thống",
     "statsDesc": "Tổng quan doanh thu, đơn hàng, người dùng. (Tích hợp API sau.)",
     "buyer": "Buyer",
-    "totalOrders": "Tổng đơn hàng"
+    "totalOrders": "Tổng đơn hàng",
+    "tabStats": "Thống kê chung"
   },
   "inspector": {
     "title": "Bảng điều khiển kiểm định viên",
@@ -559,19 +566,20 @@
     "needUpdateError": "Vui lòng nhập lý do rõ ràng (ít nhất 5 ký tự) cho người bán."
   },
   "checkout": {
-    "title": "Checkout",
-    "subtitle": "Hoàn tất đặt cọc để giữ chỗ.",
+    "title": "Thanh toán",
+    "subtitle": "Đặt cọc hoặc thanh toán toàn bộ qua VNPAY để giữ chỗ / hoàn tất mua xe.",
     "backToListing": "Quay lại xem xe",
-    "abandonHint": "Sau khi bắt đầu checkout, tin được giữ chỗ; cần hoàn tất thanh toán trên VNPAY. Bạn có thể vào lại trang giao dịch để tiếp tục thanh toán nếu đã thoát cổng VNPAY.",
+    "abandonHint": "Sau khi bắt đầu thanh toán, tin được giữ chỗ; bạn cần hoàn tất giao dịch trên VNPAY. Nếu đã thoát cổng VNPAY, mở lại trang giao dịch để tiếp tục.",
     "loading": "Đang tải thanh toán...",
     "notFound": "Không tìm thấy tin đăng",
     "loadError": "Không tải được thanh toán do tin đăng không hợp lệ.",
+    "listingMissing": "Chưa có thông tin tin đăng. Tải lại trang hoặc quay lại chọn xe.",
     "goHome": "Về trang chủ",
     "selectPaymentPlan": "Chọn hình thức thanh toán",
-    "fullPayment": "Full Payment",
+    "fullPayment": "Thanh toán toàn bộ",
     "fullPaymentDesc": "Thanh toán toàn bộ ngay. Ưu tiên vận chuyển.",
     "fullPaymentDescVnpay": "Thanh toán toàn bộ giá xe trực tuyến qua VNPAY. Không hỗ trợ trả toàn bộ bằng tiền mặt trên sàn.",
-    "depositCOD": "Deposit + COD",
+    "depositCOD": "Đặt cọc + thanh toán khi nhận (COD)",
     "depositOnline": "Đặt cọc (8%)",
     "depositOnlineDesc": "Đặt cọc qua VNPAY để giữ chỗ. Phần còn lại thanh toán online khi giao xe.",
     "vnpayDepositTitle": "Đặt cọc qua VNPAY",
@@ -608,6 +616,16 @@
     "streetPlaceholder": "Số nhà, tên đường",
     "city": "Thành phố *",
     "selectCity": "Chọn thành phố",
+    "cityOpt": {
+      "hcm": "Thành phố Hồ Chí Minh",
+      "hn": "Hà Nội",
+      "dn": "Đà Nẵng",
+      "hp": "Hải Phòng",
+      "ct": "Cần Thơ",
+      "nt": "Nha Trang",
+      "hue": "Huế",
+      "dl": "Đà Lạt"
+    },
     "postalCode": "Mã bưu điện",
     "cardInfo": "Thông tin thẻ (Visa / Mastercard)",
     "cardInfoHint": "Theo yêu cầu nhà phát hành thẻ. Thẻ thử: 4242 4242 4242 4242, 5555 5555 5555 4444",
@@ -766,6 +784,7 @@
     "waitPaymentDone": "Thanh toán xong, chờ seller giao xe.",
     "waitSellerShip": "Chờ seller gửi xe tới kho.",
     "waitSellerShipDirect": "Chờ seller giao xe đến địa chỉ của bạn.",
+    "buyerProgressWarehouseStagesComplete": "Đã hoàn tất nhận & kiểm tra tại kho",
     "bikeEnRoute": "Xe đang tới kho / chờ admin xác nhận.",
     "reInspectionAtWarehouse": "Đang kiểm định lại tại kho.",
     "orderInProgress": "Đơn đang được xử lý. Sàn sẽ cập nhật khi có thông tin mới.",

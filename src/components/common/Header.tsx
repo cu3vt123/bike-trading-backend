@@ -23,7 +23,7 @@ import { syncSellerOrderNotifications } from "@/services/sellerService";
 import { syncAdminOrderNotifications } from "@/services/adminService";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import { useLanguageStore } from "@/stores/useLanguageStore";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 const channelIconBtn =

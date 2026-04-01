@@ -6,9 +6,11 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Clock, CheckCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import {
   Dialog,
   DialogContent,
@@ -137,6 +139,16 @@ const WAREHOUSE_PHASE_STATUSES: OrderStatus[] = [
   "RE_INSPECTION_DONE",
 ];
 
+/** Buyer 4 bước: bước 2 gộp "seller→kho→kiểm định"; khi xe đã qua giai đoạn chờ seller gửi thì không hiển thị nhãn "Chờ seller gửi xe". */
+const WAREHOUSE_PAST_PENDING_SELLER_SHIP: OrderStatus[] = [
+  "SELLER_SHIPPED",
+  "AT_WAREHOUSE_PENDING_ADMIN",
+  "RE_INSPECTION",
+  "RE_INSPECTION_DONE",
+  "SHIPPING",
+  "COMPLETED",
+];
+
 function isStepDoneInFlow(
   status: OrderStatus | null,
   step: BuyerStep,
@@ -166,7 +178,30 @@ function stepTitleFor(
   step: BuyerStep,
   isDirect: boolean,
   t: (key: string) => string,
+  orderStatus: OrderStatus | null,
 ): string {
+  if (
+    step === "PENDING_SELLER_SHIP" &&
+    !isDirect &&
+    orderStatus &&
+    WAREHOUSE_PAST_PENDING_SELLER_SHIP.includes(orderStatus)
+  ) {
+    switch (orderStatus) {
+      case "SELLER_SHIPPED":
+        return t("order.statusSELLER_SHIPPED");
+      case "AT_WAREHOUSE_PENDING_ADMIN":
+        return t("order.statusAT_WAREHOUSE_PENDING_ADMIN");
+      case "RE_INSPECTION":
+        return t("order.statusRE_INSPECTION");
+      case "RE_INSPECTION_DONE":
+        return t("order.statusRE_INSPECTION_DONE");
+      case "SHIPPING":
+      case "COMPLETED":
+        return t("transaction.buyerProgressWarehouseStagesComplete");
+      default:
+        break;
+    }
+  }
   if (step === "PENDING_SELLER_SHIP" && isDirect) {
     return t("transaction.directStepSellerShipTitle");
   }
@@ -177,9 +212,27 @@ function stepDescFor(
   step: BuyerStep,
   isDirect: boolean,
   t: (key: string) => string,
+  orderStatus: OrderStatus | null,
 ): string {
   if (step === "RESERVED") return t("transaction.depositSuccess");
   if (step === "PENDING_SELLER_SHIP") {
+    if (!isDirect && orderStatus && WAREHOUSE_PAST_PENDING_SELLER_SHIP.includes(orderStatus)) {
+      switch (orderStatus) {
+        case "SELLER_SHIPPED":
+          return t("transaction.sellerShipped");
+        case "AT_WAREHOUSE_PENDING_ADMIN":
+          return t("transaction.bikeEnRoute");
+        case "RE_INSPECTION":
+          return t("transaction.reInspectionAtWarehouse");
+        case "RE_INSPECTION_DONE":
+          return t("transaction.confirmedTransfer");
+        case "SHIPPING":
+        case "COMPLETED":
+          return "";
+        default:
+          break;
+      }
+    }
     return isDirect ? t("transaction.sellerNotifyDirect") : t("transaction.sellerNotify");
   }
   if (isDirect) {
@@ -338,7 +391,6 @@ export default function TransactionPage() {
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
   const [vnpayResuming, setVnpayResuming] = useState(false);
   const [vnpayResumeError, setVnpayResumeError] = useState<string | null>(null);
 
@@ -656,7 +708,7 @@ export default function TransactionPage() {
                   : step === "RESERVED" || step === "IN_TRANSACTION";
                 const title =
                   orderStatus && progressFlow.includes(step)
-                    ? stepTitleFor(step, isDirect, t)
+                    ? stepTitleFor(step, isDirect, t, orderStatus)
                     : t(`order.status${step}` as "order.statusRESERVED");
                 const desc =
                   orderStatus && progressFlow.includes(step)
@@ -665,7 +717,7 @@ export default function TransactionPage() {
                       : step === "SHIPPING" &&
                           WAREHOUSE_PHASE_STATUSES.includes(orderStatus)
                         ? t("transaction.waitingForShippingStart")
-                        : stepDescFor(step, isDirect, t)
+                        : stepDescFor(step, isDirect, t, orderStatus)
                     : step === "RESERVED" || step === "IN_TRANSACTION"
                       ? step === "RESERVED"
                         ? t("transaction.depositSuccess")
@@ -921,13 +973,14 @@ export default function TransactionPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("transaction.support24_7")}
                 </p>
-                <Button
-                  variant="outline"
-                  className="mt-3 w-full"
-                  onClick={() => setSupportOpen(true)}
-                >
-                  {t("transaction.chatWithSupport")}
-                </Button>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  <a
+                    href="mailto:support@shopbike.example.com"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    support@shopbike.example.com
+                  </a>
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -1006,23 +1059,6 @@ export default function TransactionPage() {
         </Dialog>
       )}
 
-      {/* Support Chat Dialog */}
-      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("transaction.contactSupport")}</DialogTitle>
-            <DialogDescription>
-              {t("transaction.supportChatNote")}{" "}
-              <a href="mailto:support@shopbike.example.com" className="text-primary hover:underline">
-                support@shopbike.example.com
-              </a>.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setSupportOpen(false)}>{t("transaction.close")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

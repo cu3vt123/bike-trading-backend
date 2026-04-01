@@ -3,8 +3,8 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CheckCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
 import { fetchListingById, fetchOrderById } from "@/services/buyerService";
 import type { BikeDetail } from "@/types/shopbike";
 import { listingSnapshotToDetail } from "@/lib/listingSnapshotFromOrder";
@@ -95,8 +95,12 @@ export default function PurchaseSuccessPage() {
       try {
         const data = await fetchListingById(id);
         if (!cancelled) setListing(data ?? null);
-      } catch (err) {
-        if (!cancelled) setError(err?.message ?? t("checkout.successLoadError"));
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : t("checkout.successLoadError"),
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
