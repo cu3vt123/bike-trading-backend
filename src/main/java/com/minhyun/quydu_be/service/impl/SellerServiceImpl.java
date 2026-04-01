@@ -84,8 +84,9 @@ public class SellerServiceImpl implements SellerService {
         Long sellerId = SecurityUtils.currentUserId();
         List<Listing> listings = listingRepository.findBySellerIdOrderByUpdatedAtDesc(sellerId);
         Map<String, Object> stats = new LinkedHashMap<>();
-        long slotRows = listings.stream().filter(l -> l.getState() != ListingState.REJECTED).count();
-        stats.put("total", slotRows);
+        // Khớp “slot đang dùng” trên gói: chỉ tin không ẩn và không REJECTED (xem countOccupyingPostingSlots).
+        long totalOccupyingSlots = listingRepository.countOccupyingPostingSlots(sellerId, ListingState.REJECTED);
+        stats.put("total", totalOccupyingSlots);
         stats.put("published", listings.stream().filter(l -> l.getState() == ListingState.PUBLISHED).count());
         stats.put("inReview", listings.stream().filter(l -> l.getState() == ListingState.PENDING_INSPECTION).count());
         stats.put("awaitingWarehouse", listings.stream().filter(l -> l.getState() == ListingState.AWAITING_WAREHOUSE).count());
