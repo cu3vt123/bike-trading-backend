@@ -6,11 +6,21 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [01-04-2026]
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Học FE từ đầu** | Thêm thư mục **`docs/fe-hoc-tu-dau/`** (00–09 + `README`): nền tảng web/React, setup local, luồng `main.tsx` → router, cấu trúc `src/`, guard, API, React Query/Zustand, form/i18n/UI, liên kết nghiệp vụ & tài liệu sâu. Cập nhật **`docs/README.md`**, **`README.md`** (mục lộ trình + bảng bản đồ docs). |
+
+---
+
 ## [31-03-2026]
 
 | Thay đổi | Chi tiết |
 |----------|----------|
 | **BE migration sync note** | Đồng bộ backend Spring (`com.minhyun.quydu_be`) theo contract Node/FE: JWT refresh, field listing (`condition`, `inspection*`, warehouse timestamps), CORS dev (`localhost` + `127.0.0.1`), upload `/uploads/**`. |
+| **Docs front-only** | Xóa các `.md` thuần backend trong `docs/` (`BACKEND-*`, `BE-FE-API-AUDIT*`, `ERD-*`). Thêm **`BACKEND-BESPRING-CHAY-API.md`**. Viết lại **`docs/README.md`**, **`AI-CONTEXT-for-TEAM.md`**. Cập nhật `HELP`, `QUICK-REFERENCE`. |
+| **Hướng dẫn FE (bổ sung)** | **FRONTEND-DEVELOPER-GUIDE:** §2.1 VS Code, §2.2 FE↔BE, §12.2 `BicycleLoader`/`RouteFallback`, §15 Bespring; **README**, **HELP**, **STRUCTURE**, **BACKEND-BESPRING**: liên kết anchor `#fe-ket-noi-be`, `#bicycle-loader`. |
 
 ---
 

@@ -35,6 +35,17 @@
 - Mặc định tài liệu dùng `http://localhost:8081/api` — cần đồng bộ với `server.port` + `context-path` (nếu có) trong Spring.  
 - `VITE_API_BASE_URL` phải **không** có dấu `/` ở cuối.
 
+### Trang mở được (Vite chạy) nhưng không gọi được API?
+
+1. BE trong IntelliJ có đang **Run** không — thử Swagger.  
+2. `.env`: `VITE_USE_MOCK_API=false`, URL đúng cổng/path; sửa xong **restart** `npm run dev`.  
+3. DevTools → **Network** / **Console**: lỗi CORS → chỉnh CORS phía BE cho `http://localhost:5173`.  
+4. Chi tiết: [docs/FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be](docs/FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be).
+
+### Làm sao thêm màn hình “đang tải” hình xe đạp?
+
+- Dùng sẵn **`BicycleLoader`** / **`BicycleLoadingBlock`** — xem [docs/FRONTEND-DEVELOPER-GUIDE.md#bicycle-loader](docs/FRONTEND-DEVELOPER-GUIDE.md#bicycle-loader).
+
 ### Sửa đơn / hủy đơn xong mà danh sách trên trang khác vẫn cũ?
 
 - Kiến trúc V2 dùng **TanStack Query** — sau thao tác ghi API cần **`invalidateQueries`** với đúng `queryKeys` (ví dụ `buyer.orders`, `listings`).  

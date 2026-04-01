@@ -4,6 +4,8 @@
 
 **Monorepo BE2:** React/Vite và Spring Boot cùng repo — [README.md](../README.md), [STRUCTURE.md](STRUCTURE.md).
 
+**Mới học FE / muốn lộ trình từ đầu đến cuối (tiếng Việt, theo từng file):** [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md).
+
 ---
 
 ## Mục lục tài liệu này
@@ -30,6 +32,7 @@
 | **So sánh kiến trúc FE cũ / mới** (Query, RHF, refresh, invalidate) | **[FE-ARCHITECTURE-V1-VS-V2.md](FE-ARCHITECTURE-V1-VS-V2.md)** | Hiểu V2 và cách chỉnh code không lệch cache. |
 | **Cấu trúc thư mục FE, quy ước import** | [STRUCTURE.md](STRUCTURE.md) | Cây `src/`, `queryKeys`, hooks `queries/`. |
 | **Checklist ship / hardening** | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) | Trước khi deploy production. |
+| **Học FE từ đầu (00–09)** | [fe-hoc-tu-dau/README.md](fe-hoc-tu-dau/README.md) | Nền tảng web/React → `src/`, API, Query, form, i18n. |
 | **Kiểm tra luồng + API (V2, thủ công)** | **[FE-V2-VERIFICATION-GUIDE.md](FE-V2-VERIFICATION-GUIDE.md)** | Lint/build, checklist theo vai, Query invalidate, Network. |
 
 ---

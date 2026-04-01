@@ -45,6 +45,27 @@ Khi thêm file mới, luôn dùng `@/` thay vì đường dẫn tương đối d
 
 **Đổi cổng Vite:** `npm run dev -- --port 3000` (hoặc sửa `vite.config.js` nếu team thống nhất).
 
+### 2.1 Chạy trong VS Code / Cursor
+
+1. **File → Open Folder** → chọn thư mục gốc có `package.json` (ví dụ folder `FE`).
+2. **Terminal → New Terminal** tại đúng thư mục đó.
+3. `npm install` (lần đầu hoặc sau khi đổi `package-lock.json`), rồi `npm run dev`.
+4. Mở URL in ra (thường `http://localhost:5173`). Extension **Live Server** không thay cho Vite — luôn dùng `npm run dev`.
+
+<a id="fe-ket-noi-be"></a>
+
+### 2.2 FE mở được nhưng không kết nối được backend
+
+| Kiểm tra | Việc làm |
+|---------|----------|
+| BE có chạy | IntelliJ Run; thử Swagger / health trên cổng BE. |
+| `.env` | `VITE_API_BASE_URL` trùng cổng + path (vd. `http://localhost:8081/api`, **không** `/` cuối); `VITE_USE_MOCK_API=false`. |
+| Restart Vite | Sửa `.env` xong **tắt và chạy lại** `npm run dev`. |
+| CORS | Console/Network báo CORS → cấu hình BE cho origin `http://localhost:5173` (hoặc cổng Vite thực tế). |
+| `localhost` vs `127.0.0.1` | Thống nhất một kiểu cho URL trình duyệt và `VITE_API_BASE_URL`. |
+
+Chi tiết clone/worktree BE: [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md).
+
 ---
 
 ## 3. Biến môi trường (Vite)
@@ -252,6 +273,35 @@ await queryClient.invalidateQueries({ queryKey: queryKeys.buyer.orders });
 - File: **`src/layouts/MainLayout.tsx`** — `Header`, `<main><Outlet /></main>`, footer (link Support, `#listings`).
 - **`location.state.scrollTo`:** Nếu navigate kèm `state: { scrollTo: "listings" }`, layout scroll tới `document.getElementById("listings")` rồi clear state (tránh scroll lặp khi back).
 
+<a id="bicycle-loader"></a>
+
+### 12.2 Loading hình xe đạp (`BicycleLoader`)
+
+Đã có sẵn trong **`src/components/common/BicycleLoader.tsx`** — SVG xe đạp, bánh quay + hiệu ứng trượt nhẹ (`animate-bicycle-glide` trong `tailwind.config.js`). Màu theo **`text-primary`** (theme sáng/tối).
+
+| Export | Khi nào dùng |
+|--------|----------------|
+| **`BicycleLoader`** | Chỉ icon; props: `size?: "sm" \| "md" \| "lg"`, `noGlide`, `className`. Phù hợp inline (nút, hàng bảng). |
+| **`BicycleLoadingBlock`** | Icon + dòng chữ phía dưới; props: `message?: string`, `size`, `className`. Phù hợp **full màn** hoặc vùng chờ data. |
+
+**Ví dụ trong trang (query đang tải):**
+
+```tsx
+import { BicycleLoadingBlock } from "@/components/common/BicycleLoader";
+
+if (isPending) {
+  return (
+    <BicycleLoadingBlock message={t("mycategory.loading")} size="md" />
+  );
+}
+```
+
+**Lazy route:** `src/app/router.tsx` bọc `<Suspense fallback={<RouteFallback />}>` — **`RouteFallback`** (`src/shared/components/common/RouteFallback.tsx`) đã dùng `BicycleLoadingBlock` + `t("common.loading")`. Đổi fallback ở đó nếu muốn toàn app thống nhất một kiểu khác.
+
+**Guard đang kiểm tra auth:** các `RequireAuth`, `RequireBuyer`, … hiển thị **`BicycleLoader`** nhỏ khi chờ hydrate token.
+
+**Thêm chỗ mới:** import component → hiển thị khi `isLoading` / `isPending` của TanStack Query (hoặc `useState` tương đương); thêm key i18n cho `message` trong `vi.json` / `en.json`.
+
 ---
 
 ## 13. Thêm tính năng FE — checklist
@@ -264,7 +314,8 @@ await queryClient.invalidateQueries({ queryKey: queryKeys.buyer.orders });
 - [ ] `queryKeys` (nếu dùng query mới) + hook + `invalidateQueries` sau mutation
 - [ ] i18n mọi chuỗi user-facing
 - [ ] Xử lý lỗi với `getApiErrorMessage` hoặc toast
-- [ ] `npm run lint` + `npm run build`
+- [ ] Trạng thái chờ: `BicycleLoadingBlock` / `BicycleLoader` (§12.2) + `t("...loading")`
+- [ ] `npm run lint` + `npm run typecheck` + `npm run build`
 
 **Chỉ UI:**
 
@@ -289,11 +340,11 @@ Thêm: [README.md](../README.md), [QUICK-REFERENCE.md](QUICK-REFERENCE.md) §10.
 
 ---
 
-## 15. Monorepo với Spring (Java)
+## 15. Backend (Spring) — repo nhánh Bespring
 
-- Code Java: `src/main/java/`, không đụng khi chỉ sửa FE.
-- **Vite** chỉ bundle TS/TSX/CSS từ `src/` (theo `vite.config.js` + `tsconfig`) — **không** compile `.java`.
-- Chạy song song: terminal 1 Spring (thường **8081**), terminal 2 `npm run dev` (**5173**). Đừng trùng cổng với backend Node nếu vẫn bật `backend/` để đối chiếu.
+- Repo nhánh **`front-only`** **không** chứa mã Java. API chạy từ project/backend clone nhánh **`Bespring`** (IntelliJ, MySQL, v.v.).
+- Chạy song song: **IntelliJ** — Run BE (thường cổng **8081**); terminal FE — `npm run dev` (**5173**).
+- Hướng dẫn worktree/clone và `.env`: [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md).
 
 ---
 

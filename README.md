@@ -77,6 +77,8 @@ npm run dev
 
 Mở trình duyệt: **http://localhost:5173** (hoặc cổng Vite in ra trong terminal).
 
+**Mở được trang mà không gọi được API:** kiểm tra BE đang chạy, `.env` (`VITE_USE_MOCK_API`, `VITE_API_BASE_URL`), restart `npm run dev`, lỗi CORS trong DevTools — xem [docs/FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be](docs/FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be).
+
 ---
 
 ## Yêu cầu môi trường
@@ -304,9 +306,16 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **PM / QA / FE + Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ chung, mẫu báo bug, ai đọc gì |
 | **ERD / SQL** | [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | Schema DB |
 | **Business rules** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ |
+| **VNPay** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Luồng thanh toán |
+| **Mục lục docs** | [docs/README.md](docs/README.md) | Danh sách file còn lại |
+| **Học FE từ đầu (00–09)** | [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) | Web, React, `src/`, API, Query, form, i18n |
 ---
 
 ## Lộ trình đọc cho người mới
+
+**Ngày 0 — Chưa quen React / muốn giải thích từ đầu (tùy chọn)**
+
+1. Đọc lần lượt [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) (phần 00 → 09).
 
 **Ngày 1 — Chạy được & hiểu repo**
 

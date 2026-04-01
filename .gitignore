@@ -34,3 +34,21 @@ build/
 
 ### Local uploaded listing images (§13.6) ###
 /uploads/
+
+# --- Node / Vite (frontend trong monorepo) ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.local
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cursor / IDE (chỉ local)
+.cursor/
+
+# E2E script local (optional)
+scripts/e2e-api-test.mjs
