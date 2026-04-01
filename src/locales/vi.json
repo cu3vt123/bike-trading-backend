@@ -427,6 +427,7 @@
     "tabReviews": "Đánh giá sau mua",
     "tabCategories": "Danh mục xe & Thương hiệu",
     "tabTransactions": "Giao dịch & Phí dịch vụ",
+    "tabStats": "Thống kê chung",
     "warehouseTitle": "Xác nhận xe đã tới kho",
     "warehouseDesc": "Tin đăng: sau khi inspector duyệt online, seller gửi xe tới kho → admin xác nhận xe đã tới → inspector xác nhận lại → tin lên sàn với mác đã kiểm định.",
     "noWarehouseItems": "Không có tin đăng nào chờ xác nhận tại kho.",

@@ -4,12 +4,15 @@ Repo nhánh **`front-only`**: chỉ **React + Vite**. **[README.md](../README.md
 
 **Cần chạy API thật:** [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md) — lấy nhánh **`Bespring`**, worktree/clone riêng, nối `VITE_API_BASE_URL`.
 
+**Mới học FE / lộ trình từ đầu đến cuối:** [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md).
+
 ---
 
 ## Đọc nhanh
 
 | Nhu cầu | File |
 |---------|------|
+| Học FE & repo từ nền tảng web tới `src/` (00–09) | [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md) |
 | Hướng dẫn FE một file | [FRONTEND-DEVELOPER-GUIDE.md](./FRONTEND-DEVELOPER-GUIDE.md) |
 | API, route, role, env | [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) |
 | Luồng axios → apis → services | [FRONTEND-API-FLOWS.md](./FRONTEND-API-FLOWS.md) |

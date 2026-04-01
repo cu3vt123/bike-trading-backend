@@ -2,14 +2,11 @@
 
 > Tái cấu trúc theo mẫu feature-based, dễ mở rộng.
 
-## Nhánh BE2 (monorepo)
+## Nhánh `front-only` (repo chỉ Frontend)
 
-Cùng thư mục gốc `src/` còn chứa **Spring Boot**:
+Trong repo này **không** có mã Java/Spring dưới `src/`. API chạy từ repo backend (nhánh **`Bespring`**) — xem [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
 
-- `src/main/java/` — mã Java (`com.biketrading.backend`, …)
-- `src/main/resources/` — `application.properties`, static template, …
-
-Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/resources`. Backend entry: `BikeTradingBackendApplication.java`.
+**Nhánh BE2 (monorepo)** trên cùng remote: cùng thư mục `src/` có thêm Spring ở `src/main/java/`. Khi làm việc trên **front-only**, chỉ cần cây phía dưới.
 
 ## Thư mục chính (phần Frontend trong `src/`)
 
@@ -17,7 +14,7 @@ Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/reso
 src/
 ├── app/                    # App root, router, providers
 │   ├── App.tsx
-│   ├── router.tsx         # createBrowserRouter — không mount `/cart` (component `CartPage` vẫn có trong `pages/`, export qua features/buyer)
+│   ├── router.tsx         # createBrowserRouter (không có route /cart)
 │   └── providers/
 │       ├── index.ts
 │       ├── RouterProvider.tsx
@@ -74,24 +71,24 @@ src/
 └── mocks/                 # Mock data
 ```
 
-## Luồng API Order trên Frontend (có — phân tán theo tầng)
-
 Dự án **có** đầy đủ luồng gọi API liên quan **đơn mua xe** (buyer), **đơn phía seller** (giao hàng / danh sách), **kho & kiểm định lại** (admin), và **đánh giá sau đơn**. Không có một folder riêng tên `orders/`; code nằm trong **`apis/*`**, **`services/*`**, **`types/order.ts`**, **`lib/order*.ts`**, và các trang **`features/buyer/*`**, **`features/seller/*`**, admin.
 
 ### Bảng tra cứu nhanh
 
-| Vai trò | File chính (FE) | API / path (khai báo trong `apiConfig.ts`) |
-|---------|-----------------|--------------------------------------------|
-| **Buyer** | `src/apis/buyerApi.ts` → **`orderApi`** | `POST .../buyer/orders/vnpay-checkout`, `.../vnpay-resume`, `.../vnpay-pay-balance`, `GET/PUT .../buyer/orders`, `.../:id`, `.../complete`, `.../cancel`; legacy `POST .../orders`, `.../payments/initiate` |
-| **Buyer (logic + mock)** | `src/services/buyerService.ts` | Bọc `orderApi`: `createVnpayCheckoutOrder`, `fetchOrderById`, `fetchMyOrders`, `completeOrder`, `cancelOrder`, `resumeVnpayCheckoutOrder`, `payBalanceVnpayOrder`, … + `orderOverrides` |
-| **Seller** | `src/apis/sellerApi.ts` | `GET /seller/orders`, `PUT /seller/orders/:orderId/ship-to-buyer` |
-| **Seller (dashboard)** | `src/services/sellerService.ts` | `fetchSellerDashboardOrders`, xử lý thông báo: `sellerOrderNotificationFlow.ts` |
-| **Admin (kho)** | `src/apis/adminApi.ts` | `GET .../admin/orders/warehouse-pending`, `PUT .../confirm-warehouse`, `GET .../re-inspection`, `PUT .../re-inspection-done` |
-| **Admin (thông báo)** | `src/services/adminOrderNotificationFlow.ts` | Phân loại đơn cho UI admin (không thay thế `adminApi`) |
-| **Review theo đơn** | `src/apis/reviewApi.ts` | `POST .../buyer/orders/:orderId/review` (path trong `API_PATHS.REVIEWS`) |
-| **Kiểu dữ liệu** | `src/types/order.ts` | `Order`, `CreateOrderRequest`, enum status / `fulfillmentType` khớp BE |
+| Vai trò                  | File chính (FE)                              | API / path (khai báo trong `apiConfig.ts`)                                                                                                                                                                  |
+| ------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Buyer**                | `src/apis/buyerApi.ts` → **`orderApi`**      | `POST .../buyer/orders/vnpay-checkout`, `.../vnpay-resume`, `.../vnpay-pay-balance`, `GET/PUT .../buyer/orders`, `.../:id`, `.../complete`, `.../cancel`; legacy `POST .../orders`, `.../payments/initiate` |
+| **Buyer (logic + mock)** | `src/services/buyerService.ts`               | Bọc `orderApi`: `createVnpayCheckoutOrder`, `fetchOrderById`, `fetchMyOrders`, `completeOrder`, `cancelOrder`, `resumeVnpayCheckoutOrder`, `payBalanceVnpayOrder`, … + `orderOverrides`                     |
+| **Seller**               | `src/apis/sellerApi.ts`                      | `GET /seller/orders`, `PUT /seller/orders/:orderId/ship-to-buyer`                                                                                                                                           |
+| **Seller (dashboard)**   | `src/services/sellerService.ts`              | `fetchSellerDashboardOrders`, xử lý thông báo: `sellerOrderNotificationFlow.ts`                                                                                                                             |
+| **Admin (kho)**          | `src/apis/adminApi.ts`                       | `GET .../admin/orders/warehouse-pending`, `PUT .../confirm-warehouse`, `GET .../re-inspection`, `PUT .../re-inspection-done`                                                                                |
+| **Admin (thông báo)**    | `src/services/adminOrderNotificationFlow.ts` | Phân loại đơn cho UI admin (không thay thế `adminApi`)                                                                                                                                                      |
+| **Review theo đơn**      | `src/apis/reviewApi.ts`                      | `POST .../buyer/orders/:orderId/review` (path trong `API_PATHS.REVIEWS`)                                                                                                                                    |
+| **Kiểu dữ liệu**         | `src/types/order.ts`                         | `Order`, `CreateOrderRequest`, enum status / `fulfillmentType` khớp BE                                                                                                                                      |
 
-**Trang (UI) gọi service/API:** chủ yếu `features/buyer/` (Checkout, Transaction, Finalize, Success), `features/seller/` (dashboard đơn), các trang `admin/*` — luồng xử lý: [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md), bảng path: [QUICK-REFERENCE.md](QUICK-REFERENCE.md).
+**Trang (UI) gọi service/API:** chủ yếu `features/buyer/` (Checkout, Transaction, Finalize, Success), `features/seller/` (dashboard đơn), các trang `admin/*` — chi tiết mapping: [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md), luồng xử lý: [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md).
+
+**Loading xe đạp (UI):** `src/components/common/BicycleLoader.tsx` — `BicycleLoader`, `BicycleLoadingBlock`; fallback lazy route: `src/shared/components/common/RouteFallback.tsx`. Hướng dẫn: [FRONTEND-DEVELOPER-GUIDE.md#bicycle-loader](FRONTEND-DEVELOPER-GUIDE.md#bicycle-loader).
 
 **Backend tham chiếu (Node demo):** `backend/src/controllers/buyerController.js`, `sellerController.js`, `adminController.js` (không nằm trong cây `src/` FE ở trên).
 
@@ -125,4 +122,4 @@ import { env } from "@/lib/env";
 
 ---
 
-*Cập nhật: đồng bộ với README gốc, [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) và hướng dẫn kiến trúc V2.*
+_Cập nhật: đồng bộ với README gốc, [FRONTEND-DEVELOPER-GUIDE.md](FRONTEND-DEVELOPER-GUIDE.md) và hướng dẫn kiến trúc V2._

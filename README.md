@@ -232,9 +232,14 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 | **Business rules** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ |
 | **VNPay** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Luồng thanh toán |
 | **Mục lục docs** | [docs/README.md](docs/README.md) | Danh sách file còn lại |
+| **Học FE từ đầu (00–09)** | [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) | Web, React, `src/`, API, Query, form, i18n |
 ---
 
 ## Lộ trình đọc cho người mới
+
+**Ngày 0 — Chưa quen React / muốn giải thích từ đầu (tùy chọn)**
+
+1. Đọc lần lượt [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) (phần 00 → 09).
 
 **Ngày 1 — Chạy được & hiểu repo**
 
@@ -256,6 +261,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 | Ngày | Nội dung |
 |------|----------|
+| **2026-04-01** | **Docs:** đồng bộ `docs/fe-hoc-tu-dau/`, cập nhật guides từ nhánh `BE2`; liên kết lộ trình “Ngày 0” + bảng tài liệu; **`docs/STRUCTURE.md`** ghi rõ `front-only`; **i18n** `admin.tabStats`. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-31** | **Docs:** repo `front-only` — xóa các `.md` thuần backend trong `docs/`; thêm [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md); rút gọn `docs/README.md`, `AI-CONTEXT-for-TEAM.md`, README gốc. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-30** | **`npm run typecheck`** (`tsc --noEmit`) trong [package.json](package.json); README / HELP / guides nhắc dùng cùng lint + build. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-26** | **README:** bổ sung kịch bản mock / Spring; tài liệu backend sau này gom vào nhánh Bespring và *(03-31)* [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md). |

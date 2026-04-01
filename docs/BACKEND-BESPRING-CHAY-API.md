@@ -59,6 +59,7 @@ Sửa `.env` xong: **restart** `npm run dev`.
 
 | Hiện tượng | Hướng xử lý |
 |------------|-------------|
+| **Trình duyệt mở FE được nhưng không gọi được API** | BE có đang chạy trong IntelliJ không; `.env`: `VITE_USE_MOCK_API=false`, `VITE_API_BASE_URL` đúng (không `/` cuối); sau sửa `.env` **restart** `npm run dev`; DevTools → CORS / Network. Chi tiết: [FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be](./FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be). |
 | CORS / Network Error | BE phải cho phép origin FE (thường `http://localhost:5173`); xem cấu hình CORS trên repo Bespring. |
 | 404 / sai path | Đối chiếu `VITE_API_BASE_URL` và prefix `/api` với Swagger trên BE. |
 | Hai cổng trùng | Chỉ chạy **một** instance API trên cổng đã cấu hình. |

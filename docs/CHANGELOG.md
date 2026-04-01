@@ -6,11 +6,21 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
+## [01-04-2026]
+
+| Thay đổi | Chi tiết |
+|----------|----------|
+| **Học FE từ đầu** | Thêm thư mục **`docs/fe-hoc-tu-dau/`** (00–09 + `README`): nền tảng web/React, setup local, luồng `main.tsx` → router, cấu trúc `src/`, guard, API, React Query/Zustand, form/i18n/UI, liên kết nghiệp vụ & tài liệu sâu. Cập nhật **`docs/README.md`**, **`README.md`** (mục lộ trình + bảng bản đồ docs). |
+| **`front-only` đồng bộ** | Đưa gói tài liệu từ nhánh `BE2` (không merge cả nhánh — tránh đưa lại Spring/Node); chỉnh **`docs/STRUCTURE.md`** mô tả đúng repo chỉ FE; **`vi.json`**: `admin.tabStats`. **`BE2`** đã có commit docs tương ứng trước đó (`b337901`). |
+
+---
+
 ## [31-03-2026]
 
 | Thay đổi | Chi tiết |
 |----------|----------|
-| **Docs front-only** | Xóa các `.md` thuần backend trong `docs/` (`BACKEND-*`, `BE-FE-API-AUDIT*`, `ERD-*`). Thêm **`BACKEND-BESPRING-CHAY-API.md`** (hướng dẫn FE lấy nhánh Bespring, chạy API, `.env`). Viết lại **`docs/README.md`**, **`AI-CONTEXT-for-TEAM.md`** (chỉ FE + QA). Cập nhật README gốc, `HELP`, `QUICK-REFERENCE`. |
+| **Docs front-only** | Xóa các `.md` thuần backend trong `docs/` (`BACKEND-*`, `BE-FE-API-AUDIT*`, `ERD-*`). Thêm **`BACKEND-BESPRING-CHAY-API.md`**. Viết lại **`docs/README.md`**, **`AI-CONTEXT-for-TEAM.md`**. Cập nhật `HELP`, `QUICK-REFERENCE`. |
+| **Hướng dẫn FE (bổ sung)** | **FRONTEND-DEVELOPER-GUIDE:** §2.1 VS Code, §2.2 FE↔BE, §12.2 `BicycleLoader`/`RouteFallback`, §15 Bespring; **README**, **HELP**, **STRUCTURE**, **BACKEND-BESPRING**: liên kết anchor `#fe-ket-noi-be`, `#bicycle-loader`. |
 
 ---
 
@@ -18,17 +28,8 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 | Thay đổi | Chi tiết |
 |----------|----------|
-| **Nhánh Spring `Bespring`** | README: backend chuẩn team theo [bike-trading-backend @ Bespring](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring); `git worktree`. *(03-31: phần setup chi tiết chuyển sang `BACKEND-BESPRING-CHAY-API`; `BACKEND-LOCAL-SETUP` đã xóa.)* |
-| **Gộp tài liệu ít dùng** | Xóa `FE-V2-VERIFICATION-GUIDE.md`, `UI-UX-AUDIT-BY-ACTOR.md`, `AI-CONTEXT-for-BACKEND.md`. Nội dung lần lượt vào **`FE-ARCHITECTURE-V1-VS-V2.md`** (Phụ lục §8), **`BE-FE-API-AUDIT-BY-PAGE.md`** (Phụ lục §6 UI/UX), **`AI-CONTEXT-for-TEAM.md`** (mục **A.7**). Cập nhật liên kết trong README, `docs/README`, `HELP`, `QUICK-REFERENCE`, `FRONTEND-DEVELOPER-GUIDE`, `PROJECT-SUMMARY`, `AI-CONTEXT-for-TEAM`. |
-| **`docs/README.md`** | Lọc mục lục: thêm **Phân loại — tránh đọc trùng**; thay bảng “mục lục đầy đủ” phẳng bằng **mục lục theo nhóm** (FE / BE / audit / DB / vận hành). |
-| **`docs/QUICK-REFERENCE.md`** | Làm rõ link README gốc repo vs `docs/README`. |
-| **`docs/STRUCTURE.md`** | Ghi chú `CartPage` tồn tại nhưng chưa có route `/cart`. |
-| **`package.json` + README gốc + `HELP.md`** | Script **`npm run typecheck`** (`tsc --noEmit`); PR/checklist và FAQ nhắc thêm (Vite build không thay thế `tsc`). |
-| **`BACKEND-NODE-TO-SPRING-BOOT.md`** | Viết lại: trọng tâm **Spring Boot (IntelliJ) + MySQL/JPA** và thiết kế SQL (`ERD-SPEC`, script); bỏ Mongo làm mô hình chuyển giao; folder `backend/` chỉ tham chiếu contract HTTP tùy chọn; đổi mục lục & cập nhật liên kết README/QUICK-REFERENCE/BACKEND-GUIDE/business-rules. |
-| **`AI-CONTEXT-for-BACKEND.md`**, **`AI-CONTEXT-for-TEAM.md`** | Backend: bảng đúng/sai (Spring+MySQL vs Mongo), gói file + prompt; khối bối cảnh mục 0 nhắc IntelliJ/JPA; Phần A — ràng buộc entity/ERD; đổi `§0` → mục 0; bảng tổng hợp backend thêm ERD-SPEC. |
 | **`FRONTEND-DEVELOPER-GUIDE.md`** | Hướng dẫn FE tổng hợp (lần 1): stack, env, cấu trúc `src/`, bảng route, guard, API layers, Query/`queryKeys`, Zustand, RHF+Zod, i18n, UI, checklist, xử lý sự cố. **Bổ sung:** alias TS/Vite; `env.ts` vs `apiConfig`; chi tiết interceptor/refresh `apiClient`; `getApiErrorMessage`; `queryClient` defaults; i18n + `useLanguageStore`; `MainLayout`/scroll; lint/build. |
 | **README, `docs/README`, STRUCTURE, `AI-CONTEXT-for-TEAM`** | Liên kết tới guide; lộ trình người mới đọc guide sau README. |
-| **Hướng dẫn Backend (`BACKEND-GUIDE`, `BACKEND-LOCAL-SETUP`, `QUICK-REFERENCE`)** | Đồng bộ: file **`.env` FE nằm ở root repo** (cùng `package.json`), không dùng đường dẫn `frontend/.env`; ghi chú **`GET /api/inspector/listings/:id`** trong `BACKEND-GUIDE` (liên kết Spring/QUICK-REFERENCE). |
 
 ---
 
@@ -112,4 +113,4 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 ---
 
-*Cập nhật lần cuối: 30-03-2026 — tiêu đề [ngày-tháng], sắp mới → cũ; bảng Thay đổi / Chi tiết.*
+*Cập nhật lần cuối: 26-03-2026 — tiêu đề [ngày-tháng], sắp mới → cũ; bảng Thay đổi / Chi tiết.*
