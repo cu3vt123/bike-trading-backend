@@ -2,9 +2,9 @@
 
 Repo nhánh **`front-only`**: chỉ **React + Vite**. **[README.md](../README.md)** ở gốc repo: cài đặt, `.env`, chạy `npm run dev`.
 
-**Cần chạy API thật:** [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md) — lấy nhánh **`Bespring`**, worktree/clone riêng, nối `VITE_API_BASE_URL`.
+**Học code FE (mock trước, không cần backend):** [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md) — có **bài 10** (luồng mua + kiểm định) và **bài 11** (đổi lưới 3→4 cột).
 
-**Mới học FE / lộ trình từ đầu đến cuối:** [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md).
+*(Tùy chọn — khi đã có API chạy ngoài repo FE:)* [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
 
 ---
 
@@ -12,7 +12,7 @@ Repo nhánh **`front-only`**: chỉ **React + Vite**. **[README.md](../README.md
 
 | Nhu cầu | File |
 |---------|------|
-| Học FE & repo từ nền tảng web tới `src/` (00–09) | [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md) |
+| Học FE từ 00–11 (có thực hành luồng mua + layout) | [fe-hoc-tu-dau/README.md](./fe-hoc-tu-dau/README.md) |
 | Hướng dẫn FE một file | [FRONTEND-DEVELOPER-GUIDE.md](./FRONTEND-DEVELOPER-GUIDE.md) |
 | API, route, role, env | [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) |
 | Luồng axios → apis → services | [FRONTEND-API-FLOWS.md](./FRONTEND-API-FLOWS.md) |

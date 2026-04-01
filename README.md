@@ -239,7 +239,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 **Ngày 0 — Chưa quen React / muốn giải thích từ đầu (tùy chọn)**
 
-1. Đọc lần lượt [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) (phần 00 → 09).
+1. Đọc [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) (00 → 09), sau đó **bài thực hành** [10 — luồng mua + kiểm định](docs/fe-hoc-tu-dau/10-thuc-hanh-luong-mua-xe-kiem-dinh.md) và [11 — đổi lưới 3→4 cột](docs/fe-hoc-tu-dau/11-thuc-hanh-doi-so-cot-luoi-tailwind.md).
 
 **Ngày 1 — Chạy được & hiểu repo**
 
@@ -261,7 +261,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 | Ngày | Nội dung |
 |------|----------|
-| **2026-04-01** | **Docs:** đồng bộ `docs/fe-hoc-tu-dau/`, cập nhật guides từ nhánh `BE2`; liên kết lộ trình “Ngày 0” + bảng tài liệu; **`docs/STRUCTURE.md`** ghi rõ `front-only`; **i18n** `admin.tabStats`. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
+| **2026-04-01** | **`docs/fe-hoc-tu-dau`:** thêm bài **10** (luồng mua + kiểm định trong code), **11** (đổi lưới 3→4 cột); **01–02** và mục lục tập trung **mock / học FE**, backend ghi *tùy chọn*. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-31** | **Docs:** repo `front-only` — xóa các `.md` thuần backend trong `docs/`; thêm [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md); rút gọn `docs/README.md`, `AI-CONTEXT-for-TEAM.md`, README gốc. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-30** | **`npm run typecheck`** (`tsc --noEmit`) trong [package.json](package.json); README / HELP / guides nhắc dùng cùng lint + build. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-26** | **README:** bổ sung kịch bản mock / Spring; tài liệu backend sau này gom vào nhánh Bespring và *(03-31)* [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md). |

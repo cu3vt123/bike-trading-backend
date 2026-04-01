@@ -1,49 +1,42 @@
-# 01 — Dự án là gì, repo này chứa gì
+# 01 — Dự án là gì (góc nhìn Frontend)
 
-## ShopBike (Bike Trading) là gì
+## ShopBike là gì
 
-Ở góc độ frontend: đây là ứng dụng **web marketplace** cho xe đạp — có **người mua**, **người bán**, **kiểm định viên**, **admin**, luồng **đặt hàng / kho / thanh toán** (VNPay trong tài liệu riêng).
+Ứng dụng **web** marketplace xe đạp: **buyer** xem xe và mua, **seller** đăng tin, **inspector** xử lý kiểm định tin, **admin** xử lý kho / một phần kiểm soát. Phần **thanh toán** (VNPay) gắn với vài màn hình — bạn học dần qua code và mock.
 
-Bạn không cần nhớ hết nghiệp vụ ngay; quan trọng là biết **FE hiển thị dữ liệu và hành động** theo API backend.
-
----
-
-## Repo `front-only` (thư mục frontend bạn đang mở)
-
-- Chỉ có **mã React + Vite + TypeScript** (và tài liệu).
-- **Không** có source Spring Boot hay MySQL **trong** repo này.
-- Backend chính được team đặt trên nhánh **[Bespring](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring)** cùng remote GitHub — dev FE thường **clone worktree** hoặc clone thư mục riêng để chạy API.
-
-Điều đó có nghĩa:
-
-- File `.env` ở **root** frontend quyết định FE gọi **mock** hay **API thật** (`VITE_USE_MOCK_API`, `VITE_API_BASE_URL`).
-- Khi báo lỗi “API không chạy”, cần kiểm tra **terminal backend** và **URL trong `.env`**, không chỉ code React.
+**Trọng tâm khi học nhánh này:** đọc **React**, **route**, **component**, **hook gọi dữ liệu**, **trạng thái đơn** trên UI — không cần cài hay hiểu chi tiết backend để bắt đầu.
 
 ---
 
-## Các “vai” (role) trong app
+## Repo `front-only` chứa gì
 
-FE kiểm tra quyền qua token + route guard (chi tiết ở phần 05). Tóm tắt:
+- **Chỉ** mã **React + Vite + TypeScript** trong `src/` + tài liệu `docs/`.
+- Dữ liệu khi dev: thường bật **mock** (`VITE_USE_MOCK_API=true` trong `.env`) để chạy app **không cần** chạy máy chủ API — xem phần 02.
 
-| Role (khác nhau tùy backend) | Giao diện điển hình |
-|------------------------------|---------------------|
-| Khách | Xem sản phẩm, đăng ký / đăng nhập |
-| Buyer | Giỏ hàng, checkout, theo dõi đơn |
-| Seller | Dashboard, đăng tin, gói dịch vụ |
-| Inspector | Duyệt tin / kiểm định |
-| Admin | Quản trị người dùng, đơn kho, duyệt |
-
-Danh sách route và path API tra cứu nhanh: [QUICK-REFERENCE.md](../QUICK-REFERENCE.md).
+Nếu sau này bạn nối API thật, chỉ cần chỉnh `.env` và hiểu là FE nhận **JSON** qua HTTP; phần **“mở server backend ở đâu”** là việc riêng, không nằm trong repo này.
 
 ---
 
-## Tài liệu tổng quan sản phẩm (không chỉ code)
+## Các vai (role) và màn hình
 
-Nếu bạn muốn hiểu **luồng nghiệp vụ** trước khi đọc code:
+| Role | Bạn sẽ mở page nào (gợi ý) |
+|------|-----------------------------|
+| Khách / Buyer | Trang chủ, chi tiết xe, giỏ, checkout, transaction |
+| Seller | Seller dashboard, sửa tin |
+| Inspector | Inspector dashboard |
+| Admin | Admin dashboard |
+
+Route cụ thể nằm trong **`src/app/router.tsx`** (phần 05).
+
+---
+
+## Tài liệu nghiệp vụ (khi cần hiểu sâu)
 
 - [PROJECT-SUMMARY.md](../PROJECT-SUMMARY.md)
 - [business-rules/BUSINESS-RULES.md](../business-rules/BUSINESS-RULES.md)
 
+**Thực hành theo luồng mua + kiểm định trong code:** [10-thuc-hanh-luong-mua-xe-kiem-dinh.md](./10-thuc-hanh-luong-mua-xe-kiem-dinh.md).
+
 ---
 
-**Tiếp theo:** [02-cai-dat-va-chay-local.md](./02-cai-dat-va-chay-local.md) — cài Node, tạo `.env`, chạy `npm run dev`.
+**Tiếp theo:** [02-cai-dat-va-chay-local.md](./02-cai-dat-va-chay-local.md).

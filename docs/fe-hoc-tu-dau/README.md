@@ -1,8 +1,10 @@
-# Học Frontend ShopBike từ đầu
+# Học Frontend ShopBike từ đầu (tập trung code FE)
 
-Bộ tài liệu này nằm trong repo **frontend** (`front-only`): giải thích **từ ý tưởng web** tới **cách code trong `src/`** của dự án thật. Đọc **theo thứ tự** phần 00 → 09.
+Bộ tài liệu trong thư mục này giúp bạn đọc **`src/`** từ dễ đến khó: từ nền tảng web/React → router → API layer → **hai bài thực hành** (luồng mua có kiểm định + đổi lưới 3→4 cột).
 
-Sau khi đọc xong, bạn dùng song song các file tra cứu sâu: [FRONTEND-DEVELOPER-GUIDE.md](../FRONTEND-DEVELOPER-GUIDE.md), [STRUCTURE.md](../STRUCTURE.md), [QUICK-REFERENCE.md](../QUICK-REFERENCE.md).
+**Ưu tiên khi học:** bật **`VITE_USE_MOCK_API=true`** (phần 02) — không cần đọc hướng dẫn backend để chạy được app.
+
+Tài liệu tra cứu dài hơn (khi đi làm thật): [FRONTEND-DEVELOPER-GUIDE.md](../FRONTEND-DEVELOPER-GUIDE.md), [STRUCTURE.md](../STRUCTURE.md), [QUICK-REFERENCE.md](../QUICK-REFERENCE.md).
 
 ---
 
@@ -10,29 +12,26 @@ Sau khi đọc xong, bạn dùng song song các file tra cứu sâu: [FRONTEND-D
 
 | Thứ tự | File | Nội dung chính |
 |--------|------|----------------|
-| 00 | [00-nen-tang-web-va-react.md](./00-nen-tang-web-va-react.md) | Trình duyệt, HTTP, DOM, JavaScript, React (khái niệm) |
-| 01 | [01-du-an-la-gi.md](./01-du-an-la-gi.md) | ShopBike là gì, nhánh `front-only`, backend ở đâu |
-| 02 | [02-cai-dat-va-chay-local.md](./02-cai-dat-va-chay-local.md) | Node, npm, `.env`, mock vs API thật |
-| 03 | [03-luong-chay-ung-dung.md](./03-luong-chay-ung-dung.md) | `main.tsx` → `App` → providers → router |
-| 04 | [04-cau-truc-thu-muc-src.md](./04-cau-truc-thu-muc-src.md) | `features/`, `shared/`, `lib/`, `apis/`, `hooks/` |
-| 05 | [05-routing-va-guard.md](./05-routing-va-guard.md) | `createBrowserRouter`, `RequireAuth`, role |
-| 06 | [06-goi-api-va-loi.md](./06-goi-api-va-loi.md) | `apiClient`, `apiConfig`, `apis/`, lỗi mạng |
-| 07 | [07-react-query-va-zustand.md](./07-react-query-va-zustand.md) | TanStack Query, `queryKeys`, auth store |
-| 08 | [08-form-i18n-giao-dien.md](./08-form-i18n-giao-dien.md) | React Hook Form, Zod, i18n, Tailwind |
-| 09 | [09-ket-noi-nghiep-vu-va-doc-tiep.md](./09-ket-noi-nghiep-vu-va-doc-tiep.md) | Đơn hàng, tra cứu, tài liệu tiếp theo |
+| 00 | [00-nen-tang-web-va-react.md](./00-nen-tang-web-va-react.md) | Trình duyệt, HTTP, JS, React (khái niệm) |
+| 01 | [01-du-an-la-gi.md](./01-du-an-la-gi.md) | ShopBike, `front-only`, **góc nhìn chỉ FE** |
+| 02 | [02-cai-dat-va-chay-local.md](./02-cai-dat-va-chay-local.md) | Node, npm, `.env`, **mock trước** |
+| 03 | [03-luong-chay-ung-dung.md](./03-luong-chay-ung-dung.md) | `main.tsx` → `App` → router |
+| 04 | [04-cau-truc-thu-muc-src.md](./04-cau-truc-thu-muc-src.md) | `features/`, `lib/`, `apis/`… |
+| 05 | [05-routing-va-guard.md](./05-routing-va-guard.md) | Route, guard theo role |
+| 06 | [06-goi-api-va-loi.md](./06-goi-api-va-loi.md) | `apiClient`, path, lỗi |
+| 07 | [07-react-query-va-zustand.md](./07-react-query-va-zustand.md) | Query, cache, Zustand |
+| 08 | [08-form-i18n-giao-dien.md](./08-form-i18n-giao-dien.md) | Form, i18n, Tailwind |
+| 09 | [09-ket-noi-nghiep-vu-va-doc-tiep.md](./09-ket-noi-nghiep-vu-va-doc-tiep.md) | Liên kết tài liệu khác |
+| **10** | **[10-thuc-hanh-luong-mua-xe-kiem-dinh.md](./10-thuc-hanh-luong-mua-xe-kiem-dinh.md)** | **Luồng mua + kho + kiểm định — mở file nào** |
+| **11** | **[11-thuc-hanh-doi-so-cot-luoi-tailwind.md](./11-thuc-hanh-doi-so-cot-luoi-tailwind.md)** | **Đổi 3 cột → 4 cột (Tailwind)** |
 
 ---
 
-## Ai nên đọc bộ này
+## Ai nên đọc
 
-- Mới học React hoặc mới vào team FE.
-- Muốn hiểu **vì sao** repo tổ chức như vậy trước khi sửa code.
-- Đã chạy được `npm run dev` nhưng chưa rõ luồng file nào gọi đâu.
+- Muốn **học lại từ đầu** và bám vào repo thật.
+- Cần ví dụ **cụ thể**: Transaction / Home grid.
 
 ---
 
-## Ghi chú về nhánh `front-only`
-
-Repo này **không** chứa mã Java/Spring. API thật thường chạy từ nhánh **Bespring** trên repo backend — xem [BACKEND-BESPRING-CHAY-API.md](../BACKEND-BESPRING-CHAY-API.md).
-
-*Bộ này: 2026-04-01 — bổ sung lộ trình “học từ đầu” cho FE.*
+*Cập nhật: 2026-04-01 — thêm 10–11; 01–02 và README tập trung FE + mock.*

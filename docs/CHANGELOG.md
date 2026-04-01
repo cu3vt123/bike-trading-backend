@@ -10,8 +10,7 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 
 | Thay đổi | Chi tiết |
 |----------|----------|
-| **Học FE từ đầu** | Thêm thư mục **`docs/fe-hoc-tu-dau/`** (00–09 + `README`): nền tảng web/React, setup local, luồng `main.tsx` → router, cấu trúc `src/`, guard, API, React Query/Zustand, form/i18n/UI, liên kết nghiệp vụ & tài liệu sâu. Cập nhật **`docs/README.md`**, **`README.md`** (mục lộ trình + bảng bản đồ docs). |
-| **`front-only` đồng bộ** | Đưa gói tài liệu từ nhánh `BE2` (không merge cả nhánh — tránh đưa lại Spring/Node); chỉnh **`docs/STRUCTURE.md`** mô tả đúng repo chỉ FE; **`vi.json`**: `admin.tabStats`. **`BE2`** đã có commit docs tương ứng trước đó (`b337901`). |
+| **fe-hoc-tu-dau** | Bài **10–11** (trace luồng mua + kiểm định / kho; đổi lưới Tailwind 3→4 cột). **01–02** + README bộ học: **mock trước**, bớt nhấn backend. **`docs/README`**, README gốc: ưu tiên học FE — Bespring *tùy chọn*. (Trước đó cùng mục: thêm 00–09, đồng bộ `BE2`, `STRUCTURE` FE-only, `vi.json` `admin.tabStats`.) |
 
 ---
 
