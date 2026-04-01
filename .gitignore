@@ -32,6 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 
+### ShopBike Vite app (bike-trading-admin-page) ###
+bike-trading-admin-page/node_modules/
+bike-trading-admin-page/dist/
+bike-trading-admin-page/.env
+bike-trading-admin-page/.vite/
+
 ### Local uploaded listing images (§13.6) ###
 /uploads/
 
