@@ -1,0 +1,15 @@
+package com.minhyun.quydu_be.entity;
+
+public enum ListingState {
+    DRAFT,
+    PENDING_INSPECTION,
+    AWAITING_WAREHOUSE,
+    AT_WAREHOUSE_PENDING_VERIFY,
+    AT_WAREHOUSE_PENDING_RE_INSPECTION,
+    NEED_UPDATE,
+    PUBLISHED,
+    RESERVED,
+    IN_TRANSACTION,
+    SOLD,
+    REJECTED
+}

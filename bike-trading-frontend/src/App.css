@@ -1,0 +1,70 @@
+/* App.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Navbar container */
+.navbar-custom {
+  background-color: #F6F9E7 !important;
+  padding: 0;
+  width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-custom .container-fluid {
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo */
+.navbar-custom-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #4A4F25 !important;
+  text-decoration: none !important;
+}
+
+/* Menu */
+.navbar-custom-nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.navbar-custom-nav a {
+  color: #4A4F25 !important;
+  font-weight: 500;
+  text-decoration: none !important;
+  transition: color 0.3s;
+}
+
+.navbar-custom-nav a:hover {
+  color: var(--accent);
+}
+
+/* Search + Cart nếu có */
+.navbar-custom-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background-color: #F4F7CE;
+  padding: 0.5rem 1rem;
+}
+
+/* input */
+.navbar-custom-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 150px;
+}
+
+/* icon */
+.navbar-custom-search .icon {
+  cursor: pointer;
+  color: #4A4F25;
+}
