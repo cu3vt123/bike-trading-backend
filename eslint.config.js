@@ -8,7 +8,6 @@ export default defineConfig([
   /** Backend Node + Tailwind build config: không dùng globals browser */
   globalIgnores([
     'dist',
-    'backend/**',
     'tailwind.config.js',
     'postcss.config.js',
   ]),

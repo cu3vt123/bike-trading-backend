@@ -1,6 +1,7 @@
 package com.minhyun.quydu_be.security;
 
 import com.minhyun.quydu_be.entity.User;
+import com.minhyun.quydu_be.entity.UserRole;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +18,11 @@ public class CustomUserDetails implements UserDetails {
 
     public Long getId() {
         return user.getId();
+    }
+
+    /** Role hiện tại từ DB (sau khi giải mã JWT). */
+    public UserRole getRole() {
+        return user.getRole();
     }
 
     @Override

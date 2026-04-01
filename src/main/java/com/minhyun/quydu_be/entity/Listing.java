@@ -82,7 +82,7 @@ public class Listing extends BaseEntity {
     @Column(name = "inspection_need_update_reason", length = 1000)
     private String inspectionNeedUpdateReason;
 
-    /** NEW, LIKE_NEW, MINT_USED, GOOD_USED, FAIR_USED — khớp Node Listing.condition */
+    /** NEW, LIKE_NEW, MINT_USED, GOOD_USED, FAIR_USED — khớp contract ShopBike listing */
     @Column(name = "condition_code", length = 32)
     private String condition;
 

@@ -63,6 +63,10 @@ public class Order extends BaseEntity {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
+    /** Thời điểm buyer chủ động hủy qua API (không set khi hết hạn giữ chỗ tự động). Dùng giới hạn chống spam hủy. */
+    @Column(name = "buyer_cancelled_at")
+    private LocalDateTime buyerCancelledAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "vnpay_payment_status", length = 30)
     private VnpayPaymentStatus vnpayPaymentStatus;
@@ -98,6 +102,8 @@ public class Order extends BaseEntity {
     public void setReInspectionDoneAt(LocalDateTime reInspectionDoneAt) { this.reInspectionDoneAt = reInspectionDoneAt; }
     public LocalDateTime getExpiresAt() { return expiresAt; }
     public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public LocalDateTime getBuyerCancelledAt() { return buyerCancelledAt; }
+    public void setBuyerCancelledAt(LocalDateTime buyerCancelledAt) { this.buyerCancelledAt = buyerCancelledAt; }
     public VnpayPaymentStatus getVnpayPaymentStatus() { return vnpayPaymentStatus; }
     public void setVnpayPaymentStatus(VnpayPaymentStatus vnpayPaymentStatus) { this.vnpayPaymentStatus = vnpayPaymentStatus; }
     public BigDecimal getVnpayAmountVnd() { return vnpayAmountVnd; }

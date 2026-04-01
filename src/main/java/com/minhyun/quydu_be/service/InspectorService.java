@@ -8,6 +8,6 @@ public interface InspectorService {
     List<Map<String, Object>> pendingListings();
     Map<String, Object> getListing(Long id);
     Map<String, Object> approve(Long id, InspectorApproveRequest request);
-    Map<String, Object> reject(Long id);
+    Map<String, Object> reject(Long id, String reason);
     Map<String, Object> needUpdate(Long id, String reason);
 }

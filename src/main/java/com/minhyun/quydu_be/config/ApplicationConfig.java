@@ -19,11 +19,20 @@ public class ApplicationConfig {
     @Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
     private String corsAllowedOrigins;
 
+    /** Thêm origin (preview deploy, LAN), ngăn cách dấu phẩy — nối sau allowed-origins. */
+    @Value("${app.cors.extra-origins:}")
+    private String corsExtraOrigins;
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
-        String[] origins = Arrays.stream(corsAllowedOrigins.split(","))
+        String merged = corsAllowedOrigins;
+        if (corsExtraOrigins != null && !corsExtraOrigins.isBlank()) {
+            merged = merged + "," + corsExtraOrigins;
+        }
+        String[] origins = Arrays.stream(merged.split(","))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
+            .distinct()
             .toArray(String[]::new);
         return new WebMvcConfigurer() {
             @Override

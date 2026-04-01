@@ -6,7 +6,7 @@
 
 **Tra cứu nhanh:** [QUICK-REFERENCE.md](QUICK-REFERENCE.md) — API, thuật ngữ, luồng→API.  
 **Luồng gọi API trên FE:** [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) — `apiClient`, `apis`, `services`, VNPay, upload ảnh.  
-**Tham chiếu:** [BACKEND-GUIDE.md](./BACKEND-GUIDE.md); enum/trạng thái đơn & tin: `src/types/order.ts`, entity Java; sơ đồ nghiệp vụ: [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md).
+**Tham chiếu:** API/backend: [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md); enum/trạng thái đơn & tin: `src/types/order.ts`; sơ đồ nghiệp vụ: [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md).
 
 ---
 
@@ -37,7 +37,7 @@
 - **Axios** (HTTP client)
 - **react-i18next** (i18n – Tiếng Việt / English)
 
-**Repo nhánh BE2:** cùng project có **Spring Boot** (Java) dưới `src/main/java` — marketplace chạy API qua Spring hoặc mock/Node tùy cấu hình; xem [README.md](../README.md).
+**Repo `front-only`:** chỉ FE; API Spring trên nhánh **`Bespring`** (clone/worktree riêng); xem [README.md](../README.md) và [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
 
 ### Roles
 
@@ -83,7 +83,7 @@
 - **Thanh toán số dư (DEPOSIT):** Finalize có nút "Thanh toán nốt X qua VNPay" → redirect VNPay → Return về Finalize → Xác nhận hoàn tất. Order có field `balancePaid`.
 - **Thanh toán:** chỉ VNPAY (DEPOSIT 8% hoặc FULL). Bỏ CASH/COD.
 - **Thông báo in-app (seller):** chỉ một số trạng thái được đồng bộ — logic tách trong `src/services/sellerOrderNotificationFlow.ts` (nhóm *có thông báo* vs *im lặng*).
-- Chi tiết port sang Spring Boot: [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md).
+- Chạy API: [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md).
 
 ### 2.3 Refund & Hủy
 
@@ -340,13 +340,12 @@ Chi tiết: `docs/STRUCTURE.md`
 
 | File | Nội dung |
 |------|----------|
-| `docs/README.md` | Mục lục toàn bộ tài liệu |
-| `docs/BE-FE-API-AUDIT.md` | Rà soát API BE–FE theo khu vực — endpoint, logic, dead code đã xóa |
-| `docs/BE-FE-API-AUDIT-BY-PAGE.md` | Rà soát API theo từng trang/actor — mapping Page → API → BE route; [phụ lục UI/UX theo vai](BE-FE-API-AUDIT-BY-PAGE.md#phu-luc-ui-ux-theo-actor) |
-| `docs/STRUCTURE.md` | Cấu trúc feature-based, quy ước import |
-| `docs/ERD-MYSQL.md` | Thiết kế MySQL 17 bảng — ERD Mermaid, SQL schema |
+| `docs/README.md` | Mục lục tài liệu FE |
+| `docs/BACKEND-BESPRING-CHAY-API.md` | Lấy nhánh Bespring, chạy API, nối `.env` FE |
+| `docs/FRONTEND-API-FLOWS.md` | Luồng gọi API trong code |
+| `docs/QUICK-REFERENCE.md` | Bảng endpoint, role, env |
+| `docs/STRUCTURE.md` | Cấu trúc `src/`, quy ước import |
 | `docs/CHANGELOG.md` | Tóm tắt thay đổi |
-| `backend/README.md` | Chạy backend Node demo |
 
 ---
 
@@ -393,4 +392,4 @@ Chi tiết: `docs/STRUCTURE.md`
 
 ---
 
-*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands, gói đăng tin, `fulfillmentType` kho/direct, `sellerOrderNotificationFlow`, doc Spring Boot, rà soát API BE–FE theo trang (`BE-FE-API-AUDIT-BY-PAGE.md`), xóa dead code `BUYER.PROFILE`/`buyerProfileApi`.*
+*Tài liệu cập nhật: 2025-02 – Login không chọn role, Admin unhide, VND, Wishlist BUYER, Seller notifications, Hero slogan; 2025-03 – Dark/light, i18n toàn app, thông báo lỗi đa ngôn ngữ, Seller Orders/Ratings, Admin Categories/Transactions, flow doc, logic thông báo, giỏ hàng → wishlist; 2026-03 – fix role switch/403, deposit 8%, seller ratings API thật, CRUD brands, gói đăng tin, `fulfillmentType` kho/direct, `sellerOrderNotificationFlow`; 2026-03-31 – repo front-only, doc API qua `BACKEND-BESPRING-CHAY-API.md`; xóa dead code `BUYER.PROFILE`/`buyerProfileApi`.*

@@ -2,9 +2,9 @@
 
 > Tài liệu tra cứu nhanh: thuật ngữ, API, routes, biến môi trường, vị trí file. Dùng khi onboard, port BE, hoặc tra cứu thông tin.
 
-**Nguồn chi tiết:** [README gốc repo](../README.md) (cài đặt, chạy) · [Mục lục docs](README.md) · [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) · [BACKEND-GUIDE.md](BACKEND-GUIDE.md) · [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) · [ERD-SPEC.md](ERD-SPEC.md)
+**Nguồn chi tiết:** [README gốc repo](../README.md) · [Mục lục docs](README.md) · [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) · [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md)
 
-**Monorepo BE2:** `src/` = FE (Vite) + `src/main/java` (Spring). Chạy BE Java: [README.md](../README.md) phần A. **Spring Boot (IntelliJ) + MySQL:** [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) — intro + mục **Thiết kế SQL**.
+**Repo `front-only`:** chỉ FE (Vite) trong `src/`. API Spring: nhánh **`Bespring`** — [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md).
 
 ---
 
@@ -176,10 +176,9 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 | Mục đích | Đường dẫn |
 |----------|-----------|
-| Schema SQL | docs/sql/shopbike_mysql_schema.sql |
+| Chạy API Bespring + nối FE | [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md) |
+| Schema SQL (tham chiếu, có thể lệch nhánh BE) | docs/sql/shopbike_mysql_schema.sql |
 | ERD Mermaid | docs/sql/shopbike_erd.mmd |
-| Đặc tả schema | docs/ERD-SPEC.md |
-| Port Spring Boot | docs/BACKEND-NODE-TO-SPRING-BOOT.md |
 
 ---
 
@@ -219,12 +218,8 @@ Status: 400 (bad request), 401 (unauthorized), 403 (forbidden), 404, 500.
 
 | Nhiệm vụ | Tài liệu |
 |----------|----------|
-| Kiểm tra khớp API BE–FE (theo khu vực) | [BE-FE-API-AUDIT.md](BE-FE-API-AUDIT.md) |
-| Kiểm tra khớp API BE–FE (theo trang/actor) | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
-| Chạy backend Node | [BACKEND-GUIDE.md](BACKEND-GUIDE.md) |
-| PM / QA / FE hỗ trợ BE (thuật ngữ, mẫu ticket) | [BACKEND-COLLABORATION.md](BACKEND-COLLABORATION.md) |
-| Port sang Spring Boot | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |
-| Tạo/sửa schema MySQL | [ERD-SPEC.md](ERD-SPEC.md), [ERD-HUONG-DAN.md](ERD-HUONG-DAN.md) |
+| Chạy API + worktree Bespring | [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md) |
+| Map màn ↔ endpoint trong code FE | [FRONTEND-API-FLOWS.md](FRONTEND-API-FLOWS.md) |
 | Hiểu business rules | [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
 | Tổng quan luồng & BR | [PROJECT-SUMMARY.md](PROJECT-SUMMARY.md), [business-rules/BUSINESS-RULES.md](business-rules/BUSINESS-RULES.md) |
 | VNPay | [PAYMENTS-VNPAY.md](PAYMENTS-VNPAY.md) |

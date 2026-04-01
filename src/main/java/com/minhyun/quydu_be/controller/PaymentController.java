@@ -1,21 +1,30 @@
 package com.minhyun.quydu_be.controller;
 
-import com.minhyun.quydu_be.dto.ApiResponse;
+import com.minhyun.quydu_be.web.RestResponses;
 import com.minhyun.quydu_be.entity.Order;
+import com.minhyun.quydu_be.entity.OrderFulfillmentType;
 import com.minhyun.quydu_be.entity.OrderStatus;
 import com.minhyun.quydu_be.entity.PackageOrder;
 import com.minhyun.quydu_be.entity.PackageOrderStatus;
 import com.minhyun.quydu_be.entity.SubscriptionPlan;
 import com.minhyun.quydu_be.entity.User;
 import com.minhyun.quydu_be.entity.VnpayPaymentStatus;
+import com.minhyun.quydu_be.exception.ErrorResponse;
 import com.minhyun.quydu_be.repository.OrderRepository;
 import com.minhyun.quydu_be.repository.PackageOrderRepository;
 import com.minhyun.quydu_be.repository.UserRepository;
+import com.minhyun.quydu_be.service.VnpayUrlService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,32 +39,66 @@ public class PaymentController {
     private final OrderRepository orderRepository;
     private final PackageOrderRepository packageOrderRepository;
     private final UserRepository userRepository;
+    private final VnpayUrlService vnpayUrlService;
+
+    @Value("${app.frontend-base-url:http://localhost:5173}")
+    private String frontendBaseUrl;
 
     public PaymentController(
         OrderRepository orderRepository,
         PackageOrderRepository packageOrderRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        VnpayUrlService vnpayUrlService
     ) {
         this.orderRepository = orderRepository;
         this.packageOrderRepository = packageOrderRepository;
         this.userRepository = userRepository;
+        this.vnpayUrlService = vnpayUrlService;
     }
 
+    /**
+     * Create a signed VNPAY payment URL for an existing order (deposit/full step).
+     * <p><b>GET is not supported</b> on {@code /payment/create} — use this POST with JSON body.</p>
+     */
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> create(@RequestBody(required = false) Map<String, Object> request) {
-        Object orderId = request == null ? null : request.get("orderId");
-        String url = "http://localhost:8081/payment/vnpay-return?vnp_ResponseCode=00&vnp_TxnRef=ORDER_" + (orderId == null ? "" : orderId);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Created payment", Map.of("paymentUrl", url)));
+    public ResponseEntity<Map<String, Object>> create(@RequestBody(required = false) Map<String, Object> request) {
+        if (request == null || request.get("orderId") == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "orderId is required for payment amount"));
+        }
+        Long orderId;
+        try {
+            orderId = Long.valueOf(String.valueOf(request.get("orderId")));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "invalid orderId"));
+        }
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "order not found"));
+        }
+        String txnRef = "ORDER_" + orderId;
+        BigDecimal amountBd = order.getVnpayAmountVnd() != null ? order.getVnpayAmountVnd() : order.getTotalPrice();
+        long amountVnd = amountBd.setScale(0, RoundingMode.HALF_UP).longValue();
+        if (amountVnd <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "invalid payment amount"));
+        }
+        String url = vnpayUrlService.buildPaymentUrl(txnRef, "ShopBike order " + orderId, amountVnd);
+        return RestResponses.okData(Map.of("paymentUrl", url));
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public ResponseEntity<Void> createByGet(
-        @RequestParam(name = "orderId", required = false) Long orderId,
-        @RequestParam(name = "kind", required = false) String kind
-    ) {
-        String prefix = "BALANCE".equalsIgnoreCase(kind) ? "BALANCE_" : "ORDER_";
-        String url = "http://localhost:8081/payment/vnpay-return?vnp_ResponseCode=00&vnp_TxnRef=" + prefix + (orderId == null ? "" : orderId);
-        return ResponseEntity.status(302).header(HttpHeaders.LOCATION, url).build();
+    @GetMapping("/create")
+    public ResponseEntity<ErrorResponse> createGetNotAllowed(HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.METHOD_NOT_ALLOWED.value(),
+            HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase(),
+            "Use POST with Content-Type: application/json and body {\"orderId\": <long>}. "
+                + "Opening /payment/create in a browser (GET) is not supported; use Swagger, curl, or the FE calling POST.",
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+            .header(HttpHeaders.ALLOW, "POST")
+            .body(body);
     }
 
     @GetMapping("/vnpay-return")
@@ -72,11 +115,31 @@ public class PaymentController {
             String sellerRedirect = "http://localhost:5173/seller/packages?vnpay=1&ok=" + (success && applied ? "1" : "0");
             return ResponseEntity.status(302).header(HttpHeaders.LOCATION, sellerRedirect).build();
         }
-        return ResponseEntity.ok(new ApiResponse<>(
-            true,
-            "Processed return",
-            Map.of("success", success && applied, "txnRef", txnRef, "responseCode", responseCode)
-        ));
+        if (txnRef != null && txnRef.startsWith("BALANCE_")) {
+            Long orderId = extractNumericId(txnRef.substring("BALANCE_".length()));
+            String listingId = "";
+            String orderIdText = "";
+            if (orderId != null) {
+                orderIdText = String.valueOf(orderId);
+                listingId = orderRepository.findById(orderId).map(o -> String.valueOf(o.getListing().getId())).orElse("");
+            }
+            String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
+            String url = base
+                + "/finalize/" + encode(listingId)
+                + "?orderId=" + encode(orderIdText)
+                + "&vnpay_balance=" + ((success && applied) ? "1" : "0");
+            return ResponseEntity.status(302).header(HttpHeaders.LOCATION, url).build();
+        }
+        Long orderId = null;
+        if (txnRef != null) {
+            if (txnRef.startsWith("ORDER_")) {
+                orderId = extractNumericId(txnRef.substring("ORDER_".length()));
+            } else if (txnRef.startsWith("BALANCE_")) {
+                orderId = extractNumericId(txnRef.substring("BALANCE_".length()));
+            }
+        }
+        String buyerRedirect = buildBuyerReturnRedirect(orderId, txnRef, responseCode, success && applied);
+        return ResponseEntity.status(302).header(HttpHeaders.LOCATION, buyerRedirect).build();
     }
 
     @GetMapping("/vnpay-ipn")
@@ -91,25 +154,33 @@ public class PaymentController {
     }
 
     private boolean processTxnRef(String txnRef) {
-        if (txnRef == null || txnRef.isBlank()) return false;
+        if (txnRef == null || txnRef.isBlank()) {
+            return false;
+        }
         try {
             if (txnRef.startsWith("ORDER_")) {
                 Long orderId = extractNumericId(txnRef.substring("ORDER_".length()));
-                if (orderId == null) return false;
+                if (orderId == null) {
+                    return false;
+                }
                 return orderRepository.findById(orderId).map(o -> {
                     markDepositPaid(o);
                     return true;
                 }).orElse(false);
             } else if (txnRef.startsWith("BALANCE_")) {
                 Long orderId = extractNumericId(txnRef.substring("BALANCE_".length()));
-                if (orderId == null) return false;
+                if (orderId == null) {
+                    return false;
+                }
                 return orderRepository.findById(orderId).map(o -> {
                     markBalancePaid(o);
                     return true;
                 }).orElse(false);
             } else if (txnRef.startsWith("PACKAGE_")) {
                 Long packageOrderId = extractNumericId(txnRef.substring("PACKAGE_".length()));
-                if (packageOrderId == null) return false;
+                if (packageOrderId == null) {
+                    return false;
+                }
                 return packageOrderRepository.findById(packageOrderId).map(p -> {
                     markPackagePaid(p);
                     return true;
@@ -117,13 +188,14 @@ public class PaymentController {
             }
             return false;
         } catch (Exception ignored) {
-            // Keep endpoint resilient for sandbox callbacks.
             return false;
         }
     }
 
     private Long extractNumericId(String raw) {
-        if (raw == null || raw.isBlank()) return null;
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
         StringBuilder digits = new StringBuilder();
         for (int i = 0; i < raw.length(); i++) {
             char c = raw.charAt(i);
@@ -133,7 +205,9 @@ public class PaymentController {
                 break;
             }
         }
-        if (digits.isEmpty()) return null;
+        if (digits.isEmpty()) {
+            return null;
+        }
         try {
             return Long.parseLong(digits.toString());
         } catch (NumberFormatException ex) {
@@ -145,7 +219,14 @@ public class PaymentController {
         order.setDepositPaid(true);
         order.setVnpayPaymentStatus(VnpayPaymentStatus.PAID);
         if (order.getStatus() == OrderStatus.RESERVED) {
-            order.setStatus(OrderStatus.AT_WAREHOUSE_PENDING_ADMIN);
+            // DIRECT: seller giao thẳng — buyer chờ seller.
+            // WAREHOUSE (xe đã CERTIFIED trên sàn): coi như vận hành tại kho — buyer thấy trạng thái kho (FE: order.statusAT_WAREHOUSE_*),
+            // không còn nhãn "chờ seller gửi xe". Admin xác nhận giao từ kho → SHIPPING.
+            if (order.getFulfillmentType() == OrderFulfillmentType.WAREHOUSE) {
+                order.setStatus(OrderStatus.AT_WAREHOUSE_PENDING_ADMIN);
+            } else {
+                order.setStatus(OrderStatus.PENDING_SELLER_SHIP);
+            }
         }
         orderRepository.save(order);
     }
@@ -165,5 +246,30 @@ public class PaymentController {
         seller.setSubscriptionPlan(plan);
         seller.setSubscriptionExpiresAt(LocalDateTime.now().plusDays(30));
         userRepository.save(seller);
+    }
+
+    private String buildBuyerReturnRedirect(Long orderId, String txnRef, String responseCode, boolean ok) {
+        String base = frontendBaseUrl == null ? "http://localhost:5173" : frontendBaseUrl.replaceAll("/+$", "");
+        String listingId = "";
+        String orderIdText = "";
+        if (orderId != null) {
+            orderIdText = String.valueOf(orderId);
+            listingId = orderRepository.findById(orderId)
+                .map(o -> String.valueOf(o.getListing().getId()))
+                .orElse("");
+        }
+        String txn = txnRef == null ? "" : txnRef;
+        String rc = responseCode == null ? "" : responseCode;
+        return base
+            + "/payment/vnpay-result?gate=buyer"
+            + "&ok=" + (ok ? "1" : "0")
+            + "&orderId=" + encode(orderIdText)
+            + "&listingId=" + encode(listingId)
+            + "&orderCode=" + encode(txn)
+            + "&vnp_ResponseCode=" + encode(rc);
+    }
+
+    private String encode(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 }

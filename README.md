@@ -1,10 +1,8 @@
-# Bike Trading — ShopBike (BE2 + Frontend)
+# Bike Trading — ShopBike (Frontend)
 
-Repo **nhánh mặc định BE2** gồm backend **Spring Boot** (Java) và frontend **React + Vite** (đồng bộ từ nhánh `demo`).
+Nhánh **`front-only`** chỉ chứa **React + Vite** (ShopBike). **Không** có mã backend trong repo này.
 
-**Monorepo:** cùng thư mục `src/` — **Vite/React** (`src/app/`, `src/features/`, `src/pages/`, …) và **Spring** (`src/main/java/`, `src/main/resources/`). Maven/IDE dùng `src/main/java`; Vite bundle phần TypeScript/TSX ở `src/` (không đụng Java).
-
-**Backend Spring chuẩn team — nhánh `Bespring`:** mã nguồn Java/API cập nhật theo [bike-trading-backend @ **Bespring**](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) (cùng remote GitHub). Trên remote, nhánh `Bespring` là cây Maven **chỉ backend**; nhánh làm frontend (ví dụ `quydu12`) có thể là monorepo FE + `pom.xml` — khi đồng bộ Spring, lấy thay đổi từ `Bespring` (merge/cherry-pick/worktree). **Không** checkout `Bespring` đè lên thư mục đang làm React nếu bạn không dùng worktree — sẽ mất cây Vite. Cách an toàn: `git fetch origin && git worktree add ../bike-trading-bespring Bespring`, mở thư mục mới trong IntelliJ để chạy API; FE giữ nguyên repo hiện tại với `VITE_API_BASE_URL=http://localhost:8081/api`.
+**API / Spring Boot:** dùng nhánh [**`Bespring`**](https://github.com/cu3vt123/bike-trading-backend/tree/Bespring) trên cùng remote — clone hoặc `git worktree` riêng (ví dụ `git fetch origin && git worktree add ../bike-trading-bespring Bespring`). Trong thư mục FE, trỏ `VITE_API_BASE_URL` tới cổng API local (thường `http://localhost:8081/api`).
 
 ---
 
@@ -14,7 +12,7 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 
 ### Bước dùng chung (mọi cách chạy)
 
-1. Làm việc ở **thư mục gốc repo** (có `package.json` và `pom.xml` nếu dùng Spring).
+1. Làm việc ở **thư mục gốc repo** (có `package.json`).
 2. Cài **Node.js LTS** (khuyến nghị v20+). Kiểm tra: `node -v`, `npm -v`.
 3. **`npm install`** ở root — **chạy lại sau mỗi lần `git pull`** nếu đồng đội thêm dependency.
 4. Tạo **`.env`** từ mẫu:
@@ -22,19 +20,12 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
    - Windows CMD: `copy .env.example .env`
    - PowerShell: `Copy-Item .env.example .env`
 
-### Chọn một trong ba kịch bản
+### Chọn một trong hai kịch bản
 
 | Kịch bản | Backend | Trong `.env` (root) | Lệnh chính |
 |----------|---------|---------------------|------------|
 | **A — FE + mock** | Không cần | `VITE_USE_MOCK_API=true` | `npm run dev` |
-| **B — FE + API Node** | [backend/README.md](backend/README.md): `cd backend` → `npm install` → `npm run dev` (cổng thường **8081**) | `VITE_API_BASE_URL=http://localhost:8081/api`, `VITE_USE_MOCK_API=false` | Hai terminal: backend + `npm run dev` |
-| **C — FE + Spring** | MySQL bật; DB/user khớp `src/main/resources/application.properties`; Run `BikeTradingBackendApplication` hoặc `mvn spring-boot:run` | Giống cột B | Hai terminal: Spring + `npm run dev` |
-
-**Hướng dẫn backend từng bước (Node vs Spring, xử lý cổng trùng, sau `git pull`):** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md).  
-**Code & env Node chi tiết:** [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md).  
-**Spring Boot (IntelliJ) + MySQL, contract API, CORS:** [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md).
-
-> **Cảnh báo:** Không chạy đồng thời **Node** và **Spring** trên **cùng cổng 8081**. Tắt một bên hoặc đổi cổng + cập nhật `VITE_API_BASE_URL`.
+| **B — FE + API (Spring)** | Nhánh **`Bespring`** (worktree/clone riêng) — xem [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md) | `VITE_API_BASE_URL=http://localhost:8081/api`, `VITE_USE_MOCK_API=false` | Hai terminal: API + `npm run dev` |
 
 ---
 
@@ -43,17 +34,16 @@ Mục tiêu: **vừa clone/pull về là chạy được** — không bỏ sót 
 1. [Sau khi clone hoặc pull (setup)](#sau-khi-clone-hoặc-pull-setup)
 2. [Bắt đầu nhanh (Frontend)](#bắt-đầu-nhanh-frontend)
 3. [Yêu cầu môi trường](#yêu-cầu-môi-trường)
-4. [Dành cho Backend (Java Spring Boot, IntelliJ)](#dành-cho-backend-java-spring-boot-intellij)
-5. [Gợi ý tài liệu cho AI (Backend, Frontend, QA)](#readme-ai-context-team)
-6. [Phần A — Backend Spring Boot (BE2)](#phần-a--backend-spring-boot-be2)
-7. [Phần B — ShopBike Frontend (chi tiết)](#phần-b--shopbike-frontend-chi-tiết)
-8. [Biến môi trường Frontend](#biến-môi-trường-frontend)
-9. [Lệnh npm & chất lượng](#lệnh-npm--chất-lượng)
-10. [Luồng làm việc hàng ngày (dev)](#luồng-làm-việc-hàng-ngày-dev)
-11. [Xử lý sự cố thường gặp](#xử-lý-sự-cố-thường-gặp)
-12. [Bản đồ tài liệu (`docs/`)](#bản-đồ-tài-liệu-docs)
-13. [Lộ trình đọc cho người mới](#lộ-trình-đọc-cho-người-mới)
-14. [Thay đổi gần đây](#thay-đổi-gần-đây)
+4. [Chạy API backend (nhánh Bespring)](#chạy-api-backend-nhánh-bespring)
+5. [Gợi ý tài liệu cho AI (Frontend, QA)](#readme-ai-context-team)
+6. [Phần B — ShopBike Frontend (chi tiết)](#phần-b--shopbike-frontend-chi-tiết)
+7. [Biến môi trường Frontend](#biến-môi-trường-frontend)
+8. [Lệnh npm & chất lượng](#lệnh-npm--chất-lượng)
+9. [Luồng làm việc hàng ngày (dev)](#luồng-làm-việc-hàng-ngày-dev)
+10. [Xử lý sự cố thường gặp](#xử-lý-sự-cố-thường-gặp)
+11. [Bản đồ tài liệu (`docs/`)](#bản-đồ-tài-liệu-docs)
+12. [Lộ trình đọc cho người mới](#lộ-trình-đọc-cho-người-mới)
+13. [Thay đổi gần đây](#thay-đổi-gần-đây)
 
 ---
 
@@ -79,8 +69,6 @@ npm run dev
 
 Mở trình duyệt: **http://localhost:5173** (hoặc cổng Vite in ra trong terminal).
 
-**Mở được trang mà không gọi được API:** kiểm tra BE đang chạy, `.env` (`VITE_USE_MOCK_API`, `VITE_API_BASE_URL`), restart `npm run dev`, lỗi CORS trong DevTools — xem [docs/FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be](docs/FRONTEND-DEVELOPER-GUIDE.md#fe-ket-noi-be).
-
 ---
 
 ## Yêu cầu môi trường
@@ -89,87 +77,26 @@ Mở trình duyệt: **http://localhost:5173** (hoặc cổng Vite in ra trong t
 |------------|---------|
 | **Node.js** | Bản LTS (v20+ khuyến nghị) — để chạy `npm`, Vite |
 | **npm** | Đi kèm Node |
-| **Java** | JDK 24 (khi chạy Spring trong repo) |
-| **MySQL** | Khi chạy Spring với DB thật (xem phần A) |
+| **Java / MySQL** | Chỉ khi bạn **tự chạy API** từ nhánh `Bespring` (xem mục dưới) — không bắt buộc cho `npm run dev` + mock |
 | **Trình duyệt** | Chrome/Edge/Firefox để kiểm tra DevTools, React Query |
 
 ---
 
-## Dành cho Backend (Java Spring Boot, IntelliJ)
+## Chạy API backend (nhánh Bespring)
 
-Mục này dành cho **dev backend Java / Spring Boot**: chạy API trong **IntelliJ IDEA** (hoặc `mvn`), rồi chạy Vite để FE gọi API thật. **Nguồn backend đang theo nhánh `Bespring`** (xem khối ngay dưới phần đầu README). Nếu clone monorepo có sẵn `pom.xml` + `package.json`, mở **cùng thư mục gốc**; nếu tách repo/worktree `Bespring`, mở thư mục đó cho Maven và giữ FE ở repo Vite riêng — cùng cổng **8081** và cùng `VITE_API_BASE_URL`.
+**Hướng dẫn đầy đủ cho dev FE:** [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md) (worktree/clone, Swagger, `VITE_API_BASE_URL`, CORS).
 
-### Bạn cần đọc gì (tóm tắt)
+**Bảng path API / role / env khi code:** [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md).
 
-| Nhu cầu | Tài liệu | Ghi chú |
-|---------|----------|---------|
-| **Cài repo, MySQL, IntelliJ, chạy Spring + FE từng bước** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Sau `clone` / `git pull`, cổng 8081, xử lý trùng cổng với Node. |
-| **Spring Boot + MySQL** (IntelliJ, map endpoint, JWT, enum, VNPay, CORS) | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | Hợp đồng API + ERD/SQL; `backend/` (Express) chỉ tham chiếu HTTP tùy chọn. |
-| **API mà FE gọi** (theo nhóm / theo màn) | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Tránh lệch method/path so với `src/apis/`. |
-| **Nghiệp vụ & rule** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Không chỉ nằm trong entity — đọc khi sửa luồng đơn, thanh toán, kiểm định. |
-| **Schema DB / ERD** | [docs/ERD-SPEC.md](docs/ERD-SPEC.md), [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | 17 bảng chính; JPA/Hibernate cần khớp đặc tả. |
-| **VNPay & thanh toán** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Return URL, IPN, khớp với `order_payment` / `vnpay_transaction_log`. |
-| **Làm việc chung PM/QA/FE** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ, mẫu ticket — khi BE không phải đọc hết doc FE. |
-| **Backend Node (demo, đối chiếu)** | [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md) | Chỉ khi cần chạy/so sánh với Node — **không** chạy đồng thời cùng cổng Spring. |
-| **Gửi tài liệu cho AI (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) | Backend / Frontend / QA: gói file, thứ tự, mẫu prompt — [mục lục](#readme-ai-context-team). Dev backend: [mục A.7 — tóm tắt Spring](docs/AI-CONTEXT-for-TEAM.md#phan-a7-backend-ai). |
-
-### Luồng gợi ý: clone FE về máy → chạy Spring (IntelliJ) → chạy FE
-
-1. **Clone** repo về máy, `cd` vào thư mục gốc (có `pom.xml` và `package.json`).
-2. **MySQL** bật; tạo database **trùng tên** trong `spring.datasource.url` ([Phần A](#phần-a--backend-spring-boot-be2) và `application.properties`).
-3. **IntelliJ:** *File → Open* chọn thư mục gốc repo (Maven project). Đợi import Maven xong. Mở `BikeTradingBackendApplication.java` → *Run* (hoặc *Debug*). Hoặc terminal: `mvn spring-boot:run` tại root.
-4. Kiểm tra API: [Swagger UI](http://localhost:8081/swagger-ui/index.html) (cổng xem lại `server.port`).
-5. **Frontend (terminal khác, cùng thư mục gốc):** `cp .env.example .env` → trong `.env` đặt `VITE_API_BASE_URL=http://localhost:8081/api`, `VITE_USE_MOCK_API=false` → `npm install` → `npm run dev` → mở **http://localhost:5173**.
-
-Nếu kẹt CORS, cổng, hoặc sau `git pull`: xem [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) và [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) (Auth, env).
-
-**Mục lục đầy đủ trong `docs/`:** [docs/README.md](docs/README.md) (có nhóm **Backend** và **AI: gợi ý tài liệu cho cả team**).
+**Mục lục tài liệu trong `docs/`:** [docs/README.md](docs/README.md).
 
 ---
 
 <a id="readme-ai-context-team"></a>
 
-## Gợi ý tài liệu cho AI (Backend, Frontend, QA)
+## Gợi ý tài liệu cho AI (Frontend, QA)
 
-Khi nhờ **một AI khác** (Gemini, ChatGPT, Claude, …) đọc repo và trả lời, **đừng** chỉ nói miệng “đọc project giúp” — nên đính kèm **gói tài liệu** theo **vai** (dev backend, dev frontend, tester/QA) và theo thứ tự trong bài hướng dẫn.
-
-**Hướng dẫn chi tiết (một file cho cả team):** [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md) — bối cảnh chung copy-paste; **Phần A** Backend; **Phần B** Frontend; **Phần C** QA; bảng tổng hợp; lỗi prompt thường gặp.  
-Trong [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md), **[mục A.7](docs/AI-CONTEXT-for-TEAM.md#phan-a7-backend-ai)** tóm tắt gói đính kèm và ràng buộc Spring/MySQL cho dev backend; chi tiết đầy đủ ở Phần A (A.1–A.6).
-
----
-
-## Phần A — Backend Spring Boot (BE2)
-
-Mã nguồn backend cho Sàn Giao Dịch Xe Đạp Thể Thao. Entry Java: `src/main/java/com/biketrading/backend/BikeTradingBackendApplication.java`. Cổng mặc định thường **8081** — xem `server.port` trong `src/main/resources/application.properties`.
-
-### 1. Cài đặt môi trường
-
-- **Java:** JDK (phiên bản theo `pom.xml` / team — thường 21–24)  
-- **Database:** MySQL — bật service (XAMPP / Windows Service / Docker)  
-- **IDE:** IntelliJ IDEA (khuyến nghị) hoặc VS Code + extension Java  
-- **Maven:** đi kèm IntelliJ hoặc cài riêng để chạy `mvn` từ terminal
-
-### 2. Cách chạy (tóm tắt)
-
-1. Bật MySQL.
-2. Tạo **database trống** — **tên DB** phải khớp `spring.datasource.url` trong `application.properties` (ví dụ `jdbc:mysql://localhost:3306/...` — đoạn sau host là tên DB). Chỉnh **user/password** local cho đúng máy bạn (**không** commit mật khẩu thật).
-3. (Tuỳ chọn) JPA `ddl-auto` thường tạo/cập nhật bảng từ entity — vẫn cần DB đã tồn tại.
-4. Chạy app:
-   - IntelliJ: Run class `BikeTradingBackendApplication`, **hoặc**
-   - Terminal tại root repo: `mvn spring-boot:run`
-5. Thấy log kiểu `Started ... Application` là thành công.
-
-### 3. Swagger UI
-
-**[http://localhost:8081/swagger-ui/index.html](http://localhost:8081/swagger-ui/index.html)**
-
-### 4. Tài khoản test (mẫu)
-
-| Vai trò | Username | Password | Ghi chú |
-| :--- | :--- | :--- | :--- |
-| **Seller** | `shop_danang_vip` | `123` | Shop Đà Nẵng |
-| **Buyer** | `buyer_tuan` | `123` | Test mua hàng |
-| **Admin** | `admin` | `123` | Quản trị |
+Khi nhờ AI đọc repo, đính kèm gói tài liệu theo vai: **[docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md)** (Phần B Frontend, Phần C QA; dev backend dùng repo nhánh `Bespring`).
 
 ---
 
@@ -200,7 +127,7 @@ Không commit file `.env` (chứa URL API cục bộ); `.env.example` là mẫu 
 | Chế độ | `VITE_USE_MOCK_API` | Khi nào dùng |
 |--------|---------------------|--------------|
 | **Mock** | `true` | Phát triển UI nhanh, không cần backend |
-| **API thật** | `false` | Tích hợp Spring Boot hoặc Node demo |
+| **API thật** | `false` | Tích hợp API nhánh `Bespring` — [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md) |
 
 Kết nối **API thật** (Spring ví dụ cổng 8081):
 
@@ -208,8 +135,6 @@ Kết nối **API thật** (Spring ví dụ cổng 8081):
 VITE_API_BASE_URL=http://localhost:8081/api
 VITE_USE_MOCK_API=false
 ```
-
-Backend Node (nếu có trong monorepo) — xem [backend/README.md](backend/README.md) nếu file tồn tại ở repo của bạn.
 
 ### B4. Chạy dev server
 
@@ -295,20 +220,15 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 | Nhóm | File chính | Dùng khi nào |
 |------|------------|----------------|
-| **Backend (Java / Spring / IntelliJ)** | [Mục *Dành cho Backend* ở README này](#dành-cho-backend-java-spring-boot-intellij), [docs/README — Backend](docs/README.md#backend-java-spring-boot-hướng-dẫn--tài-liệu) | Clone repo, chạy Spring + FE, tài liệu port Node→Spring, DB, VNPay |
-| **AI — gói tài liệu (cả team)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md), [README § Gợi ý tài liệu cho AI](#readme-ai-context-team) | BE / FE / QA: đính kèm file nào khi chat với Gemini / ChatGPT / … |
-| **Frontend — hướng dẫn tổng hợp** | [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md) | Một file cho dev FE: route, API, Query, i18n, checklist |
+| **API backend (Bespring)** | [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md) | FE nối API: worktree, `.env`, Swagger |
+| **AI — gói tài liệu (FE, QA)** | [docs/AI-CONTEXT-for-TEAM.md](docs/AI-CONTEXT-for-TEAM.md), [README § Gợi ý tài liệu cho AI](#readme-ai-context-team) | Đính kèm file khi chat với AI |
+| **Frontend — hướng dẫn tổng hợp** | [docs/FRONTEND-DEVELOPER-GUIDE.md](docs/FRONTEND-DEVELOPER-GUIDE.md) | Route, API, Query, i18n, checklist |
 | **Onboard & tra cứu** | [docs/QUICK-REFERENCE.md](docs/QUICK-REFERENCE.md) | API, role, routes, env, order status |
 | **Luồng code FE → API** | [docs/FRONTEND-API-FLOWS.md](docs/FRONTEND-API-FLOWS.md) | axios, services, VNPay, upload |
-| **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, RHF, Zod, refresh, invalidate |
-| **Kiểm tra luồng & API (checklist)** | [docs/FE-ARCHITECTURE-V1-VS-V2.md — Phụ lục §8](docs/FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Lint/typecheck/build, thủ công theo vai, Query |
-| **Cấu trúc thư mục** | [docs/STRUCTURE.md](docs/STRUCTURE.md) | Cây `src/`, import, hooks |
-| **Ship / hardening** | [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) | Checklist trước production |
-| **Rà soát API BE–FE** | [docs/BE-FE-API-AUDIT.md](docs/BE-FE-API-AUDIT.md), [docs/BE-FE-API-AUDIT-BY-PAGE.md](docs/BE-FE-API-AUDIT-BY-PAGE.md) | Theo endpoint / theo màn hình |
-| **Spring + SQL** | [docs/BACKEND-NODE-TO-SPRING-BOOT.md](docs/BACKEND-NODE-TO-SPRING-BOOT.md) | IntelliJ, JPA, contract REST |
-| **Cài đặt backend sau clone/pull** | [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md) | Node vs Spring, cổng, sau `git pull` |
-| **PM / QA / FE + Backend** | [docs/BACKEND-COLLABORATION.md](docs/BACKEND-COLLABORATION.md) | Thuật ngữ chung, mẫu báo bug, ai đọc gì |
-| **ERD / SQL** | [docs/ERD-MYSQL.md](docs/ERD-MYSQL.md), [docs/sql/shopbike_mysql_schema.sql](docs/sql/shopbike_mysql_schema.sql) | Schema DB |
+| **Kiến trúc FE V1 vs V2** | [docs/FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md) | Query, invalidate |
+| **Kiểm tra luồng (checklist)** | [docs/FE-ARCHITECTURE-V1-VS-V2.md — Phụ lục](docs/FE-ARCHITECTURE-V1-VS-V2.md#phu-luc-kiem-tra-luong-api) | Lint/build, invalidate, Network |
+| **Cấu trúc thư mục** | [docs/STRUCTURE.md](docs/STRUCTURE.md) | Cây `src/` |
+| **Ship / hardening** | [docs/PRODUCTION-HARDENING.md](docs/PRODUCTION-HARDENING.md) | Trước production |
 | **Business rules** | [docs/business-rules/BUSINESS-RULES.md](docs/business-rules/BUSINESS-RULES.md) | Quy tắc nghiệp vụ |
 | **VNPay** | [docs/PAYMENTS-VNPAY.md](docs/PAYMENTS-VNPAY.md) | Luồng thanh toán |
 | **Mục lục docs** | [docs/README.md](docs/README.md) | Danh sách file còn lại |
@@ -319,7 +239,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 **Ngày 0 — Chưa quen React / muốn giải thích từ đầu (tùy chọn)**
 
-1. Đọc lần lượt [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) (phần 00 → 09).
+1. Đọc [docs/fe-hoc-tu-dau/README.md](docs/fe-hoc-tu-dau/README.md) (00 → 09), sau đó **bài thực hành** [10 — luồng mua + kiểm định](docs/fe-hoc-tu-dau/10-thuc-hanh-luong-mua-xe-kiem-dinh.md) và [11 — đổi lưới 3→4 cột](docs/fe-hoc-tu-dau/11-thuc-hanh-doi-so-cot-luoi-tailwind.md).
 
 **Ngày 1 — Chạy được & hiểu repo**
 
@@ -341,9 +261,10 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 | Ngày | Nội dung |
 |------|----------|
-| **2026-04-01** | **Docs:** nhánh **`front-only`** đồng bộ gói **`docs/fe-hoc-tu-dau/`** + guides; **BE2** cherry-pick ghi nhận trong CHANGELOG (monorepo). Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
-| **2026-03-30** | **`npm run typecheck`** (`tsc --noEmit`) trong [package.json](package.json); README / HELP / guides nhắc dùng cùng lint + build. **docs/README:** phân loại tài liệu (tránh đọc trùng), mục lục theo nhóm; sửa link trong QUICK-REFERENCE; STRUCTURE ghi chú `CartPage`. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
-| **2026-03-26** | **README:** mục **[Sau khi clone hoặc pull (setup)]** — bảng 3 kịch bản (mock / Node / Spring); cập nhật **Phần A Spring** (DB khớp `application.properties`, `mvn spring-boot:run`). **Mới:** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md); mở rộng [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md). |
+| **2026-04-01** | **`docs/fe-hoc-tu-dau`:** thêm bài **10** (luồng mua + kiểm định trong code), **11** (đổi lưới 3→4 cột); **01–02** và mục lục tập trung **mock / học FE**, backend ghi *tùy chọn*. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
+| **2026-03-31** | **Docs:** repo `front-only` — xóa các `.md` thuần backend trong `docs/`; thêm [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md); rút gọn `docs/README.md`, `AI-CONTEXT-for-TEAM.md`, README gốc. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
+| **2026-03-30** | **`npm run typecheck`** (`tsc --noEmit`) trong [package.json](package.json); README / HELP / guides nhắc dùng cùng lint + build. Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
+| **2026-03-26** | **README:** bổ sung kịch bản mock / Spring; tài liệu backend sau này gom vào nhánh Bespring và *(03-31)* [docs/BACKEND-BESPRING-CHAY-API.md](docs/BACKEND-BESPRING-CHAY-API.md). |
 | **2026-03-26** | **README:** mục lục, hướng dẫn chi tiết FE, biến môi trường, luồng dev, xử lý sự cố, bản đồ docs, lộ trình đọc. **docs/README, HELP,** các guide hỗ trợ onboard (xem [CHANGELOG.md](docs/CHANGELOG.md)). |
 | **2026-03-26** | Docs: mục lục `docs/README.md`; [FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md); cập nhật STRUCTURE, PRODUCTION-HARDENING, QUICK-REFERENCE, CHANGELOG. |
 | **2026-03-15** | Docs: monorepo `src/` (FE + Spring), `.gitignore` `.cursor/`. |

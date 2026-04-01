@@ -1,8 +1,7 @@
 package com.minhyun.quydu_be.controller;
 
-import com.minhyun.quydu_be.dto.ApiResponse;
 import com.minhyun.quydu_be.service.BikeService;
-import java.util.List;
+import com.minhyun.quydu_be.web.RestResponses;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,14 +19,15 @@ public class BikeController {
         this.bikeService = bikeService;
     }
 
+    /** Public listing: body shape { "content": [...] } (ShopBike FE contract). */
     @GetMapping
-    public ResponseEntity<ApiResponse<Map<String, Object>>> listBikes() {
-        List<Map<String, Object>> items = bikeService.listBikes();
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched bikes", Map.of("content", items)));
+    public ResponseEntity<Map<String, Object>> listBikes() {
+        return RestResponses.okContent(bikeService.listBikes());
     }
 
+    /** Single bike: body shape { "data": { ... } }. */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getBike(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Fetched bike", bikeService.getBikeById(id)));
+    public ResponseEntity<Map<String, Object>> getBike(@PathVariable Long id) {
+        return RestResponses.okData(bikeService.getBikeById(id));
     }
 }

@@ -1,7 +1,7 @@
 # Luồng gọi API trên Frontend (ShopBike)
 
 > Hướng dẫn **tầng code**, **luồng nghiệp vụ** và **cách xử lý response/lỗi** khi frontend gọi backend — **gồm phần chi tiết từng bước** (checkout → VNPay → transaction → finalize → success/review).  
-> Bổ sung cho [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) (mapping trang → endpoint) và [QUICK-REFERENCE.md](QUICK-REFERENCE.md) (bảng path tóm tắt).
+> Đọc kèm [QUICK-REFERENCE.md](QUICK-REFERENCE.md) (bảng path) và [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md) (chạy API).
 
 ## Mục lục
 
@@ -24,8 +24,8 @@
 |---------|----------|
 | Chạy FE/BE, env, xử lý sự cố | [README.md](../README.md) |
 | Bảng path API, env, thuật ngữ | [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
-| Từng **trang** gọi API nào | [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md) |
-| Contract BE (Node/Spring) | [BACKEND-NODE-TO-SPRING-BOOT.md](BACKEND-NODE-TO-SPRING-BOOT.md) |
+| Từng **trang** gọi API nào | Mục §5–§7 trong file này; bảng path: [QUICK-REFERENCE.md](QUICK-REFERENCE.md) |
+| Chạy API (Spring) | [BACKEND-BESPRING-CHAY-API.md](BACKEND-BESPRING-CHAY-API.md) |
 | Lỗi API, timeout, 401 | [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md), `src/lib/apiErrors.ts` |
 | Cấu trúc thư mục `src/` | [STRUCTURE.md](STRUCTURE.md) |
 
@@ -247,7 +247,7 @@ sequenceDiagram
 | Inspector | `inspectorApi` — pending listing, **`getListingById`** (GET `/inspector/listings/:id`, tin mọi trạng thái), approve / reject / need-update |
 | Admin | `adminApi` — warehouse pending, confirm warehouse, re-inspection, users, listings, brands, reviews |
 
-Chi tiết từng trang: [BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md).
+Mapping màn → API: mục §7 dưới đây và [QUICK-REFERENCE.md](QUICK-REFERENCE.md).
 
 ---
 
@@ -291,7 +291,7 @@ Luồng nghiệp vụ đầy đủ (kho vs direct): [business-rules/BUSINESS-RUL
 2. Đồng bộ **`services/*`** (mock, unwrap, type).
 3. Cập nhật **types** trong `src/types/*` nếu JSON đổi.
 4. Cập nhật **tài liệu này** (mục 5–6) nếu thay đổi bước UI hoặc thứ tự gọi API.
-5. Ghi lại trong **[BE-FE-API-AUDIT-BY-PAGE.md](BE-FE-API-AUDIT-BY-PAGE.md)** hoặc **[CHANGELOG.md](CHANGELOG.md)** nếu contract thay đổi hành vi.
+5. Ghi lại trong **[CHANGELOG.md](CHANGELOG.md)** (và cập nhật **QUICK-REFERENCE** / mục này) nếu contract thay đổi hành vi.
 
 ---
 

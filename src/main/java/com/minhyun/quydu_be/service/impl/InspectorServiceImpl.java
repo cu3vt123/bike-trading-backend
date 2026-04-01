@@ -76,14 +76,15 @@ public class InspectorServiceImpl implements InspectorService {
 
     @Override
     @Transactional
-    public Map<String, Object> reject(Long id) {
+    public Map<String, Object> reject(Long id, String reason) {
         Listing listing = findListing(id);
         if (listing.getState() != ListingState.PENDING_INSPECTION) {
             throw new BadRequestException("Listing is not pending inspection");
         }
         listing.setInspectionResult("REJECT");
         listing.setState(ListingState.REJECTED);
-        listing.setInspectionNeedUpdateReason("");
+        String r = reason == null ? "" : reason.trim();
+        listing.setInspectionNeedUpdateReason(r.length() > 1000 ? r.substring(0, 1000) : r);
         listingRepository.save(listing);
         return toListingMap(listing);
     }

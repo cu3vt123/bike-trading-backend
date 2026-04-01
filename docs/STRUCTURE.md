@@ -2,14 +2,11 @@
 
 > Tái cấu trúc theo mẫu feature-based, dễ mở rộng.
 
-## Nhánh BE2 (monorepo)
+## Nhánh `front-only` (repo chỉ Frontend)
 
-Cùng thư mục gốc `src/` còn chứa **Spring Boot** (ví dụ `com.biketrading.backend` hoặc `com.minhyun.quydu_be` tùy nhánh):
+Trong repo này **không** có mã Java/Spring dưới `src/`. API chạy từ repo backend (nhánh **`Bespring`**) — xem [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
 
-- `src/main/java/` — mã Java
-- `src/main/resources/` — `application.properties`, …
-
-Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/resources`. Nếu chỉ clone/làm việc **frontend** tách repo, xem nhánh **`front-only`** trên cùng remote — [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
+**Nhánh BE2 (monorepo)** trên cùng remote: cùng thư mục `src/` có thêm Spring ở `src/main/java/`. Khi làm việc trên **front-only**, chỉ cần cây phía dưới.
 
 ## Thư mục chính (phần Frontend trong `src/`)
 
@@ -17,7 +14,7 @@ Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/reso
 src/
 ├── app/                    # App root, router, providers
 │   ├── App.tsx
-│   ├── router.tsx         # createBrowserRouter — không mount `/cart` (component `CartPage` vẫn có trong `pages/`, export qua features/buyer)
+│   ├── router.tsx         # createBrowserRouter (không có route /cart)
 │   └── providers/
 │       ├── index.ts
 │       ├── RouterProvider.tsx

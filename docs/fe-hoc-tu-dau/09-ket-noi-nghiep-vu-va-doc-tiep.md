@@ -64,7 +64,12 @@ Chi tiết: [PRODUCTION-HARDENING.md](../PRODUCTION-HARDENING.md).
 
 ---
 
-## 5. Quay lại đầu bộ học
+## 5. Bài thực hành trong cùng bộ (nên đọc)
+
+- [10-thuc-hanh-luong-mua-xe-kiem-dinh.md](./10-thuc-hanh-luong-mua-xe-kiem-dinh.md) — luồng mua xe có kiểm định / kho: đọc `order.ts`, `TransactionPage`, buyer/seller/admin.
+- [11-thuc-hanh-doi-so-cot-luoi-tailwind.md](./11-thuc-hanh-doi-so-cot-luoi-tailwind.md) — đổi lưới 3 cột → 4 cột (`HomePage` và chỗ tương tự).
+
+## 6. Quay lại đầu bộ học
 
 Mục lục: [README.md](./README.md).
 

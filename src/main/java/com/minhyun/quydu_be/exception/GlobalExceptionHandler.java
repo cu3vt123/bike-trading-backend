@@ -8,6 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import com.minhyun.quydu_be.security.CustomUserDetails;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -47,6 +51,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        String message =
+            "Access denied: endpoint requires role BUYER or ADMIN. Log in with a buyer account to checkout "
+                + "(do not use seller-only or inspector session for this API).";
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null
+            && auth.isAuthenticated()
+            && auth.getPrincipal() instanceof CustomUserDetails ud) {
+            message += " Backend sees role: " + ud.getRole().name()
+                + " (from DB for this access token). If FE shows buyer but this is SELLER, log out and login"
+                + " as buyer, or ensure the client sends the access token from that login.";
+        }
+        return buildResponse(HttpStatus.FORBIDDEN, message, request.getRequestURI());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
+        String msg = ex.getMessage();
+        if (msg != null && msg.startsWith("VNPAY is not configured")) {
+            return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, msg, request.getRequestURI());
+        }
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg == null ? "Illegal state" : msg, request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
