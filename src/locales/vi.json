@@ -519,7 +519,8 @@
     "statsTitle": "Thống kê & Báo cáo hệ thống",
     "statsDesc": "Tổng quan doanh thu, đơn hàng, người dùng. (Tích hợp API sau.)",
     "buyer": "Buyer",
-    "totalOrders": "Tổng đơn hàng"
+    "totalOrders": "Tổng đơn hàng",
+    "tabStats": "Thống kê chung"
   },
   "inspector": {
     "title": "Bảng điều khiển kiểm định viên",
