@@ -11,6 +11,7 @@ Tài liệu ghi nhận các thay đổi chính so với phiên bản trước (s
 | Thay đổi | Chi tiết |
 |----------|----------|
 | **Học FE từ đầu** | Thêm thư mục **`docs/fe-hoc-tu-dau/`** (00–09 + `README`): nền tảng web/React, setup local, luồng `main.tsx` → router, cấu trúc `src/`, guard, API, React Query/Zustand, form/i18n/UI, liên kết nghiệp vụ & tài liệu sâu. Cập nhật **`docs/README.md`**, **`README.md`** (mục lộ trình + bảng bản đồ docs). |
+| **`front-only` ↔ BE2** | Nhánh **`front-only`** đẩy cùng gói tài liệu; **BE2** cherry-pick đồng bộ mô tả trong CHANGELOG/README (monorepo không đổi `STRUCTURE` FE-only). |
 
 ---
 

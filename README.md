@@ -337,6 +337,7 @@ Chi tiết thêm: [HELP.md](HELP.md), [docs/QUICK-REFERENCE.md](docs/QUICK-REFER
 
 | Ngày | Nội dung |
 |------|----------|
+| **2026-04-01** | **Docs:** nhánh **`front-only`** đồng bộ gói **`docs/fe-hoc-tu-dau/`** + guides; **BE2** cherry-pick ghi nhận trong CHANGELOG (monorepo). Chi tiết: [docs/CHANGELOG.md](docs/CHANGELOG.md). |
 | **2026-03-26** | **README:** mục **[Sau khi clone hoặc pull (setup)]** — bảng 3 kịch bản (mock / Node / Spring); cập nhật **Phần A Spring** (DB khớp `application.properties`, `mvn spring-boot:run`). **Mới:** [docs/BACKEND-LOCAL-SETUP.md](docs/BACKEND-LOCAL-SETUP.md); mở rộng [docs/BACKEND-GUIDE.md](docs/BACKEND-GUIDE.md), [backend/README.md](backend/README.md). |
 | **2026-03-26** | **README:** mục lục, hướng dẫn chi tiết FE, biến môi trường, luồng dev, xử lý sự cố, bản đồ docs, lộ trình đọc. **docs/README, HELP,** các guide hỗ trợ onboard (xem [CHANGELOG.md](docs/CHANGELOG.md)). |
 | **2026-03-26** | Docs: mục lục `docs/README.md`; [FE-ARCHITECTURE-V1-VS-V2.md](docs/FE-ARCHITECTURE-V1-VS-V2.md); cập nhật STRUCTURE, PRODUCTION-HARDENING, QUICK-REFERENCE, CHANGELOG. |

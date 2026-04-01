@@ -4,12 +4,12 @@
 
 ## Nhánh BE2 (monorepo)
 
-Cùng thư mục gốc `src/` còn chứa **Spring Boot**:
+Cùng thư mục gốc `src/` còn chứa **Spring Boot** (ví dụ `com.biketrading.backend` hoặc `com.minhyun.quydu_be` tùy nhánh):
 
-- `src/main/java/` — mã Java (`com.biketrading.backend`, …)
-- `src/main/resources/` — `application.properties`, static template, …
+- `src/main/java/` — mã Java
+- `src/main/resources/` — `application.properties`, …
 
-Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/resources`. Backend entry: `BikeTradingBackendApplication.java`.
+Khi refactor FE, **không xóa / không đổi tên** `main/java` và `main/resources`. Nếu chỉ clone/làm việc **frontend** tách repo, xem nhánh **`front-only`** trên cùng remote — [BACKEND-BESPRING-CHAY-API.md](./BACKEND-BESPRING-CHAY-API.md).
 
 ## Thư mục chính (phần Frontend trong `src/`)
 
